@@ -75,7 +75,9 @@ function computeReveal(r, c, placed) {
     }
     return vis;
   } else {
-    // CORRIDOR → ray cast in 4 directions, stop at wall or blocker
+    // CORRIDOR → ray cast in 4 directions, stop at wall or blocker.
+    // Also spread one cell perpendicular to the ray at each step so that
+    // wide corridors (e.g. the double corridor at cols 12-13) are fully visible.
     const vis = new Set([`${r},${c}`]);
     for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
       let [cr, cc] = [r + dr, c + dc];
@@ -84,6 +86,17 @@ function computeReveal(r, c, placed) {
         const k = `${cr},${cc}`;
         if (blockers.has(k)) { vis.add(k); break; }
         vis.add(k);
+        // Lateral spread for wide corridors. Only reveal a perpendicular cell P
+        // if P has a corridor neighbour in the ray direction (forward or backward),
+        // confirming P is part of a parallel corridor — not just a corner cell.
+        for (const [sdr, sdc] of [[dc, dr], [-dc, -dr]]) {
+          const [pr, pc] = [cr + sdr, cc + sdc];
+          if (pr < 0 || pr >= ROWS || pc < 0 || pc >= COLS) continue;
+          const pk = `${pr},${pc}`;
+          if (BOARD[pr][pc] !== C || blockers.has(pk)) continue;
+          if (BOARD[pr + dr]?.[pc + dc] === C || BOARD[pr - dr]?.[pc - dc] === C)
+            vis.add(pk);
+        }
         cr += dr; cc += dc;
       }
     }
