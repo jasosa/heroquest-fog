@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { BOARD, ROWS, COLS } from "./map.js";
+import { makeComputeReveal } from "./reveal.js";
 
 const C = "C";
-const CELL = 40;
+const CELL = 37;
+const computeReveal = makeComputeReveal(BOARD, ROWS, COLS);
 
 // advanced-use-latest: stable ref that always holds the latest value,
 // lets callbacks read current state without listing it as a dependency.
@@ -54,71 +56,7 @@ const PIECES = {
   blocker:  { label: "Blocked Square", icon: "▪",   color: "#455a64", shape: "square",  blocks: true  },
 };
 
-// ═══════════════════════════════════════════════
-//  REVEAL LOGIC
-// ═══════════════════════════════════════════════
-function computeReveal(r, c, placed) {
-  const region = BOARD[r]?.[c];
-  if (!region) return new Set();
-
-  const blockers = new Set(
-    Object.entries(placed)
-      .filter(([, v]) => v.blocks)
-      .map(([k]) => k)
-  );
-
-  if (region !== C) {
-    // ROOM → flood fill within same region, respecting blockers
-    const vis = new Set();
-    const q = [[r, c]];
-    while (q.length) {
-      const [cr, cc] = q.shift();
-      if (cr < 0 || cr >= ROWS || cc < 0 || cc >= COLS) continue;
-      const k = `${cr},${cc}`;
-      if (vis.has(k)) continue;
-      if (BOARD[cr][cc] !== region) continue;
-      if (blockers.has(k)) continue;
-      vis.add(k);
-      for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]])
-        q.push([cr + dr, cc + dc]);
-    }
-    return vis;
-  } else {
-    // CORRIDOR → for each cardinal direction, collect all parallel starting cells
-    // (the clicked cell + adjacent corridor cells that form a wide corridor), then
-    // cast an independent ray from each. This means each lane of a wide corridor
-    // is traced separately, so a blocker in one lane never stops the other lane.
-    const vis = new Set([`${r},${c}`]);
-    for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
-      // Starting positions: the hero cell plus any adjacent parallel-corridor cells.
-      // A neighbour qualifies only if it has a corridor cell in the ray direction
-      // (forward or backward), confirming it is part of a wide parallel corridor
-      // rather than just a corner cell at a T-junction.
-      const starts = [[r, c]];
-      for (const [sdr, sdc] of [[dc, dr], [-dc, -dr]]) {
-        const [pr, pc] = [r + sdr, c + sdc];
-        if (pr < 0 || pr >= ROWS || pc < 0 || pc >= COLS) continue;
-        if (BOARD[pr][pc] !== C) continue;
-        if (BOARD[pr + dr]?.[pc + dc] === C || BOARD[pr - dr]?.[pc - dc] === C) {
-          vis.add(`${pr},${pc}`);
-          starts.push([pr, pc]);
-        }
-      }
-      // Cast an independent ray from each starting position.
-      for (const [sr, sc] of starts) {
-        let [cr, cc] = [sr + dr, sc + dc];
-        while (cr >= 0 && cr < ROWS && cc >= 0 && cc < COLS) {
-          if (BOARD[cr][cc] !== C) break;
-          const k = `${cr},${cc}`;
-          if (blockers.has(k)) { vis.add(k); break; }
-          vis.add(k);
-          cr += dr; cc += dc;
-        }
-      }
-    }
-    return vis;
-  }
-}
+// computeReveal is created at module level via makeComputeReveal (see top of file)
 
 // ═══════════════════════════════════════════════
 //  GAME STATE HOOK
@@ -240,18 +178,16 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
   const isWall   = region === null;
   const isFogged = !isEditMode && !isWall && !isRevealed;
 
-  let bg = "#0c0703";
-  if (!isWall) {
-    if (isEditMode)       bg = region === C ? "#1c1008" : (ROOM_COLORS[region]?.revealed || "#2a1a10");
-    else if (isRevealed)  bg = region === C ? "#271809" : (ROOM_COLORS[region]?.revealed || "#3a2010");
-    else                  bg = "#060401";
-  }
+  // Revealed and edit cells are transparent — the board image shows through.
+  // Fogged cells use an opaque dark fill to hide the image underneath.
+  let bg = "transparent";
+  if (!isWall && !isEditMode && !isRevealed) bg = "#060401";
 
-  const borderColor = isWall
-    ? "#100804"
-    : isEditMode || isRevealed
-      ? (ROOM_COLORS[region]?.border || "#3a2718")
-      : "#110803";
+  // Borders are only visible on fogged cells; revealed cells let the
+  // image's own grid lines show through.
+  const borderColor = isEditMode || isRevealed || isWall
+    ? "transparent"
+    : "#110803";
 
   return (
     <div
@@ -272,9 +208,6 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
       onMouseEnter={e => { if (!isWall) e.currentTarget.style.filter = "brightness(1.4)"; }}
       onMouseLeave={e =>  { e.currentTarget.style.filter = "none"; }}
     >
-      {/* Stone texture for revealed / edit cells */}
-      {!isWall && (isRevealed || isEditMode) && STONE_TEXTURE}
-
       {/* Dense fog overlay */}
       {isFogged && FOG_OVERLAY}
 
@@ -303,7 +236,11 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick }) {
       border: "2px solid #6b4c2a",
       boxShadow: "0 0 40px #6b4c2a22, inset 0 0 30px #00000055",
       display: "inline-block",
-      background: "#0c0703",
+      backgroundImage: "url('/board2.png')",
+      backgroundSize: `${COLS * CELL + 2}px ${ROWS * CELL + 2}px`,
+      backgroundPosition: "0 0",
+      backgroundRepeat: "no-repeat",
+      overflow: "hidden",
       lineHeight: 0,
     }}>
       {BOARD.map((row, r) => (
