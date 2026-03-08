@@ -1,34 +1,34 @@
 import { useState, useEffect, useCallback } from "react";
+import { BOARD, ROWS, COLS } from "./map.js";
+
+const C = "C";
 
 // ═══════════════════════════════════════════════
-//  BOARD DATA  (demo layout — 16 cols × 12 rows)
-//  null = inaccessible wall/void
-//  'C'  = corridor
-//  'R1'–'R4' = named rooms
+//  ROOM COLORS  (real board — R1–R22)
 // ═══════════════════════════════════════════════
-const ROWS = 12, COLS = 16;
-const W = null, C = "C";
-
-const BOARD = [
-  [W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W],
-  [W,"R1","R1","R1", C, W, W, W, W, W, W, C,"R2","R2","R2", W],
-  [W,"R1","R1","R1", C, W, W, W, W, W, W, C,"R2","R2","R2", W],
-  [W,"R1","R1","R1", C, W, W, W, W, W, W, C,"R2","R2","R2", W],
-  [W, W, W, W, C, W, W, W, W, W, W, C, W, W, W, W],
-  [C, C, C, C, C, C, C, C, C, C, C, C, C, C, C, C],
-  [W, W, W, W, C, W, W, W, W, W, W, C, W, W, W, W],
-  [W,"R3","R3","R3", C, W, W, W, W, W, W, C,"R4","R4","R4", W],
-  [W,"R3","R3","R3", C, W, W, W, W, W, W, C,"R4","R4","R4", W],
-  [W,"R3","R3","R3", C, W, W, W, W, W, W, C,"R4","R4","R4", W],
-  [W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W],
-  [W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W],
-];
-
 const ROOM_COLORS = {
-  R1: { revealed: "#2a1e14", border: "#4a3020" },
-  R2: { revealed: "#14202a", border: "#20404a" },
-  R3: { revealed: "#142a18", border: "#20422a" },
-  R4: { revealed: "#2a141e", border: "#4a2030" },
+  R1:  { revealed: "#2a1e14", border: "#4a3020" },
+  R2:  { revealed: "#14202a", border: "#204048" },
+  R3:  { revealed: "#1a0e1e", border: "#381838" },
+  R4:  { revealed: "#1e150a", border: "#3a2a14" },
+  R5:  { revealed: "#0e1a10", border: "#183020" },
+  R6:  { revealed: "#1a1a0a", border: "#303214" },
+  R7:  { revealed: "#14101e", border: "#282038" },
+  R8:  { revealed: "#1e0e14", border: "#381828" },
+  R9:  { revealed: "#0a1a18", border: "#143430" },
+  R10: { revealed: "#1e180a", border: "#3a3014" },
+  R11: { revealed: "#0a1018", border: "#142030" },
+  R12: { revealed: "#1e1a0a", border: "#3a3414" },
+  R13: { revealed: "#0a0a1e", border: "#141438" },
+  R14: { revealed: "#1a0a10", border: "#341420" },
+  R15: { revealed: "#101e0a", border: "#203814" },
+  R16: { revealed: "#0a1a1a", border: "#143434" },
+  R17: { revealed: "#1a0a0a", border: "#341414" },
+  R18: { revealed: "#1e141a", border: "#382830" },
+  R19: { revealed: "#0a1e0a", border: "#143814" },
+  R20: { revealed: "#14100e", border: "#28201c" },
+  R21: { revealed: "#1e0a1e", border: "#381438" },
+  R22: { revealed: "#0a1418", border: "#142830" },
 };
 
 // ═══════════════════════════════════════════════
@@ -82,7 +82,7 @@ function computeReveal(r, c, placed) {
       while (cr >= 0 && cr < ROWS && cc >= 0 && cc < COLS) {
         if (BOARD[cr][cc] !== C) break;
         const k = `${cr},${cc}`;
-        if (blockers.has(k)) break;
+        if (blockers.has(k)) { vis.add(k); break; }
         vis.add(k);
         cr += dr; cc += dc;
       }
@@ -297,7 +297,7 @@ export default function HeroQuestFog() {
         </div>
 
         <div style={{ fontSize: 10, color: "#3a2010", letterSpacing: 1 }}>
-          DEMO BOARD · 4 ROOMS + CORRIDORS · FULL HEROQUEST MAP NEXT
+          HEROQUEST BOARD · 22 ROOMS · 26×19
         </div>
       </div>
 
@@ -371,16 +371,18 @@ export default function HeroQuestFog() {
             <div style={{ marginTop: 8, fontSize: 9, color: "#3a2010", lineHeight: 1.8 }}>
               <div style={{ color: "#5a3010", marginBottom: 4, letterSpacing: 2, textTransform: "uppercase" }}>Legend</div>
               {[
-                { color: "#2a1e14", label: "Room R1 (revealed)" },
-                { color: "#14202a", label: "Room R2 (revealed)" },
-                { color: "#142a18", label: "Room R3 (revealed)" },
-                { color: "#2a141e", label: "Room R4 (revealed)" },
                 { color: "#271809", label: "Corridor (revealed)" },
                 { color: "#060401", label: "Unexplored" },
               ].map(({ color, label }) => (
                 <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 10, height: 10, background: color, border: "1px solid #3a2010", flexShrink: 0 }} />
                   {label}
+                </div>
+              ))}
+              {Object.entries(ROOM_COLORS).map(([id, { revealed }]) => (
+                <div key={id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 10, height: 10, background: revealed, border: "1px solid #3a2010", flexShrink: 0 }} />
+                  {id} (revealed)
                 </div>
               ))}
             </div>
@@ -439,8 +441,8 @@ export default function HeroQuestFog() {
           fontSize: 9, color: "#2a1810", lineHeight: 1.8,
           textAlign: "center",
         }}>
-          v0.1 — Demo board<br />
-          Full HeroQuest map · next step
+          v0.2 — Real HeroQuest board<br />
+          22 rooms · quest editor next
         </div>
       </div>
     </div>
