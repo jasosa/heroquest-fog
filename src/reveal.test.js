@@ -187,6 +187,51 @@ describe("double-wide corridor reveal (independent lanes)", () => {
   });
 });
 
+// ─── Multi-cell blockers (coveredCells) ──────────────────────────────────────
+
+describe("multi-cell blocker (coveredCells)", () => {
+  // Helper: a 2-cell blocking piece whose coveredCells are explicitly stored.
+  const multiBlocker = (anchorKey, ...extraCells) => ({
+    [anchorKey]: { type: "blocker", blocks: true, coveredCells: [anchorKey, ...extraCells] },
+  });
+
+  it("blocks the ray at every covered cell, not just the anchor", () => {
+    // 2-cell horizontal blocker at (4,3)-(4,4) in the double corridor.
+    // Hero at (6,3) looking up: ray in col-3 should stop at (4,3) and ray in
+    // col-4 should stop at (4,4) — both covered cells are visible.
+    const vis = reveal(6, 3, multiBlocker("4,3", "4,4"));
+
+    // Both covered cells are visible (the blocker is shown)
+    expect(vis.has("4,3")).toBe(true);
+    expect(vis.has("4,4")).toBe(true);
+
+    // Nothing beyond either covered cell is visible
+    expect(vis.has("3,3")).toBe(false);
+    expect(vis.has("3,4")).toBe(false);
+  });
+
+  it("legacy single-cell blocker (no coveredCells) still works via fallback", () => {
+    // Placed entry without coveredCells — falls back to [anchorKey]
+    const vis = reveal(6, 3, { "4,3": { type: "blocker", blocks: true } });
+    expect(vis.has("4,3")).toBe(true);
+    expect(vis.has("3,3")).toBe(false);
+    // col-4 is unaffected — no coveredCells means only anchor blocks
+    expect(vis.has("4,4")).toBe(true);
+    expect(vis.has("3,4")).toBe(false); // col-4 stops at R2 boundary
+  });
+
+  it("non-blocking piece with coveredCells does not block visibility", () => {
+    const chest = (anchorKey, ...extra) => ({
+      [anchorKey]: { type: "chest", blocks: false, coveredCells: [anchorKey, ...extra] },
+    });
+    const vis = reveal(6, 3, chest("4,3", "4,4"));
+    // Chest doesn't block — ray continues past it
+    expect(vis.has("4,3")).toBe(true);
+    expect(vis.has("3,3")).toBe(true);
+    expect(vis.has("2,3")).toBe(true);
+  });
+});
+
 // ─── Edge cases ──────────────────────────────────────────────────────────────
 
 describe("edge cases", () => {

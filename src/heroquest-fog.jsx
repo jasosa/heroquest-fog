@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef, memo } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 import { BOARD, ROWS, COLS } from "./map.js";
 import { makeComputeReveal } from "./reveal.js";
+import { rotateCells, getDistinctRotations, getCoveredCellKeys } from "./pieceGeometry.js";
 
 const C = "C";
 const CELL = 37;
@@ -74,15 +75,15 @@ const PIECE_CATEGORIES = [
     id: "furniture", label: "Furniture",
     pieces: [
       { id: "chest",        label: "Chest",           icon: "Ch", color: "#ffa726", shape: "square",  blocks: false },
-      { id: "bookcase",     label: "Bookcase",        icon: "Bk", color: "#795548", shape: "square",  blocks: true  },
-      { id: "table",        label: "Table",           icon: "Tb", color: "#8d6e63", shape: "square",  blocks: false },
-      { id: "throne",       label: "Throne",          icon: "Th", color: "#ffd54f", shape: "square",  blocks: false },
-      { id: "fireplace",    label: "Fireplace",       icon: "Fi", color: "#ff6f00", shape: "square",  blocks: true  },
-      { id: "cupboard",     label: "Cupboard",        icon: "Cu", color: "#6d4c41", shape: "square",  blocks: false },
-      { id: "alchemist",    label: "Alchemist's Bench",icon: "Al",color: "#80cbc4", shape: "square",  blocks: false },
-      { id: "rack",         label: "Rack",            icon: "Rk", color: "#546e7a", shape: "square",  blocks: false },
-      { id: "tomb",         label: "Tomb",            icon: "To", color: "#455a64", shape: "square",  blocks: false },
-      { id: "weaponsrack",  label: "Weapons Rack",    icon: "Wr", color: "#607d8b", shape: "square",  blocks: false },
+      { id: "bookcase",     label: "Bookcase",         icon: "Bk", color: "#795548", shape: "square",  blocks: true,  cells: [[0,0],[0,1],[0,2]] },
+      { id: "table",        label: "Table",            icon: "Tb", color: "#8d6e63", shape: "square",  blocks: false, cells: [[0,0],[0,1]] },
+      { id: "throne",       label: "Throne",           icon: "Th", color: "#ffd54f", shape: "square",  blocks: false, cells: [[0,0],[0,1]] },
+      { id: "fireplace",    label: "Fireplace",        icon: "Fi", color: "#ff6f00", shape: "square",  blocks: true,  cells: [[0,0],[0,1]] },
+      { id: "cupboard",     label: "Cupboard",         icon: "Cu", color: "#6d4c41", shape: "square",  blocks: false, cells: [[0,0],[0,1]] },
+      { id: "alchemist",    label: "Alchemist's Bench",icon: "Al", color: "#80cbc4", shape: "square",  blocks: false, cells: [[0,0],[0,1]] },
+      { id: "rack",         label: "Rack",             icon: "Rk", color: "#546e7a", shape: "square",  blocks: false, cells: [[0,0],[0,1]] },
+      { id: "tomb",         label: "Tomb",             icon: "To", color: "#455a64", shape: "square",  blocks: false, cells: [[0,0],[0,1]] },
+      { id: "weaponsrack",  label: "Weapons Rack",     icon: "Wr", color: "#607d8b", shape: "square",  blocks: false, cells: [[0,0],[0,1],[0,2]] },
     ],
   },
   {
@@ -90,7 +91,7 @@ const PIECE_CATEGORIES = [
     pieces: [
       { id: "start",        label: "Hero Start",      icon: "⚔", color: "#f0c040", shape: "diamond", blocks: false },
       { id: "door",         label: "Secret Door",     icon: "SD", color: "#9c6b2e", shape: "square",  blocks: false },
-      { id: "stairs",       label: "Stairs",          icon: "St", color: "#90a4ae", shape: "square",  blocks: false },
+      { id: "stairs",       label: "Stairs",           icon: "St", color: "#90a4ae", shape: "square",  blocks: false, cells: [[0,0],[0,1],[1,0],[1,1]] },
       { id: "blocker",      label: "Blocked Square",  icon: "▪",  color: "#455a64", shape: "square",  blocks: true  },
     ],
   },
@@ -104,6 +105,8 @@ const PIECES = Object.fromEntries(
 
 // computeReveal is created at module level via makeComputeReveal (see top of file)
 
+// Geometry utilities imported from pieceGeometry.js
+
 // ═══════════════════════════════════════════════
 //  GAME STATE HOOK
 // ═══════════════════════════════════════════════
@@ -114,16 +117,22 @@ function useGameState() {
   const [placed, setPlaced]       = useState({});
   const [mode, setMode]           = useState("play");
   const [tool, setTool]           = useState("goblin");
+  const [rotation, setRotation]   = useState(0);
   const [lastClick, setLastClick] = useState(null);
 
   // advanced-use-latest: stable refs so handleCell needs no dependencies.
-  const placedRef = useLatest(placed);
-  const modeRef   = useLatest(mode);
-  const toolRef   = useLatest(tool);
+  const placedRef   = useLatest(placed);
+  const modeRef     = useLatest(mode);
+  const toolRef     = useLatest(tool);
+  const rotationRef = useLatest(rotation);
+
+  // Selecting a new tool always resets rotation to 0.
+  const handleSetTool = useCallback((newTool) => {
+    setTool(newTool);
+    setRotation(0);
+  }, []);
 
   // Auto-reveal Hero Start positions when entering play mode.
-  // placedRef lets us read current placed without it being a dependency
-  // (effect fires only on mode change, not on every piece placement).
   useEffect(() => {
     if (mode !== "play") return;
     const currentPlaced = placedRef.current;
@@ -141,19 +150,31 @@ function useGameState() {
     });
   }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // rerender-functional-setstate + advanced-use-latest: reading mode/tool/placed
-  // from refs removes all dependencies, making handleCell a stable reference
-  // that never causes child re-renders.
   const handleCell = useCallback((r, c) => {
     const region = BOARD[r]?.[c];
     if (!region) return;
     const k = `${r},${c}`;
     if (modeRef.current === "edit") {
-      const currentTool = toolRef.current;
+      const currentTool     = toolRef.current;
+      const currentRotation = rotationRef.current;
+      const piece           = PIECES[currentTool];
       setPlaced(prev => {
         const next = { ...prev };
-        if (next[k]?.type === currentTool) delete next[k];
-        else next[k] = { type: currentTool, blocks: PIECES[currentTool].blocks };
+        // Click on any cell covered by a piece removes it.
+        const coveringAnchor = Object.keys(next).find(ak =>
+          (next[ak].coveredCells ?? [ak]).includes(k)
+        );
+        if (coveringAnchor) {
+          delete next[coveringAnchor];
+        } else {
+          // Place new piece; reject if any covered cell is already occupied.
+          const coveredCells = getCoveredCellKeys(r, c, piece.cells, currentRotation);
+          const hasOverlap = coveredCells.some(ck =>
+            Object.keys(next).some(ak => (next[ak].coveredCells ?? [ak]).includes(ck))
+          );
+          if (!hasOverlap)
+            next[k] = { type: currentTool, blocks: piece.blocks, rotation: currentRotation, coveredCells };
+        }
         return next;
       });
     } else {
@@ -163,12 +184,35 @@ function useGameState() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleCellRotate = useCallback((r, c) => {
+    const k = `${r},${c}`;
+    setPlaced(prev => {
+      const coveringAnchor = Object.keys(prev).find(ak =>
+        (prev[ak].coveredCells ?? [ak]).includes(k)
+      );
+      if (!coveringAnchor) return prev;
+      const piece    = prev[coveringAnchor];
+      const pieceDef = PIECES[piece.type];
+      if (!pieceDef?.cells) return prev; // 1×1 pieces have nothing to rotate
+      const [ar, ac]      = coveringAnchor.split(",").map(Number);
+      const newRotation   = (piece.rotation + 1) % 4;
+      const newCovered    = getCoveredCellKeys(ar, ac, pieceDef?.cells, newRotation);
+      // Reject if the rotated footprint overlaps a different piece.
+      const otherPieces   = Object.keys(prev).filter(ak => ak !== coveringAnchor);
+      const hasOverlap    = newCovered.some(ck =>
+        otherPieces.some(ak => (prev[ak].coveredCells ?? [ak]).includes(ck))
+      );
+      if (hasOverlap) return prev;
+      return { ...prev, [coveringAnchor]: { ...piece, rotation: newRotation, coveredCells: newCovered } };
+    });
+  }, []);
+
   const resetFog = useCallback(() => {
     setFog(new Set());
     setLastClick(null);
   }, []);
 
-  return { fog, placed, mode, tool, lastClick, setMode, setTool, handleCell, resetFog };
+  return { fog, placed, mode, tool, rotation, setRotation, lastClick, setMode, setTool: handleSetTool, handleCell, handleCellRotate, resetFog };
 }
 
 // ═══════════════════════════════════════════════
@@ -220,7 +264,9 @@ const FOG_OVERLAY = (
 //  BOARD CELL COMPONENT
 // ═══════════════════════════════════════════════
 // rerender-memo: cells only re-render when their own props change.
-const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode, isLastClick, elem, onClick }) {
+// coverage — the placed entry whose footprint includes this cell (or undefined)
+// isAnchor — true only for the anchor cell of a multi-cell piece (token goes here)
+const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode, isLastClick, coverage, isAnchor, onClick, onRightClick }) {
   const isWall   = region === null;
   const isFogged = !isEditMode && !isWall && !isRevealed;
 
@@ -229,11 +275,8 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
   let bg = "transparent";
   if (!isWall && !isEditMode && !isRevealed) bg = "#060401";
 
-  // Borders are only visible on fogged cells; revealed cells let the
-  // image's own grid lines show through.
-  const borderColor = isEditMode || isRevealed || isWall
-    ? "transparent"
-    : "#110803";
+  const borderColor = isEditMode || isRevealed || isWall ? "transparent" : "#110803";
+  const pieceColor  = coverage ? PIECES[coverage.type]?.color : null;
 
   return (
     <div
@@ -251,21 +294,32 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
         outline: isLastClick && !isEditMode ? "2px solid #c0302066" : "none",
         outlineOffset: "-2px",
       }}
+      onContextMenu={e => { e.preventDefault(); if (!isWall && onRightClick) onRightClick(); }}
       onMouseEnter={e => { if (!isWall) e.currentTarget.style.filter = "brightness(1.4)"; }}
       onMouseLeave={e =>  { e.currentTarget.style.filter = "none"; }}
     >
       {/* Dense fog overlay */}
       {isFogged && FOG_OVERLAY}
 
-      {/* Piece token */}
-      {elem && (isRevealed || isEditMode) && (
-        <div style={{ zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Token type={elem.type} />
+      {/* Piece footprint — coloured tint across all covered cells */}
+      {coverage && (isRevealed || isEditMode) && (
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
+          background: pieceColor + "55",
+          outline: `1px solid ${pieceColor}88`,
+          outlineOffset: "-1px",
+        }} />
+      )}
+
+      {/* Token — only on the anchor cell */}
+      {isAnchor && (isRevealed || isEditMode) && (
+        <div style={{ zIndex: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Token type={coverage.type} />
         </div>
       )}
 
-      {/* Edit-mode coordinate hint */}
-      {isEditMode && !elem && !isWall && (
+      {/* Edit-mode coordinate hint on empty cells */}
+      {isEditMode && !coverage && !isWall && (
         <span style={{ fontSize: 7, color: "#2a1810", zIndex: 2, opacity: 0.6 }}>{r},{c}</span>
       )}
     </div>
@@ -275,15 +329,28 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
 // ═══════════════════════════════════════════════
 //  BOARD GRID COMPONENT
 // ═══════════════════════════════════════════════
-function BoardGrid({ fog, placed, mode, lastClick, onCellClick }) {
+function BoardGrid({ fog, placed, mode, lastClick, onCellClick, onCellRotate }) {
   const isEditMode = mode === "edit";
+
+  // Build a cell-key → {piece, anchorKey} map so each BoardCell knows
+  // whether it is covered and whether it is the anchor.
+  const coverage = useMemo(() => {
+    const map = {};
+    for (const [anchorKey, piece] of Object.entries(placed)) {
+      for (const cellKey of (piece.coveredCells ?? [anchorKey])) {
+        map[cellKey] = { piece, anchorKey };
+      }
+    }
+    return map;
+  }, [placed]);
+
   return (
     <div style={{
       border: "2px solid #6b4c2a",
       boxShadow: "0 0 40px #6b4c2a22, inset 0 0 30px #00000055",
       display: "inline-block",
       backgroundImage: "url('/board2.png')",
-      backgroundSize: `${COLS * CELL}px ${ROWS * CELL}px`,
+      backgroundSize: `${COLS * CELL + 1}px ${ROWS * CELL + 1}px`,
       backgroundPosition: "0 0",
       backgroundRepeat: "no-repeat",
       overflow: "hidden",
@@ -293,6 +360,7 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick }) {
         <div key={r} style={{ display: "flex" }}>
           {row.map((region, c) => {
             const k = `${r},${c}`;
+            const cov = coverage[k];
             return (
               <BoardCell
                 key={c}
@@ -301,8 +369,10 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick }) {
                 isRevealed={fog.has(k)}
                 isEditMode={isEditMode}
                 isLastClick={lastClick === k}
-                elem={placed[k]}
+                coverage={cov?.piece}
+                isAnchor={cov?.anchorKey === k}
                 onClick={() => onCellClick(r, c)}
+                onRightClick={isEditMode && coverage ? () => onCellRotate(r, c) : undefined}
               />
             );
           })}
@@ -315,7 +385,7 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick }) {
 // ═══════════════════════════════════════════════
 //  BOARD AREA (left panel)
 // ═══════════════════════════════════════════════
-function BoardArea({ fog, placed, mode, lastClick, onCellClick }) {
+function BoardArea({ fog, placed, mode, lastClick, onCellClick, onCellRotate }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
@@ -337,12 +407,12 @@ function BoardArea({ fog, placed, mode, lastClick, onCellClick }) {
         border: `1px solid ${mode === "edit" ? "#6b4a10" : "#2a5a2a"}`,
         padding: "3px 12px", marginTop: -6,
       }}>
-        {mode === "edit" ? "✎ Edit Mode — Click to place pieces" : "⚔ Play Mode — Click to reveal"}
+        {mode === "edit" ? "✎ Edit Mode — Click to place · Right-click to rotate" : "⚔ Play Mode — Click to reveal"}
       </div>
 
       <BoardGrid
         fog={fog} placed={placed} mode={mode}
-        lastClick={lastClick} onCellClick={onCellClick}
+        lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
       />
 
       <div style={{ fontSize: 10, color: "#3a2010", letterSpacing: 1 }}>
@@ -487,6 +557,7 @@ function EditPanel({ tool, onSelectTool }) {
         ))}
       </div>
 
+
       <div style={{
         marginTop: 8, padding: "10px 12px",
         background: "#110803", border: "1px solid #2a1810",
@@ -499,6 +570,7 @@ function EditPanel({ tool, onSelectTool }) {
     </>
   );
 }
+
 
 function Sidebar({ mode, tool, setMode, setTool, onReset }) {
   return (
@@ -544,7 +616,7 @@ function Sidebar({ mode, tool, setMode, setTool, onReset }) {
 //  ROOT COMPONENT
 // ═══════════════════════════════════════════════
 export default function HeroQuestFog() {
-  const { fog, placed, mode, tool, lastClick, setMode, setTool, handleCell, resetFog } = useGameState();
+  const { fog, placed, mode, tool, rotation, setRotation, lastClick, setMode, setTool, handleCell, handleCellRotate, resetFog } = useGameState();
 
   return (
     <div style={{
@@ -555,7 +627,7 @@ export default function HeroQuestFog() {
     }}>
       <BoardArea
         fog={fog} placed={placed} mode={mode}
-        lastClick={lastClick} onCellClick={handleCell}
+        lastClick={lastClick} onCellClick={handleCell} onCellRotate={handleCellRotate}
       />
       <Sidebar
         mode={mode} tool={tool}

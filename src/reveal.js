@@ -10,11 +10,13 @@ export function makeComputeReveal(board, rows, cols) {
     const region = board[r]?.[c];
     if (!region) return new Set();
 
-    const blockers = new Set(
-      Object.entries(placed)
-        .filter(([, v]) => v.blocks)
-        .map(([k]) => k)
-    );
+    // Expand multi-cell pieces: a blocking piece blocks every cell it covers,
+    // not just its anchor. coveredCells is stored at placement time.
+    const blockers = new Set();
+    for (const [anchorKey, v] of Object.entries(placed)) {
+      if (!v.blocks) continue;
+      for (const cellKey of (v.coveredCells ?? [anchorKey])) blockers.add(cellKey);
+    }
 
     if (region !== C) {
       // ROOM → flood fill within same region, respecting blockers
