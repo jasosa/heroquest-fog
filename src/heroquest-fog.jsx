@@ -7,6 +7,28 @@ const C = "C";
 const CELL = 37;
 const computeReveal = makeComputeReveal(BOARD, ROWS, COLS);
 
+// ─── Light parchment theme ────────────────────────────────────────────────────
+const T = {
+  pageBg:        "#e8d8b8",
+  sidebarBg:     "#f0e6d0",
+  sidebarBorder: "#c4a870",
+  title:         "#7a1a0a",
+  text:          "#2a1208",
+  textMuted:     "#5a3010",
+  textFaint:     "#8a6040",
+  accent:        "#8b1a0a",
+  accentGold:    "#7a5a10",
+  btnBg:         "#e0cfae",
+  btnBorder:     "#b09060",
+  btnText:       "#3a2010",
+  btnActiveBg:   "#7a1a0a",
+  btnActiveBdr:  "#9b2a1a",
+  btnActiveText: "#f8eedc",
+  panelBg:       "#e8dcc4",
+  panelBorder:   "#c4a870",
+  divider:       "#c4a070",
+};
+
 // advanced-use-latest: stable ref that always holds the latest value,
 // lets callbacks read current state without listing it as a dependency.
 function useLatest(value) {
@@ -320,7 +342,7 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
 
       {/* Edit-mode coordinate hint on empty cells */}
       {isEditMode && !coverage && !isWall && (
-        <span style={{ fontSize: 7, color: "#2a1810", zIndex: 2, opacity: 0.6 }}>{r},{c}</span>
+        <span style={{ fontSize: 7, color: T.textMuted, zIndex: 2, opacity: 0.5 }}>{r},{c}</span>
       )}
     </div>
   );
@@ -329,7 +351,7 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
 // ═══════════════════════════════════════════════
 //  BOARD GRID COMPONENT
 // ═══════════════════════════════════════════════
-function BoardGrid({ fog, placed, mode, lastClick, onCellClick, onCellRotate }) {
+function BoardGrid({ fog, placed, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
   const isEditMode = mode === "edit";
 
   // Build a cell-key → {piece, anchorKey} map so each BoardCell knows
@@ -346,12 +368,11 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick, onCellRotate }) 
 
   return (
     <div style={{
-      border: "2px solid #6b4c2a",
-      boxShadow: "0 0 40px #6b4c2a22, inset 0 0 30px #00000055",
+      border: "2px solid #c4a870",
+      boxShadow: "0 0 20px #c4a87044",
       display: "inline-block",
-      backgroundImage: "url('/board2.png')",
-      backgroundSize: `${COLS * CELL + 1}px ${ROWS * CELL + 1}px`,
-      backgroundPosition: "0 0",
+      backgroundImage: `url('/${bgImage}.png')`,
+      backgroundSize: "100% 100%",
       backgroundRepeat: "no-repeat",
       overflow: "hidden",
       lineHeight: 0,
@@ -385,7 +406,7 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick, onCellRotate }) 
 // ═══════════════════════════════════════════════
 //  BOARD AREA (left panel)
 // ═══════════════════════════════════════════════
-function BoardArea({ fog, placed, mode, lastClick, onCellClick, onCellRotate }) {
+function BoardArea({ fog, placed, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
@@ -394,8 +415,8 @@ function BoardArea({ fog, placed, mode, lastClick, onCellClick, onCellRotate }) 
     }}>
       <h1 style={{
         margin: 0, fontSize: 20, letterSpacing: 8,
-        color: "#c03020", textTransform: "uppercase",
-        textShadow: "0 0 20px #c0302055, 0 2px 4px #000",
+        color: T.title, textTransform: "uppercase",
+        textShadow: "0 2px 4px #c4a87044",
         fontWeight: "normal",
       }}>
         HeroQuest — Fog of War
@@ -403,8 +424,8 @@ function BoardArea({ fog, placed, mode, lastClick, onCellClick, onCellRotate }) 
 
       <div style={{
         fontSize: 10, letterSpacing: 3, textTransform: "uppercase",
-        color: mode === "edit" ? "#e8a820" : "#70a870",
-        border: `1px solid ${mode === "edit" ? "#6b4a10" : "#2a5a2a"}`,
+        color: mode === "edit" ? T.accentGold : "#2a6a2a",
+        border: `1px solid ${mode === "edit" ? T.accentGold : "#2a6a2a"}`,
         padding: "3px 12px", marginTop: -6,
       }}>
         {mode === "edit" ? "✎ Edit Mode — Click to place · Right-click to rotate" : "⚔ Play Mode — Click to reveal"}
@@ -413,9 +434,10 @@ function BoardArea({ fog, placed, mode, lastClick, onCellClick, onCellRotate }) 
       <BoardGrid
         fog={fog} placed={placed} mode={mode}
         lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
+        bgImage={bgImage}
       />
 
-      <div style={{ fontSize: 10, color: "#3a2010", letterSpacing: 1 }}>
+      <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1 }}>
         HEROQUEST BOARD · 22 ROOMS · 26×19
       </div>
     </div>
@@ -431,9 +453,9 @@ function ModeToggle({ mode, onSetMode }) {
       {["play", "edit"].map(m => (
         <button key={m} onClick={() => onSetMode(m)} style={{
           flex: 1, padding: "8px 0",
-          background: mode === m ? (m === "play" ? "#4a1010" : "#4a3808") : "#110803",
-          color: mode === m ? (m === "play" ? "#ffbbbb" : "#ffe599") : "#6a4020",
-          border: `1px solid ${mode === m ? (m === "play" ? "#8b1a1a" : "#8b6a10") : "#2a1408"}`,
+          background: mode === m ? T.btnActiveBg : T.btnBg,
+          color: mode === m ? T.btnActiveText : T.btnText,
+          border: `1px solid ${mode === m ? T.btnActiveBdr : T.btnBorder}`,
           cursor: "pointer", fontFamily: "inherit", fontSize: 11,
           textTransform: "uppercase", letterSpacing: 1,
           transition: "all 0.15s",
@@ -448,44 +470,44 @@ function ModeToggle({ mode, onSetMode }) {
 function PlayPanel({ onReset }) {
   return (
     <>
-      <p style={{ fontSize: 11, color: "#7a5030", lineHeight: 1.7, margin: 0, marginTop: 4 }}>
+      <p style={{ fontSize: 11, color: T.textMuted, lineHeight: 1.7, margin: 0, marginTop: 4 }}>
         Click any dungeon cell to reveal what a hero standing there would see.
       </p>
 
       <div style={{
-        background: "#110803", border: "1px solid #2a1810",
-        padding: "10px 12px", fontSize: 10, color: "#5a3820", lineHeight: 1.8,
+        background: T.panelBg, border: `1px solid ${T.panelBorder}`,
+        padding: "10px 12px", fontSize: 10, color: T.textMuted, lineHeight: 1.8,
         marginTop: 2,
       }}>
-        <span style={{ color: "#a06030" }}>Room cell</span> → entire room revealed<br />
-        <span style={{ color: "#a06030" }}>Corridor cell</span> → straight line until wall or blocker<br />
-        <span style={{ color: "#a06030" }}>Start marker</span> → auto-revealed at game start
+        <span style={{ color: T.accent }}>Room cell</span> → entire room revealed<br />
+        <span style={{ color: T.accent }}>Corridor cell</span> → straight line until wall or blocker<br />
+        <span style={{ color: T.accent }}>Start marker</span> → auto-revealed at game start
       </div>
 
       <button onClick={onReset} style={{
         marginTop: 4, padding: "9px 0",
-        background: "#110803", color: "#c03020",
-        border: "1px solid #5a1010", cursor: "pointer",
+        background: T.btnBg, color: T.accent,
+        border: `1px solid ${T.btnBorder}`, cursor: "pointer",
         fontFamily: "inherit", fontSize: 11, letterSpacing: 1,
         transition: "all 0.15s",
       }}>
         ↺ Reset Fog of War
       </button>
 
-      <div style={{ marginTop: 8, fontSize: 9, color: "#3a2010", lineHeight: 1.8 }}>
-        <div style={{ color: "#5a3010", marginBottom: 4, letterSpacing: 2, textTransform: "uppercase" }}>Legend</div>
+      <div style={{ marginTop: 8, fontSize: 9, color: T.textMuted, lineHeight: 1.8 }}>
+        <div style={{ color: T.text, marginBottom: 4, letterSpacing: 2, textTransform: "uppercase", fontWeight: "bold" }}>Legend</div>
         {[
           { color: "#271809", label: "Corridor (revealed)" },
           { color: "#060401", label: "Unexplored" },
         ].map(({ color, label }) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 10, height: 10, background: color, border: "1px solid #3a2010", flexShrink: 0 }} />
+            <div style={{ width: 10, height: 10, background: color, border: `1px solid ${T.btnBorder}`, flexShrink: 0 }} />
             {label}
           </div>
         ))}
         {Object.entries(ROOM_COLORS).map(([id, { revealed }]) => (
           <div key={id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 10, height: 10, background: revealed, border: "1px solid #3a2010", flexShrink: 0 }} />
+            <div style={{ width: 10, height: 10, background: revealed, border: `1px solid ${T.btnBorder}`, flexShrink: 0 }} />
             {id} (revealed)
           </div>
         ))}
@@ -499,9 +521,9 @@ const PieceButton = memo(function PieceButton({ piece, isSelected, onSelect }) {
   return (
     <button onClick={() => onSelect(piece.id)} style={{
       padding: "6px 8px",
-      background: isSelected ? "#221508" : "#0e0703",
-      color: isSelected ? "#c8a870" : "#7a4828",
-      border: `1px solid ${isSelected ? "#6b4020" : "#1e1006"}`,
+      background: isSelected ? T.btnActiveBg : T.btnBg,
+      color: isSelected ? T.btnActiveText : T.btnText,
+      border: `1px solid ${isSelected ? T.btnActiveBdr : T.btnBorder}`,
       cursor: "pointer", fontFamily: "inherit", fontSize: 11,
       textAlign: "left", display: "flex", alignItems: "center", gap: 8,
       transition: "all 0.12s", width: "100%",
@@ -515,7 +537,7 @@ const PieceButton = memo(function PieceButton({ piece, isSelected, onSelect }) {
       }} />
       <span style={{ flex: 1 }}>{piece.label}</span>
       {piece.blocks && (
-        <span style={{ fontSize: 8, color: "#c03020", border: "1px solid #5a1010", padding: "1px 3px" }}>
+        <span style={{ fontSize: 8, color: T.accent, border: `1px solid ${T.accent}`, padding: "1px 3px" }}>
           BLK
         </span>
       )}
@@ -535,9 +557,9 @@ function EditPanel({ tool, onSelectTool }) {
           <button key={cat.id} onClick={() => setActiveCatId(cat.id)} style={{
             padding: "4px 7px", fontSize: 9, letterSpacing: 1,
             textTransform: "uppercase", fontFamily: "inherit", cursor: "pointer",
-            background: activeCatId === cat.id ? "#3a1e08" : "#0e0703",
-            color: activeCatId === cat.id ? "#c8a870" : "#4a2810",
-            border: `1px solid ${activeCatId === cat.id ? "#6b4020" : "#1e1006"}`,
+            background: activeCatId === cat.id ? T.btnActiveBg : T.btnBg,
+            color: activeCatId === cat.id ? T.btnActiveText : T.btnText,
+            border: `1px solid ${activeCatId === cat.id ? T.btnActiveBdr : T.btnBorder}`,
             transition: "all 0.12s",
           }}>
             {cat.label}
@@ -560,24 +582,24 @@ function EditPanel({ tool, onSelectTool }) {
 
       <div style={{
         marginTop: 8, padding: "10px 12px",
-        background: "#110803", border: "1px solid #2a1810",
-        fontSize: 10, color: "#4a3020", lineHeight: 1.8,
+        background: T.panelBg, border: `1px solid ${T.panelBorder}`,
+        fontSize: 10, color: T.textMuted, lineHeight: 1.8,
       }}>
-        <span style={{ color: "#c03020" }}>BLK</span> pieces stop corridor visibility when encountered.
+        <span style={{ color: T.accent }}>BLK</span> pieces stop corridor visibility when encountered.
         <br /><br />
-        <span style={{ color: "#e8a820" }}>Hero Start</span> is auto-revealed when switching to Play mode.
+        <span style={{ color: T.accentGold }}>Hero Start</span> is auto-revealed when switching to Play mode.
       </div>
     </>
   );
 }
 
 
-function Sidebar({ mode, tool, setMode, setTool, onReset }) {
+function Sidebar({ mode, tool, setMode, setTool, onReset, bgImage, setBgImage }) {
   return (
     <div style={{
       width: 230,
-      background: "#090501",
-      borderLeft: "1px solid #3a2010",
+      background: T.sidebarBg,
+      borderLeft: `1px solid ${T.sidebarBorder}`,
       display: "flex", flexDirection: "column",
       padding: "18px 14px",
       gap: 8,
@@ -585,8 +607,8 @@ function Sidebar({ mode, tool, setMode, setTool, onReset }) {
     }}>
       <div style={{
         textAlign: "center", marginBottom: 4,
-        fontSize: 13, letterSpacing: 4, color: "#8b5020",
-        textTransform: "uppercase", borderBottom: "1px solid #2a1810",
+        fontSize: 13, letterSpacing: 4, color: T.title,
+        textTransform: "uppercase", borderBottom: `1px solid ${T.divider}`,
         paddingBottom: 12,
       }}>
         Quest Master
@@ -599,10 +621,35 @@ function Sidebar({ mode, tool, setMode, setTool, onReset }) {
         : <EditPanel tool={tool} onSelectTool={setTool} />
       }
 
+      {/* Board background selector */}
+      <div style={{
+        marginTop: 8, padding: "10px 12px",
+        background: T.panelBg, border: `1px solid ${T.panelBorder}`,
+        fontSize: 10, color: T.textMuted,
+      }}>
+        <div style={{ marginBottom: 6, letterSpacing: 2, textTransform: "uppercase", fontWeight: "bold", color: T.text }}>
+          Board Style
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {["board", "board2"].map(b => (
+            <button key={b} onClick={() => setBgImage(b)} style={{
+              flex: 1, padding: "5px 0", fontSize: 9, cursor: "pointer",
+              fontFamily: "inherit", letterSpacing: 1, textTransform: "uppercase",
+              background: bgImage === b ? T.btnActiveBg : T.btnBg,
+              color: bgImage === b ? T.btnActiveText : T.btnText,
+              border: `1px solid ${bgImage === b ? T.btnActiveBdr : T.btnBorder}`,
+              transition: "all 0.15s",
+            }}>
+              {b === "board" ? "Board 1" : "Board 2"}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div style={{
         marginTop: "auto", paddingTop: 14,
-        borderTop: "1px solid #1a0e05",
-        fontSize: 9, color: "#2a1810", lineHeight: 1.8,
+        borderTop: `1px solid ${T.divider}`,
+        fontSize: 9, color: T.textFaint, lineHeight: 1.8,
         textAlign: "center",
       }}>
         v0.2 — Real HeroQuest board<br />
@@ -617,22 +664,25 @@ function Sidebar({ mode, tool, setMode, setTool, onReset }) {
 // ═══════════════════════════════════════════════
 export default function HeroQuestFog() {
   const { fog, placed, mode, tool, rotation, setRotation, lastClick, setMode, setTool, handleCell, handleCellRotate, resetFog } = useGameState();
+  const [bgImage, setBgImage] = useState("board2");
 
   return (
     <div style={{
       display: "flex", height: "100vh", overflow: "hidden",
-      background: "#0c0703",
+      background: T.pageBg,
       fontFamily: "'Palatino Linotype', 'Palatino', 'Book Antiqua', Georgia, serif",
-      color: "#c8a870",
+      color: T.text,
     }}>
       <BoardArea
         fog={fog} placed={placed} mode={mode}
         lastClick={lastClick} onCellClick={handleCell} onCellRotate={handleCellRotate}
+        bgImage={bgImage}
       />
       <Sidebar
         mode={mode} tool={tool}
         setMode={setMode} setTool={setTool}
         onReset={resetFog}
+        bgImage={bgImage} setBgImage={setBgImage}
       />
     </div>
   );
