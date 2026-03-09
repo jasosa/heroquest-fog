@@ -43,18 +43,64 @@ const ROOM_COLORS = {
 };
 
 // ═══════════════════════════════════════════════
-//  PIECE TYPES
+//  PIECE CATALOGUE
+//  Add new categories or pieces here — nothing
+//  else in the codebase needs to change.
 // ═══════════════════════════════════════════════
-const PIECES = {
-  start:    { label: "Hero Start",     icon: "⚔",  color: "#f0c040", shape: "diamond", blocks: false },
-  goblin:   { label: "Goblin",         icon: "G",   color: "#66bb6a", shape: "circle",  blocks: false },
-  orc:      { label: "Orc",            icon: "O",   color: "#a5714d", shape: "circle",  blocks: false },
-  skeleton: { label: "Skeleton",       icon: "Sk",  color: "#c0cdd4", shape: "circle",  blocks: false },
-  zombie:   { label: "Zombie",         icon: "Zm",  color: "#78909c", shape: "circle",  blocks: false },
-  chest:    { label: "Chest",          icon: "Ch",  color: "#ffa726", shape: "square",  blocks: false },
-  trap:     { label: "Trap",           icon: "T",   color: "#ef5350", shape: "circle",  blocks: false },
-  blocker:  { label: "Blocked Square", icon: "▪",   color: "#455a64", shape: "square",  blocks: true  },
-};
+const PIECE_CATEGORIES = [
+  {
+    id: "monsters", label: "Monsters",
+    pieces: [
+      { id: "goblin",       label: "Goblin",         icon: "G",  color: "#66bb6a", shape: "circle",  blocks: false },
+      { id: "orc",          label: "Orc",             icon: "O",  color: "#a5714d", shape: "circle",  blocks: false },
+      { id: "skeleton",     label: "Skeleton",        icon: "Sk", color: "#c0cdd4", shape: "circle",  blocks: false },
+      { id: "zombie",       label: "Zombie",          icon: "Zm", color: "#78909c", shape: "circle",  blocks: false },
+      { id: "mummy",        label: "Mummy",           icon: "Mm", color: "#c4a87a", shape: "circle",  blocks: false },
+      { id: "abomination",  label: "Abomination",     icon: "Ab", color: "#6a4c93", shape: "circle",  blocks: false },
+      { id: "dread",        label: "Dread Warrior",   icon: "Dw", color: "#b71c1c", shape: "circle",  blocks: false },
+      { id: "gargoyle",     label: "Gargoyle",        icon: "Ga", color: "#8d9eaa", shape: "circle",  blocks: false },
+    ],
+  },
+  {
+    id: "traps", label: "Traps",
+    pieces: [
+      { id: "trap",         label: "Trap",            icon: "T",  color: "#ef5350", shape: "circle",  blocks: false },
+      { id: "pit",          label: "Pit Trap",        icon: "Pt", color: "#d32f2f", shape: "circle",  blocks: false },
+      { id: "spear",        label: "Spear Trap",      icon: "Sp", color: "#e64a19", shape: "circle",  blocks: false },
+      { id: "falling",      label: "Falling Block",   icon: "Fb", color: "#bf360c", shape: "square",  blocks: false },
+    ],
+  },
+  {
+    id: "furniture", label: "Furniture",
+    pieces: [
+      { id: "chest",        label: "Chest",           icon: "Ch", color: "#ffa726", shape: "square",  blocks: false },
+      { id: "bookcase",     label: "Bookcase",        icon: "Bk", color: "#795548", shape: "square",  blocks: true  },
+      { id: "table",        label: "Table",           icon: "Tb", color: "#8d6e63", shape: "square",  blocks: false },
+      { id: "throne",       label: "Throne",          icon: "Th", color: "#ffd54f", shape: "square",  blocks: false },
+      { id: "fireplace",    label: "Fireplace",       icon: "Fi", color: "#ff6f00", shape: "square",  blocks: true  },
+      { id: "cupboard",     label: "Cupboard",        icon: "Cu", color: "#6d4c41", shape: "square",  blocks: false },
+      { id: "alchemist",    label: "Alchemist's Bench",icon: "Al",color: "#80cbc4", shape: "square",  blocks: false },
+      { id: "rack",         label: "Rack",            icon: "Rk", color: "#546e7a", shape: "square",  blocks: false },
+      { id: "tomb",         label: "Tomb",            icon: "To", color: "#455a64", shape: "square",  blocks: false },
+      { id: "weaponsrack",  label: "Weapons Rack",    icon: "Wr", color: "#607d8b", shape: "square",  blocks: false },
+    ],
+  },
+  {
+    id: "markers", label: "Markers",
+    pieces: [
+      { id: "start",        label: "Hero Start",      icon: "⚔", color: "#f0c040", shape: "diamond", blocks: false },
+      { id: "door",         label: "Secret Door",     icon: "SD", color: "#9c6b2e", shape: "square",  blocks: false },
+      { id: "stairs",       label: "Stairs",          icon: "St", color: "#90a4ae", shape: "square",  blocks: false },
+      { id: "blocker",      label: "Blocked Square",  icon: "▪",  color: "#455a64", shape: "square",  blocks: true  },
+    ],
+  },
+];
+
+// Flat lookup map derived from the catalogue — used by game logic and Token.
+// Adding a piece to PIECE_CATEGORIES automatically makes it available here.
+const PIECES = Object.fromEntries(
+  PIECE_CATEGORIES.flatMap(cat => cat.pieces.map(p => [p.id, p]))
+);
 
 // computeReveal is created at module level via makeComputeReveal (see top of file)
 
@@ -237,7 +283,7 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick }) {
       boxShadow: "0 0 40px #6b4c2a22, inset 0 0 30px #00000055",
       display: "inline-block",
       backgroundImage: "url('/board2.png')",
-      backgroundSize: `${COLS * CELL + 2}px ${ROWS * CELL + 2}px`,
+      backgroundSize: `${COLS * CELL}px ${ROWS * CELL}px`,
       backgroundPosition: "0 0",
       backgroundRepeat: "no-repeat",
       overflow: "hidden",
@@ -378,42 +424,68 @@ function PlayPanel({ onReset }) {
   );
 }
 
+// Memoized so it only re-renders when the selected tool changes.
+const PieceButton = memo(function PieceButton({ piece, isSelected, onSelect }) {
+  return (
+    <button onClick={() => onSelect(piece.id)} style={{
+      padding: "6px 8px",
+      background: isSelected ? "#221508" : "#0e0703",
+      color: isSelected ? "#c8a870" : "#7a4828",
+      border: `1px solid ${isSelected ? "#6b4020" : "#1e1006"}`,
+      cursor: "pointer", fontFamily: "inherit", fontSize: 11,
+      textAlign: "left", display: "flex", alignItems: "center", gap: 8,
+      transition: "all 0.12s", width: "100%",
+    }}>
+      <div style={{
+        width: 16, height: 16, background: piece.color, flexShrink: 0,
+        borderRadius: piece.shape === "circle" ? "50%" : "2px",
+        transform: piece.shape === "diamond" ? "rotate(45deg)" : "none",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 5, fontWeight: "bold", color: "#000",
+      }} />
+      <span style={{ flex: 1 }}>{piece.label}</span>
+      {piece.blocks && (
+        <span style={{ fontSize: 8, color: "#c03020", border: "1px solid #5a1010", padding: "1px 3px" }}>
+          BLK
+        </span>
+      )}
+    </button>
+  );
+});
+
 function EditPanel({ tool, onSelectTool }) {
+  const [activeCatId, setActiveCatId] = useState(PIECE_CATEGORIES[0].id);
+  const activeCategory = PIECE_CATEGORIES.find(c => c.id === activeCatId);
+
   return (
     <>
-      <p style={{ fontSize: 11, color: "#7a5030", lineHeight: 1.6, margin: 0, marginTop: 4 }}>
-        Select a piece and click a cell to place or remove it.
-      </p>
-
-      <div style={{ fontSize: 9, letterSpacing: 2, color: "#4a2810", textTransform: "uppercase", marginTop: 6, marginBottom: 2 }}>
-        Pieces
+      {/* Category tabs */}
+      <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginTop: 4 }}>
+        {PIECE_CATEGORIES.map(cat => (
+          <button key={cat.id} onClick={() => setActiveCatId(cat.id)} style={{
+            padding: "4px 7px", fontSize: 9, letterSpacing: 1,
+            textTransform: "uppercase", fontFamily: "inherit", cursor: "pointer",
+            background: activeCatId === cat.id ? "#3a1e08" : "#0e0703",
+            color: activeCatId === cat.id ? "#c8a870" : "#4a2810",
+            border: `1px solid ${activeCatId === cat.id ? "#6b4020" : "#1e1006"}`,
+            transition: "all 0.12s",
+          }}>
+            {cat.label}
+          </button>
+        ))}
       </div>
 
-      {Object.entries(PIECES).map(([key, p]) => (
-        <button key={key} onClick={() => onSelectTool(key)} style={{
-          padding: "7px 9px",
-          background: tool === key ? "#221508" : "#0e0703",
-          color: tool === key ? "#c8a870" : "#7a4828",
-          border: `1px solid ${tool === key ? "#6b4020" : "#1e1006"}`,
-          cursor: "pointer", fontFamily: "inherit", fontSize: 11,
-          textAlign: "left", display: "flex", alignItems: "center", gap: 8,
-          transition: "all 0.12s",
-        }}>
-          <div style={{
-            width: 18, height: 18, background: p.color,
-            borderRadius: p.shape === "circle" ? "50%" : "2px",
-            transform: p.shape === "diamond" ? "rotate(45deg)" : "none",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 6, fontWeight: "bold", color: "#000", flexShrink: 0,
-          }} />
-          <span style={{ flex: 1 }}>{p.label}</span>
-          {p.blocks && (
-            <span style={{ fontSize: 8, color: "#c03020", border: "1px solid #5a1010", padding: "1px 4px" }}>
-              BLK
-            </span>
-          )}
-        </button>
-      ))}
+      {/* Pieces in active category */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 4 }}>
+        {activeCategory.pieces.map(piece => (
+          <PieceButton
+            key={piece.id}
+            piece={piece}
+            isSelected={tool === piece.id}
+            onSelect={onSelectTool}
+          />
+        ))}
+      </div>
 
       <div style={{
         marginTop: 8, padding: "10px 12px",
