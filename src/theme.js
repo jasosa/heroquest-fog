@@ -1,0 +1,21 @@
+// ─── Light parchment theme ────────────────────────────────────────────────────
+export const T = {
+  pageBg:        "#e8d8b8",
+  sidebarBg:     "#f0e6d0",
+  sidebarBorder: "#c4a870",
+  title:         "#7a1a0a",
+  text:          "#2a1208",
+  textMuted:     "#5a3010",
+  textFaint:     "#8a6040",
+  accent:        "#8b1a0a",
+  accentGold:    "#7a5a10",
+  btnBg:         "#e0cfae",
+  btnBorder:     "#b09060",
+  btnText:       "#3a2010",
+  btnActiveBg:   "#7a1a0a",
+  btnActiveBdr:  "#9b2a1a",
+  btnActiveText: "#f8eedc",
+  panelBg:       "#e8dcc4",
+  panelBorder:   "#c4a870",
+  divider:       "#c4a070",
+};

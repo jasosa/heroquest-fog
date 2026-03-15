@@ -2,32 +2,13 @@ import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 import { BOARD, ROWS, COLS } from "./map.js";
 import { makeComputeReveal } from "./reveal.js";
 import { rotateCells, getDistinctRotations, getCoveredCellKeys } from "./pieceGeometry.js";
+import { T } from "./theme.js";
+import { persistQuest } from "./questStorage.js";
+import QuestLibrary from "./QuestLibrary.jsx";
 
 const C = "C";
 const CELL = 37;
 const computeReveal = makeComputeReveal(BOARD, ROWS, COLS);
-
-// ─── Light parchment theme ────────────────────────────────────────────────────
-const T = {
-  pageBg:        "#e8d8b8",
-  sidebarBg:     "#f0e6d0",
-  sidebarBorder: "#c4a870",
-  title:         "#7a1a0a",
-  text:          "#2a1208",
-  textMuted:     "#5a3010",
-  textFaint:     "#8a6040",
-  accent:        "#8b1a0a",
-  accentGold:    "#7a5a10",
-  btnBg:         "#e0cfae",
-  btnBorder:     "#b09060",
-  btnText:       "#3a2010",
-  btnActiveBg:   "#7a1a0a",
-  btnActiveBdr:  "#9b2a1a",
-  btnActiveText: "#f8eedc",
-  panelBg:       "#e8dcc4",
-  panelBorder:   "#c4a870",
-  divider:       "#c4a070",
-};
 
 // advanced-use-latest: stable ref that always holds the latest value,
 // lets callbacks read current state without listing it as a dependency.
@@ -132,16 +113,18 @@ const PIECES = Object.fromEntries(
 // ═══════════════════════════════════════════════
 //  GAME STATE HOOK
 // ═══════════════════════════════════════════════
-function useGameState() {
+function useGameState({ initialPlaced = {}, initialDoors = {}, initialMode = "play", initialTitle = "Untitled Quest", initialDescription = "" } = {}) {
   // rerender-lazy-state-init: pass a function so new Set() runs only once,
   // not on every render.
   const [fog, setFog]             = useState(() => new Set());
-  const [placed, setPlaced]       = useState({});
-  const [doors, setDoors]         = useState({});
-  const [mode, setMode]           = useState("play");
+  const [placed, setPlaced]       = useState(initialPlaced);
+  const [doors, setDoors]         = useState(initialDoors);
+  const [mode, setMode]           = useState(initialMode);
   const [tool, setTool]           = useState("goblin");
   const [rotation, setRotation]   = useState(0);
   const [lastClick, setLastClick] = useState(null);
+  const [questTitle, setQuestTitle]           = useState(initialTitle);
+  const [questDescription, setQuestDescription] = useState(initialDescription);
 
   // advanced-use-latest: stable refs so handleCell needs no dependencies.
   const placedRef   = useLatest(placed);
@@ -254,7 +237,11 @@ function useGameState() {
     setLastClick(null);
   }, []);
 
-  return { fog, placed, doors, mode, tool, rotation, setRotation, lastClick, setMode, setTool: handleSetTool, handleCell, handleCellRotate, resetFog };
+  return {
+    fog, placed, doors, mode, tool, rotation, setRotation, lastClick,
+    setMode, setTool: handleSetTool, handleCell, handleCellRotate, resetFog,
+    questTitle, setQuestTitle, questDescription, setQuestDescription,
+  };
 }
 
 // ═══════════════════════════════════════════════
@@ -607,7 +594,7 @@ const PieceButton = memo(function PieceButton({ piece, isSelected, onSelect }) {
   );
 });
 
-function EditPanel({ tool, onSelectTool }) {
+function EditPanel({ tool, onSelectTool, onSave, savedFlash }) {
   const [activeCatId, setActiveCatId] = useState(PIECE_CATEGORIES[0].id);
   const activeCategory = PIECE_CATEGORIES.find(c => c.id === activeCatId);
 
@@ -641,7 +628,6 @@ function EditPanel({ tool, onSelectTool }) {
         ))}
       </div>
 
-
       <div style={{
         marginTop: 8, padding: "10px 12px",
         background: T.panelBg, border: `1px solid ${T.panelBorder}`,
@@ -651,12 +637,45 @@ function EditPanel({ tool, onSelectTool }) {
         <br /><br />
         <span style={{ color: T.accentGold }}>Hero Start</span> is auto-revealed when switching to Play mode.
       </div>
+
+      {/* Save Quest button */}
+      {onSave && (
+        <div style={{ marginTop: 8 }}>
+          <button
+            onClick={onSave}
+            style={{
+              width: "100%", padding: "10px 0",
+              background: "#2a4a1a",
+              color: "#d8f0c8",
+              border: `1px solid ${T.accentGold}`,
+              cursor: "pointer", fontFamily: "inherit", fontSize: 11,
+              letterSpacing: 1, transition: "all 0.15s",
+            }}
+          >
+            {savedFlash ? "✓ Saved!" : "💾 Save Quest"}
+          </button>
+        </div>
+      )}
     </>
   );
 }
 
+const inputStyle = {
+  background: "#e0cfae",
+  border: "1px solid #b09060",
+  color: "#2a1208",
+  fontFamily: "inherit",
+  padding: "6px 8px",
+  width: "100%",
+  boxSizing: "border-box",
+  fontSize: 12,
+};
 
-function Sidebar({ mode, tool, setMode, setTool, onReset, bgImage, setBgImage }) {
+function Sidebar({
+  mode, tool, setMode, setTool, onReset, bgImage, setBgImage,
+  onBack, onSave, savedFlash,
+  questTitle, questDescription, setQuestTitle, setQuestDescription,
+}) {
   return (
     <div style={{
       width: 230,
@@ -667,6 +686,64 @@ function Sidebar({ mode, tool, setMode, setTool, onReset, bgImage, setBgImage })
       gap: 8,
       overflowY: "auto",
     }}>
+      {/* Back to library */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            alignSelf: "flex-start", padding: "4px 10px",
+            background: T.btnBg, color: T.btnText,
+            border: `1px solid ${T.btnBorder}`,
+            cursor: "pointer", fontFamily: "inherit", fontSize: 10,
+            letterSpacing: 1, marginBottom: 2,
+          }}
+        >
+          ← Library
+        </button>
+      )}
+
+      {/* Quest title */}
+      {setQuestTitle ? (
+        mode === "edit" ? (
+          <input
+            value={questTitle}
+            onChange={e => setQuestTitle(e.target.value)}
+            placeholder="Quest title"
+            style={inputStyle}
+          />
+        ) : (
+          <div style={{ fontSize: 13, color: T.title, fontWeight: "bold", letterSpacing: 1 }}>
+            {questTitle}
+          </div>
+        )
+      ) : null}
+
+      {/* Quest description */}
+      {setQuestDescription ? (
+        mode === "edit" ? (
+          <textarea
+            value={questDescription}
+            onChange={e => setQuestDescription(e.target.value)}
+            placeholder="Quest description"
+            rows={3}
+            style={{ ...inputStyle, resize: "vertical" }}
+          />
+        ) : questDescription ? (
+          <div style={{
+            fontSize: 10, color: T.textMuted, lineHeight: 1.5,
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+          }}>
+            {questDescription}
+          </div>
+        ) : null
+      ) : null}
+
+      {/* Divider */}
+      <div style={{ borderTop: `1px solid ${T.divider}`, marginTop: 2, marginBottom: 2 }} />
+
       <div style={{
         textAlign: "center", marginBottom: 4,
         fontSize: 13, letterSpacing: 4, color: T.title,
@@ -680,7 +757,7 @@ function Sidebar({ mode, tool, setMode, setTool, onReset, bgImage, setBgImage })
 
       {mode === "play"
         ? <PlayPanel onReset={onReset} />
-        : <EditPanel tool={tool} onSelectTool={setTool} />
+        : <EditPanel tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} />
       }
 
       {/* Board background selector */}
@@ -722,11 +799,32 @@ function Sidebar({ mode, tool, setMode, setTool, onReset, bgImage, setBgImage })
 }
 
 // ═══════════════════════════════════════════════
-//  ROOT COMPONENT
+//  GAME SCREEN
 // ═══════════════════════════════════════════════
-export default function HeroQuestFog() {
-  const { fog, placed, doors, mode, tool, rotation, setRotation, lastClick, setMode, setTool, handleCell, handleCellRotate, resetFog } = useGameState();
-  const [bgImage, setBgImage] = useState("board2");
+function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
+  const gameState = useGameState({
+    initialPlaced: quest?.placed ?? {},
+    initialDoors: quest?.doors ?? {},
+    initialMode: initialMode ?? "play",
+    initialTitle: quest?.title ?? "Untitled Quest",
+    initialDescription: quest?.description ?? "",
+  });
+  const [bgImage, setBgImage]       = useState("board2");
+  const [savedFlash, setSavedFlash] = useState(false);
+
+  function handleSave() {
+    const updated = {
+      ...quest,
+      title: gameState.questTitle,
+      description: gameState.questDescription,
+      placed: gameState.placed,
+      doors: gameState.doors,
+    };
+    persistQuest(updated);
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1500);
+    onQuestSaved?.(updated);
+  }
 
   return (
     <div style={{
@@ -736,16 +834,56 @@ export default function HeroQuestFog() {
       color: T.text,
     }}>
       <BoardArea
-        fog={fog} placed={placed} doors={doors} mode={mode}
-        lastClick={lastClick} onCellClick={handleCell} onCellRotate={handleCellRotate}
+        fog={gameState.fog} placed={gameState.placed} doors={gameState.doors}
+        mode={gameState.mode} lastClick={gameState.lastClick}
+        onCellClick={gameState.handleCell} onCellRotate={gameState.handleCellRotate}
         bgImage={bgImage}
       />
       <Sidebar
-        mode={mode} tool={tool}
-        setMode={setMode} setTool={setTool}
-        onReset={resetFog}
+        mode={gameState.mode} tool={gameState.tool}
+        setMode={gameState.setMode} setTool={gameState.setTool}
+        onReset={gameState.resetFog}
         bgImage={bgImage} setBgImage={setBgImage}
+        onBack={onBack}
+        onSave={handleSave}
+        savedFlash={savedFlash}
+        questTitle={gameState.questTitle}
+        questDescription={gameState.questDescription}
+        setQuestTitle={gameState.setQuestTitle}
+        setQuestDescription={gameState.setQuestDescription}
       />
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+//  ROOT COMPONENT
+// ═══════════════════════════════════════════════
+export default function HeroQuestFog() {
+  const [screen, setScreen]         = useState("library");
+  const [gameConfig, setGameConfig] = useState(null); // { quest, mode }
+
+  function openQuest(quest, mode) {
+    setGameConfig({ quest, mode });
+    setScreen("game");
+  }
+
+  if (screen === "library") {
+    return (
+      <QuestLibrary
+        onPlay={q => openQuest(q, "play")}
+        onEdit={q => openQuest(q, "edit")}
+      />
+    );
+  }
+
+  return (
+    <GameScreen
+      key={gameConfig.quest.id}
+      quest={gameConfig.quest}
+      initialMode={gameConfig.mode}
+      onBack={() => setScreen("library")}
+      onQuestSaved={updated => setGameConfig(prev => ({ ...prev, quest: updated }))}
+    />
   );
 }
