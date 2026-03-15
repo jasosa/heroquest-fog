@@ -112,7 +112,7 @@ const PIECE_CATEGORIES = [
     id: "markers", label: "Markers",
     pieces: [
       { id: "start",        label: "Hero Start",      icon: "⚔", color: "#f0c040", shape: "diamond", blocks: false },
-      { id: "door",         label: "Secret Door",     icon: "SD", color: "#9c6b2e", shape: "square",  blocks: false },
+      { id: "door",         label: "Door",             icon: "▐",  color: "#9c6b2e", shape: "square",  blocks: false, isEdge: true },
       { id: "stairs",       label: "Stairs",           icon: "St", color: "#90a4ae", shape: "square",  blocks: false, cells: [[0,0],[0,1],[1,0],[1,1]] },
       { id: "blocker",      label: "Blocked Square",  icon: "▪",  color: "#455a64", shape: "square",  blocks: true  },
     ],
@@ -137,6 +137,7 @@ function useGameState() {
   // not on every render.
   const [fog, setFog]             = useState(() => new Set());
   const [placed, setPlaced]       = useState({});
+  const [doors, setDoors]         = useState({});
   const [mode, setMode]           = useState("play");
   const [tool, setTool]           = useState("goblin");
   const [rotation, setRotation]   = useState(0);
@@ -180,6 +181,19 @@ function useGameState() {
       const currentTool     = toolRef.current;
       const currentRotation = rotationRef.current;
       const piece           = PIECES[currentTool];
+
+      // Edge pieces (doors) sit between cells — handled separately.
+      if (piece?.isEdge) {
+        setDoors(prev => {
+          const next = { ...prev };
+          // Toggle: remove if already placed at this anchor, otherwise place at rotation 0 (right edge).
+          if (next[k]) delete next[k];
+          else         next[k] = { rotation: 0 };
+          return next;
+        });
+        return;
+      }
+
       setPlaced(prev => {
         const next = { ...prev };
         // Click on any cell covered by a piece removes it.
@@ -208,6 +222,7 @@ function useGameState() {
 
   const handleCellRotate = useCallback((r, c) => {
     const k = `${r},${c}`;
+    // Rotate a placed multi-cell piece covering this cell.
     setPlaced(prev => {
       const coveringAnchor = Object.keys(prev).find(ak =>
         (prev[ak].coveredCells ?? [ak]).includes(k)
@@ -227,6 +242,11 @@ function useGameState() {
       if (hasOverlap) return prev;
       return { ...prev, [coveringAnchor]: { ...piece, rotation: newRotation, coveredCells: newCovered } };
     });
+    // Rotate a door anchored at this cell (0→1→2→3→0).
+    setDoors(prev => {
+      if (!prev[k]) return prev;
+      return { ...prev, [k]: { rotation: (prev[k].rotation + 1) % 4 } };
+    });
   }, []);
 
   const resetFog = useCallback(() => {
@@ -234,7 +254,7 @@ function useGameState() {
     setLastClick(null);
   }, []);
 
-  return { fog, placed, mode, tool, rotation, setRotation, lastClick, setMode, setTool: handleSetTool, handleCell, handleCellRotate, resetFog };
+  return { fog, placed, doors, mode, tool, rotation, setRotation, lastClick, setMode, setTool: handleSetTool, handleCell, handleCellRotate, resetFog };
 }
 
 // ═══════════════════════════════════════════════
@@ -351,7 +371,44 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
 // ═══════════════════════════════════════════════
 //  BOARD GRID COMPONENT
 // ═══════════════════════════════════════════════
-function BoardGrid({ fog, placed, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
+const DOOR_COLOR     = "#9c6b2e";
+const DOOR_THICKNESS = 6;
+const DOOR_INSET     = Math.round(CELL * 0.1);
+
+// rotation 0 = right edge, 1 = bottom edge, 2 = left edge, 3 = top edge
+const DOOR_NEIGHBORS = (r, c) => [
+  `${r},${c + 1}`, // 0 right
+  `${r + 1},${c}`, // 1 bottom
+  `${r},${c - 1}`, // 2 left
+  `${r - 1},${c}`, // 3 top
+];
+
+const DOOR_STYLES = (r, c) => [
+  { left: (c + 1) * CELL - Math.floor(DOOR_THICKNESS / 2), top: r * CELL + DOOR_INSET,     width: DOOR_THICKNESS,        height: CELL - DOOR_INSET * 2 }, // right
+  { left: c * CELL + DOOR_INSET,                           top: (r + 1) * CELL - Math.floor(DOOR_THICKNESS / 2), width: CELL - DOOR_INSET * 2, height: DOOR_THICKNESS },        // bottom
+  { left: c * CELL - Math.floor(DOOR_THICKNESS / 2),       top: r * CELL + DOOR_INSET,     width: DOOR_THICKNESS,        height: CELL - DOOR_INSET * 2 }, // left
+  { left: c * CELL + DOOR_INSET,                           top: r * CELL - Math.floor(DOOR_THICKNESS / 2),       width: CELL - DOOR_INSET * 2, height: DOOR_THICKNESS },        // top
+];
+
+function DoorOverlay({ anchorKey, rotation, fog, isEditMode }) {
+  const [r, c] = anchorKey.split(",").map(Number);
+  const neighborKey = DOOR_NEIGHBORS(r, c)[rotation];
+  if (!isEditMode && !fog.has(anchorKey) && !fog.has(neighborKey)) return null;
+
+  return (
+    <div style={{
+      position: "absolute",
+      ...DOOR_STYLES(r, c)[rotation],
+      background: DOOR_COLOR,
+      borderRadius: 3,
+      zIndex: 10,
+      boxShadow: `0 0 8px ${DOOR_COLOR}bb, 0 1px 3px #0008`,
+      pointerEvents: "none",
+    }} />
+  );
+}
+
+function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
   const isEditMode = mode === "edit";
 
   // Build a cell-key → {piece, anchorKey} map so each BoardCell knows
@@ -376,6 +433,7 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick, onCellRotate, bg
       backgroundRepeat: "no-repeat",
       overflow: "hidden",
       lineHeight: 0,
+      position: "relative",
     }}>
       {BOARD.map((row, r) => (
         <div key={r} style={{ display: "flex" }}>
@@ -393,11 +451,15 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick, onCellRotate, bg
                 coverage={cov?.piece}
                 isAnchor={cov?.anchorKey === k}
                 onClick={() => onCellClick(r, c)}
-                onRightClick={isEditMode && coverage ? () => onCellRotate(r, c) : undefined}
+                onRightClick={isEditMode ? () => onCellRotate(r, c) : undefined}
               />
             );
           })}
         </div>
+      ))}
+      {/* Door overlays — absolutely positioned on cell edges */}
+      {Object.entries(doors).map(([anchorKey, { rotation }]) => (
+        <DoorOverlay key={anchorKey} anchorKey={anchorKey} rotation={rotation} fog={fog} isEditMode={isEditMode} />
       ))}
     </div>
   );
@@ -406,7 +468,7 @@ function BoardGrid({ fog, placed, mode, lastClick, onCellClick, onCellRotate, bg
 // ═══════════════════════════════════════════════
 //  BOARD AREA (left panel)
 // ═══════════════════════════════════════════════
-function BoardArea({ fog, placed, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
+function BoardArea({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
@@ -432,7 +494,7 @@ function BoardArea({ fog, placed, mode, lastClick, onCellClick, onCellRotate, bg
       </div>
 
       <BoardGrid
-        fog={fog} placed={placed} mode={mode}
+        fog={fog} placed={placed} doors={doors} mode={mode}
         lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
         bgImage={bgImage}
       />
@@ -663,7 +725,7 @@ function Sidebar({ mode, tool, setMode, setTool, onReset, bgImage, setBgImage })
 //  ROOT COMPONENT
 // ═══════════════════════════════════════════════
 export default function HeroQuestFog() {
-  const { fog, placed, mode, tool, rotation, setRotation, lastClick, setMode, setTool, handleCell, handleCellRotate, resetFog } = useGameState();
+  const { fog, placed, doors, mode, tool, rotation, setRotation, lastClick, setMode, setTool, handleCell, handleCellRotate, resetFog } = useGameState();
   const [bgImage, setBgImage] = useState("board2");
 
   return (
@@ -674,7 +736,7 @@ export default function HeroQuestFog() {
       color: T.text,
     }}>
       <BoardArea
-        fog={fog} placed={placed} mode={mode}
+        fog={fog} placed={placed} doors={doors} mode={mode}
         lastClick={lastClick} onCellClick={handleCell} onCellRotate={handleCellRotate}
         bgImage={bgImage}
       />

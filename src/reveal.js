@@ -42,15 +42,20 @@ export function makeComputeReveal(board, rows, cols) {
       const vis = new Set([`${r},${c}`]);
       for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
         // Starting positions: the hero cell plus any adjacent parallel-corridor cells.
-        // A neighbour qualifies only if it has a corridor cell in the ray direction
-        // (forward or backward), confirming it is part of a wide parallel corridor
-        // rather than just a corner cell at a T-junction.
+        // A neighbour qualifies only if BOTH it AND the hero cell extend in the ray
+        // direction — this ensures we only widen the ray for a true parallel-lane
+        // corridor (cols 12-13), not for a T-junction where a perpendicular corridor
+        // happens to continue in the same direction as the ray.
+        const heroExtendsInRayDir =
+          board[r + dr]?.[c + dc] === C || board[r - dr]?.[c - dc] === C;
         const starts = [[r, c]];
         for (const [sdr, sdc] of [[dc, dr], [-dc, -dr]]) {
           const [pr, pc] = [r + sdr, c + sdc];
           if (pr < 0 || pr >= rows || pc < 0 || pc >= cols) continue;
           if (board[pr][pc] !== C) continue;
-          if (board[pr + dr]?.[pc + dc] === C || board[pr - dr]?.[pc - dc] === C) {
+          const neighborExtendsInRayDir =
+            board[pr + dr]?.[pc + dc] === C || board[pr - dr]?.[pc - dc] === C;
+          if (heroExtendsInRayDir && neighborExtendsInRayDir) {
             vis.add(`${pr},${pc}`);
             starts.push([pr, pc]);
           }
