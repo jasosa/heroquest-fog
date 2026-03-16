@@ -9,7 +9,7 @@ import { T } from "../../theme.js";
 const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode, isLastClick, coverage, onClick, onRightClick }) {
   const isWall      = region === null;
   // Fog is now rendered by the SVG layer in BoardGrid; cells are always transparent.
-  const borderColor = isEditMode || isRevealed || isWall ? "transparent" : "#110803";
+  const borderColor = "transparent";
   const pieceColor  = coverage ? PIECES[coverage.type]?.color : null;
 
   return (

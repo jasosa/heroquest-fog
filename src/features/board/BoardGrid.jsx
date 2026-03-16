@@ -116,7 +116,7 @@ export function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, on
         }}>
           {fogPolygons.map((entry) => {
             const bar = entry.indexOf("|");
-            return <polygon key={entry.slice(0, bar)} points={entry.slice(bar + 1)} fill="#060401" />;
+            return <polygon key={entry.slice(0, bar)} points={entry.slice(bar + 1)} fill="#1a0000" fillOpacity="0.82" />;
           })}
         </svg>
       )}
