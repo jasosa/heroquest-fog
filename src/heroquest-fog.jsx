@@ -10,6 +10,12 @@ const C = "C";
 const CELL = 37;
 const computeReveal = makeComputeReveal(BOARD, ROWS, COLS);
 
+const BOARD_CONFIGS = {
+  board:  { tokenPadding: "0" },
+  board2: { tokenPadding: "0" },
+  board3: { tokenPadding: "3px 0px 0px 3px" }, // 3px gap on right+bottom edges
+};
+
 // advanced-use-latest: stable ref that always holds the latest value,
 // lets callbacks read current state without listing it as a dependency.
 function useLatest(value) {
@@ -295,7 +301,7 @@ const FOG_OVERLAY = (
 // rerender-memo: cells only re-render when their own props change.
 // coverage — the placed entry whose footprint includes this cell (or undefined)
 // isAnchor — true only for the anchor cell of a multi-cell piece (token goes here)
-const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode, isLastClick, coverage, isAnchor, onClick, onRightClick }) {
+const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode, isLastClick, coverage, isAnchor, tokenPadding, onClick, onRightClick }) {
   const isWall   = region === null;
   const isFogged = !isEditMode && !isWall && !isRevealed;
 
@@ -330,8 +336,8 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
       {/* Dense fog overlay */}
       {isFogged && FOG_OVERLAY}
 
-      {/* Piece footprint — coloured tint across all covered cells */}
-      {coverage && (isRevealed || isEditMode) && (
+      {/* Piece footprint — coloured tint across all covered cells (multi-cell pieces only) */}
+      {coverage && (isRevealed || isEditMode) && coverage.coveredCells?.length > 1 && (
         <div style={{
           position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
           background: pieceColor + "55",
@@ -342,7 +348,7 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
 
       {/* Token — only on the anchor cell */}
       {isAnchor && (isRevealed || isEditMode) && (
-        <div style={{ zIndex: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ zIndex: 3, display: "flex", alignItems: "center", justifyContent: "center", padding: tokenPadding }}>
           <Token type={coverage.type} />
         </div>
       )}
@@ -397,6 +403,7 @@ function DoorOverlay({ anchorKey, rotation, fog, isEditMode }) {
 
 function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
   const isEditMode = mode === "edit";
+  const tokenPadding = (BOARD_CONFIGS[bgImage] ?? BOARD_CONFIGS.board2).tokenPadding;
 
   // Build a cell-key → {piece, anchorKey} map so each BoardCell knows
   // whether it is covered and whether it is the anchor.
@@ -437,6 +444,7 @@ function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRot
                 isLastClick={lastClick === k}
                 coverage={cov?.piece}
                 isAnchor={cov?.anchorKey === k}
+                tokenPadding={tokenPadding}
                 onClick={() => onCellClick(r, c)}
                 onRightClick={isEditMode ? () => onCellRotate(r, c) : undefined}
               />
@@ -770,7 +778,7 @@ function Sidebar({
           Board Style
         </div>
         <div style={{ display: "flex", gap: 6 }}>
-          {["board", "board2"].map(b => (
+          {[["board", "Board 1"], ["board2", "Board 2"], ["board3", "Board 3"]].map(([b, label]) => (
             <button key={b} onClick={() => setBgImage(b)} style={{
               flex: 1, padding: "5px 0", fontSize: 9, cursor: "pointer",
               fontFamily: "inherit", letterSpacing: 1, textTransform: "uppercase",
@@ -779,7 +787,7 @@ function Sidebar({
               border: `1px solid ${bgImage === b ? T.btnActiveBdr : T.btnBorder}`,
               transition: "all 0.15s",
             }}>
-              {b === "board" ? "Board 1" : "Board 2"}
+              {label}
             </button>
           ))}
         </div>
