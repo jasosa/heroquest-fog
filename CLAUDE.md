@@ -9,7 +9,7 @@ npm run dev       # Start dev server with HMR (Vite)
 npm run build     # Production build
 npm run preview   # Preview production build locally
 npm run lint      # Run ESLint
-npm run test      # Run Vitest unit tests (46 tests across 2 suites)
+npm run test      # Run Vitest unit tests (88 tests across 4 suites)
 ```
 
 ## Architecture
@@ -117,6 +117,21 @@ Fog is **not** saved — it is always reset when loading a quest.
 - Cell size: `CELL = 37px`
 - Board background image: `public/board2.png` (default) or `public/board.png`, sized `100% 100%` to fit the grid exactly
 - Board image: 963×704px, 37px per cell, no border offset needed
+
+## Development Workflow
+
+Always follow strict Red/Green/Refactor TDD:
+
+1. **Red** — Write a failing test first. Run `npm test` and confirm it fails for the right reason before writing any implementation.
+2. **Green** — Write the minimum code to make the test pass. No more, no less.
+3. **Refactor** — Clean up the code while keeping tests green.
+
+### Rules
+- Never write implementation code without a failing test first
+- Run `npm test` after every small change
+- If fixing a bug, write a failing test that reproduces it first
+- One failing test at a time — don't write multiple failing tests ahead
+- Commit at Green (passing tests), never at Red
 
 ## Key constraints (do not revisit)
 

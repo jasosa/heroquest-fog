@@ -1,0 +1,6 @@
+{
+  "version": "0.1.0",
+  "organization": "Project Standards",
+  "date": "March 2026",
+  "abstract": "Opinionated guide to structuring React + Vite applications for long-term maintainability. Covers file layout, component sizing, state co-location, custom hook extraction, pure logic separation, and data/config organization. Each rule includes a rationale, anti-pattern, and correct pattern."
+}

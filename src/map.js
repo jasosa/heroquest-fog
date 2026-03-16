@@ -38,3 +38,4 @@ export const BOARD = [
 
 export const ROWS = 19;
 export const COLS = 26;
+export const CELL = 37; // pixels per grid cell
