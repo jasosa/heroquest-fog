@@ -28,7 +28,7 @@ function fmtDate(ts) {
 }
 
 // ─── QuestLibrary ─────────────────────────────────────────────────────────────
-export default function QuestLibrary({ onPlay, onEdit }) {
+export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   const [books, setBooks]           = useState(() => loadQuestBooks());
   const [quests, setQuests]         = useState(() => loadQuests());
   const [selectedBookId, setSelectedBookId] = useState(null); // null = "All"
@@ -182,6 +182,18 @@ export default function QuestLibrary({ onPlay, onEdit }) {
 
         {/* New book form / button */}
         <div style={{ marginTop: "auto", paddingTop: 8, borderTop: `1px solid ${T.divider}` }}>
+          {onCalibrate && (
+            <button
+              onClick={onCalibrate}
+              title="Open map calibration tool"
+              style={{
+                ...btn(false, { width: "100%", textAlign: "center", fontSize: 9, marginBottom: 6 }),
+                color: T.textFaint, letterSpacing: 1,
+              }}
+            >
+              ⚙ Calibrate Maps
+            </button>
+          )}
           {showNewBook ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <input

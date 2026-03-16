@@ -93,3 +93,20 @@ export function deleteQuest(id) {
   const quests = loadQuests().filter(q => q.id !== id);
   saveQuests(quests);
 }
+
+// ── Calibration ───────────────────────────────────────────────────────────────
+
+const CALIBRATION_KEY = "hq_calibration";
+
+export function loadCalibration() {
+  try {
+    const raw = localStorage.getItem(CALIBRATION_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveCalibration(data) {
+  localStorage.setItem(CALIBRATION_KEY, JSON.stringify(data));
+}

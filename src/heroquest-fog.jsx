@@ -3,18 +3,14 @@ import { BOARD, ROWS, COLS } from "./map.js";
 import { makeComputeReveal } from "./reveal.js";
 import { rotateCells, getDistinctRotations, getCoveredCellKeys } from "./pieceGeometry.js";
 import { T } from "./theme.js";
-import { persistQuest } from "./questStorage.js";
+import { persistQuest, loadCalibration, saveCalibration } from "./questStorage.js";
 import QuestLibrary from "./QuestLibrary.jsx";
+import MapCalibrator, { useMapTransform } from "./components/MapCalibrator.jsx";
+import { EditPanel } from "./components/EditPanel.jsx";
 
 const C = "C";
 const CELL = 37;
 const computeReveal = makeComputeReveal(BOARD, ROWS, COLS);
-
-const BOARD_CONFIGS = {
-  board:  { tokenPadding: "0" },
-  board2: { tokenPadding: "0" },
-  board3: { tokenPadding: "3px 0px 0px 3px" }, // 3px gap on right+bottom edges
-};
 
 // advanced-use-latest: stable ref that always holds the latest value,
 // lets callbacks read current state without listing it as a dependency.
@@ -301,7 +297,7 @@ const FOG_OVERLAY = (
 // rerender-memo: cells only re-render when their own props change.
 // coverage — the placed entry whose footprint includes this cell (or undefined)
 // isAnchor — true only for the anchor cell of a multi-cell piece (token goes here)
-const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode, isLastClick, coverage, isAnchor, tokenPadding, onClick, onRightClick }) {
+const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode, isLastClick, coverage, onClick, onRightClick }) {
   const isWall   = region === null;
   const isFogged = !isEditMode && !isWall && !isRevealed;
 
@@ -346,13 +342,6 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
         }} />
       )}
 
-      {/* Token — only on the anchor cell */}
-      {isAnchor && (isRevealed || isEditMode) && (
-        <div style={{ zIndex: 3, display: "flex", alignItems: "center", justifyContent: "center", padding: tokenPadding }}>
-          <Token type={coverage.type} />
-        </div>
-      )}
-
       {/* Edit-mode coordinate hint on empty cells */}
       {isEditMode && !coverage && !isWall && (
         <span style={{ fontSize: 7, color: T.textMuted, zIndex: 2, opacity: 0.5 }}>{r},{c}</span>
@@ -360,6 +349,27 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
     </div>
   );
 });
+
+// ═══════════════════════════════════════════════
+//  TOKEN OVERLAY — absolutely positioned over the board
+// ═══════════════════════════════════════════════
+// Tokens are rendered as overlays rather than inside grid cells so their
+// position can be driven by calibrated pixel coordinates (useMapTransform).
+function TokenOverlay({ anchorKey, type, fog, isEditMode, getTokenPos }) {
+  if (!isEditMode && !fog.has(anchorKey)) return null;
+  const [r, c] = anchorKey.split(",").map(Number);
+  const [px, py] = getTokenPos(c, r);
+  return (
+    <div style={{
+      position: "absolute",
+      left: px, top: py,
+      transform: "translate(-50%, -50%)",
+      zIndex: 5, pointerEvents: "none",
+    }}>
+      <Token type={type} />
+    </div>
+  );
+}
 
 // ═══════════════════════════════════════════════
 //  BOARD GRID COMPONENT
@@ -383,27 +393,78 @@ const DOOR_STYLES = (r, c) => [
   { left: c * CELL + DOOR_INSET,                           top: r * CELL - Math.floor(DOOR_THICKNESS / 2),       width: CELL - DOOR_INSET * 2, height: DOOR_THICKNESS },        // top
 ];
 
-function DoorOverlay({ anchorKey, rotation, fog, isEditMode }) {
+// neighborOffset indexed by rotation: right, bottom, left, top
+const DOOR_NEIGHBOR_OFFSETS = [[0,1],[1,0],[0,-1],[-1,0]];
+
+function DoorOverlay({ anchorKey, rotation, fog, isEditMode, getTokenPos, hasCalibration }) {
   const [r, c] = anchorKey.split(",").map(Number);
   const neighborKey = DOOR_NEIGHBORS(r, c)[rotation];
   if (!isEditMode && !fog.has(anchorKey) && !fog.has(neighborKey)) return null;
+
+  const doorStyle = {
+    background: DOOR_COLOR, borderRadius: 4, zIndex: 10,
+    border: "2px solid #f5e6c8",
+    boxShadow: `0 0 10px ${DOOR_COLOR}cc, 0 2px 4px #0009`,
+    pointerEvents: "none",
+  };
+
+  if (hasCalibration && getTokenPos) {
+    const [dr, dc] = DOOR_NEIGHBOR_OFFSETS[rotation];
+    const [ax, ay] = getTokenPos(c, r);
+    const [bx, by] = getTokenPos(c + dc, r + dr);
+    const isVertical = rotation === 0 || rotation === 2;
+    return (
+      <div style={{
+        position: "absolute",
+        left: (ax + bx) / 2,
+        top:  (ay + by) / 2,
+        transform: "translate(-50%, -50%)",
+        width:  isVertical ? DOOR_THICKNESS + 1 : CELL - DOOR_INSET * 2,
+        height: isVertical ? CELL - DOOR_INSET * 2 : DOOR_THICKNESS + 1,
+        ...doorStyle,
+      }} />
+    );
+  }
 
   return (
     <div style={{
       position: "absolute",
       ...DOOR_STYLES(r, c)[rotation],
-      background: DOOR_COLOR,
-      borderRadius: 3,
-      zIndex: 10,
-      boxShadow: `0 0 8px ${DOOR_COLOR}bb, 0 1px 3px #0008`,
-      pointerEvents: "none",
+      ...doorStyle,
     }} />
   );
 }
 
 function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
   const isEditMode = mode === "edit";
-  const tokenPadding = (BOARD_CONFIGS[bgImage] ?? BOARD_CONFIGS.board2).tokenPadding;
+
+  // Load natural image dimensions so calibrated pixel coords can be scaled
+  // to the displayed board size (COLS*CELL × ROWS*CELL).
+  const [naturalSize, setNaturalSize] = useState({ w: COLS * CELL, h: ROWS * CELL });
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+    img.src = `/${bgImage}.png`;
+  }, [bgImage]);
+
+  // Read calibration from localStorage (written by CalibratePage via saveCalibration).
+  const [calibrationData] = useState(() => loadCalibration());
+
+  // useMapTransform returns a (col,row)→[px,py] function using calibration anchors.
+  // Falls back to ()=>[0,0] when no calibration exists for this board.
+  const transform = useMapTransform(calibrationData, bgImage);
+  const hasCalibration = calibrationData?.[bgImage]?.ready === true;
+
+  // Convert grid (col, row) to displayed pixel position.
+  // With calibration: scale natural-image pixels to the displayed grid size.
+  // Without calibration: use grid-cell centre.
+  function getTokenPos(col, row) {
+    if (hasCalibration) {
+      const [px, py] = transform(col, row);
+      return [px * (COLS * CELL / naturalSize.w), py * (ROWS * CELL / naturalSize.h)];
+    }
+    return [col * CELL + CELL / 2, row * CELL + CELL / 2];
+  }
 
   // Build a cell-key → {piece, anchorKey} map so each BoardCell knows
   // whether it is covered and whether it is the anchor.
@@ -443,8 +504,6 @@ function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRot
                 isEditMode={isEditMode}
                 isLastClick={lastClick === k}
                 coverage={cov?.piece}
-                isAnchor={cov?.anchorKey === k}
-                tokenPadding={tokenPadding}
                 onClick={() => onCellClick(r, c)}
                 onRightClick={isEditMode ? () => onCellRotate(r, c) : undefined}
               />
@@ -452,9 +511,16 @@ function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRot
           })}
         </div>
       ))}
-      {/* Door overlays — absolutely positioned on cell edges */}
+      {/* Token overlays — calibrated or grid-centre fallback */}
+      {Object.entries(placed).map(([anchorKey, piece]) => (
+        <TokenOverlay key={anchorKey} anchorKey={anchorKey} type={piece.type}
+          fog={fog} isEditMode={isEditMode} getTokenPos={getTokenPos} />
+      ))}
+      {/* Door overlays — calibrated position when available, fixed grid otherwise */}
       {Object.entries(doors).map(([anchorKey, { rotation }]) => (
-        <DoorOverlay key={anchorKey} anchorKey={anchorKey} rotation={rotation} fog={fog} isEditMode={isEditMode} />
+        <DoorOverlay key={anchorKey} anchorKey={anchorKey} rotation={rotation}
+          fog={fog} isEditMode={isEditMode}
+          getTokenPos={getTokenPos} hasCalibration={hasCalibration} />
       ))}
     </div>
   );
@@ -573,100 +639,6 @@ function PlayPanel({ onReset }) {
   );
 }
 
-// Memoized so it only re-renders when the selected tool changes.
-const PieceButton = memo(function PieceButton({ piece, isSelected, onSelect }) {
-  return (
-    <button onClick={() => onSelect(piece.id)} style={{
-      padding: "6px 8px",
-      background: isSelected ? T.btnActiveBg : T.btnBg,
-      color: isSelected ? T.btnActiveText : T.btnText,
-      border: `1px solid ${isSelected ? T.btnActiveBdr : T.btnBorder}`,
-      cursor: "pointer", fontFamily: "inherit", fontSize: 11,
-      textAlign: "left", display: "flex", alignItems: "center", gap: 8,
-      transition: "all 0.12s", width: "100%",
-    }}>
-      <div style={{
-        width: 16, height: 16, background: piece.color, flexShrink: 0,
-        borderRadius: piece.shape === "circle" ? "50%" : "2px",
-        transform: piece.shape === "diamond" ? "rotate(45deg)" : "none",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 5, fontWeight: "bold", color: "#000",
-      }} />
-      <span style={{ flex: 1 }}>{piece.label}</span>
-      {piece.blocks && (
-        <span style={{ fontSize: 8, color: T.accent, border: `1px solid ${T.accent}`, padding: "1px 3px" }}>
-          BLK
-        </span>
-      )}
-    </button>
-  );
-});
-
-function EditPanel({ tool, onSelectTool, onSave, savedFlash }) {
-  const [activeCatId, setActiveCatId] = useState(PIECE_CATEGORIES[0].id);
-  const activeCategory = PIECE_CATEGORIES.find(c => c.id === activeCatId);
-
-  return (
-    <>
-      {/* Category tabs */}
-      <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginTop: 4 }}>
-        {PIECE_CATEGORIES.map(cat => (
-          <button key={cat.id} onClick={() => setActiveCatId(cat.id)} style={{
-            padding: "4px 7px", fontSize: 9, letterSpacing: 1,
-            textTransform: "uppercase", fontFamily: "inherit", cursor: "pointer",
-            background: activeCatId === cat.id ? T.btnActiveBg : T.btnBg,
-            color: activeCatId === cat.id ? T.btnActiveText : T.btnText,
-            border: `1px solid ${activeCatId === cat.id ? T.btnActiveBdr : T.btnBorder}`,
-            transition: "all 0.12s",
-          }}>
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Pieces in active category */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 4 }}>
-        {activeCategory.pieces.map(piece => (
-          <PieceButton
-            key={piece.id}
-            piece={piece}
-            isSelected={tool === piece.id}
-            onSelect={onSelectTool}
-          />
-        ))}
-      </div>
-
-      <div style={{
-        marginTop: 8, padding: "10px 12px",
-        background: T.panelBg, border: `1px solid ${T.panelBorder}`,
-        fontSize: 10, color: T.textMuted, lineHeight: 1.8,
-      }}>
-        <span style={{ color: T.accent }}>BLK</span> pieces stop corridor visibility when encountered.
-        <br /><br />
-        <span style={{ color: T.accentGold }}>Hero Start</span> is auto-revealed when switching to Play mode.
-      </div>
-
-      {/* Save Quest button */}
-      {onSave && (
-        <div style={{ marginTop: 8 }}>
-          <button
-            onClick={onSave}
-            style={{
-              width: "100%", padding: "10px 0",
-              background: "#2a4a1a",
-              color: "#d8f0c8",
-              border: `1px solid ${T.accentGold}`,
-              cursor: "pointer", fontFamily: "inherit", fontSize: 11,
-              letterSpacing: 1, transition: "all 0.15s",
-            }}
-          >
-            {savedFlash ? "✓ Saved!" : "💾 Save Quest"}
-          </button>
-        </div>
-      )}
-    </>
-  );
-}
 
 const inputStyle = {
   background: "#e0cfae",
@@ -765,7 +737,7 @@ function Sidebar({
 
       {mode === "play"
         ? <PlayPanel onReset={onReset} />
-        : <EditPanel tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} />
+        : <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} />
       }
 
       {/* Board background selector */}
@@ -865,6 +837,48 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
 }
 
 // ═══════════════════════════════════════════════
+//  CALIBRATE PAGE  (dev / admin tool)
+// ═══════════════════════════════════════════════
+const CALIBRATE_MAPS = [
+  { id: "board",  label: "Board 1", src: "/board.png"  },
+  { id: "board2", label: "Board 2", src: "/board2.png" },
+  { id: "board3", label: "Board 3", src: "/board3.png" },
+];
+
+function CalibratePage({ onBack }) {
+  return (
+    <div style={{
+      background: T.pageBg, minHeight: "100vh",
+      fontFamily: "'Palatino Linotype', 'Palatino', 'Book Antiqua', Georgia, serif",
+      color: T.text,
+    }}>
+      <div style={{
+        padding: "10px 20px", background: T.sidebarBg,
+        borderBottom: `1px solid ${T.sidebarBorder}`,
+        display: "flex", alignItems: "center", gap: 16,
+      }}>
+        <button onClick={onBack} style={{
+          padding: "5px 12px", background: T.btnBg, color: T.btnText,
+          border: `1px solid ${T.btnBorder}`, cursor: "pointer",
+          fontFamily: "inherit", fontSize: 11, letterSpacing: 1,
+        }}>
+          ← Library
+        </button>
+        <span style={{ fontSize: 11, color: T.textMuted, letterSpacing: 1 }}>
+          Map Calibrator — Click anchors on each board, then press Export to save calibration to browser storage
+        </span>
+      </div>
+      <MapCalibrator
+        maps={CALIBRATE_MAPS}
+        onExport={saveCalibration}
+        initialCalibrations={loadCalibration()}
+        pieceCategories={PIECE_CATEGORIES}
+      />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
 //  ROOT COMPONENT
 // ═══════════════════════════════════════════════
 export default function HeroQuestFog() {
@@ -876,11 +890,16 @@ export default function HeroQuestFog() {
     setScreen("game");
   }
 
+  if (screen === "calibrate") {
+    return <CalibratePage onBack={() => setScreen("library")} />;
+  }
+
   if (screen === "library") {
     return (
       <QuestLibrary
         onPlay={q => openQuest(q, "play")}
         onEdit={q => openQuest(q, "edit")}
+        onCalibrate={() => setScreen("calibrate")}
       />
     );
   }
