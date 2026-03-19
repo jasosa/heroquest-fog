@@ -1,5 +1,39 @@
 const C = "C";
 
+// Door rotation → [rowOffset, colOffset] to the neighbor cell on the other side.
+// 0=right edge, 1=bottom edge, 2=left edge, 3=top edge.
+export const DOOR_NEIGHBOR_OFFSETS = [[0,1],[1,0],[0,-1],[-1,0]];
+
+/**
+ * Returns true if `roomCellKey` is a room cell and at least one door adjacent
+ * to that room has either of its two sides already revealed in `fog`.
+ */
+export function hasVisibleDoorForRoom(roomCellKey, doors, fog, board) {
+  const [r, c] = roomCellKey.split(",").map(Number);
+  const roomId = board[r]?.[c];
+  if (!roomId || roomId === C) return false;
+
+  // Collect all cell keys belonging to this room.
+  const roomCells = new Set();
+  for (let row = 0; row < board.length; row++) {
+    for (let col = 0; col < board[row].length; col++) {
+      if (board[row][col] === roomId) roomCells.add(`${row},${col}`);
+    }
+  }
+
+  for (const [anchorKey, { rotation }] of Object.entries(doors)) {
+    const [ar, ac] = anchorKey.split(",").map(Number);
+    const [dr, dc] = DOOR_NEIGHBOR_OFFSETS[rotation];
+    const sideA = anchorKey;
+    const sideB = `${ar + dr},${ac + dc}`;
+    // Door must be adjacent to this room.
+    if (!roomCells.has(sideA) && !roomCells.has(sideB)) continue;
+    // At least one side must be visible.
+    if (fog.has(sideA) || fog.has(sideB)) return true;
+  }
+  return false;
+}
+
 /**
  * Returns a computeReveal function bound to a specific board.
  * This factory pattern lets tests inject a small board without touching

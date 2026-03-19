@@ -5,8 +5,10 @@ import { useMapTransform } from "../../components/MapCalibrator.jsx";
 import BoardCell from "./BoardCell.jsx";
 import { TokenOverlay } from "./TokenOverlay.jsx";
 import { DoorOverlay } from "./DoorOverlay.jsx";
+import { RoomConfirmDialog } from "./RoomConfirmDialog.jsx";
 
-export function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
+export function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage,
+  pendingRoomReveal, onConfirmReveal, onCancelReveal }) {
   const isEditMode = mode === "edit";
 
   // Load natural image dimensions so calibrated pixel coords can be scaled
@@ -125,7 +127,8 @@ export function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, on
       {Object.entries(placed).map(([anchorKey, piece]) => (
         <TokenOverlay key={anchorKey} anchorKey={anchorKey} type={piece.type}
           coveredCells={piece.coveredCells} rotation={piece.rotation}
-          fog={fog} isEditMode={isEditMode} getTokenPos={getTokenPos} tileSet={bgImage} />
+          fog={fog} isEditMode={isEditMode} getTokenPos={getTokenPos} tileSet={bgImage}
+          overlayMarker={piece.overlayMarker} />
       ))}
       {/* Door overlays — calibrated position when available, fixed grid otherwise */}
       {Object.entries(doors).map(([anchorKey, { rotation, type }]) => (
@@ -133,6 +136,10 @@ export function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, on
           fog={fog} isEditMode={isEditMode}
           getTokenPos={getTokenPos} hasCalibration={hasCalibration} tileSet={bgImage} />
       ))}
+      {/* Room confirm dialog — shown when a room cell is clicked without a visible door */}
+      {pendingRoomReveal && (
+        <RoomConfirmDialog onConfirm={onConfirmReveal} onCancel={onCancelReveal} />
+      )}
     </div>
   );
 }

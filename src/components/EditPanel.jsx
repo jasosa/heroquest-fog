@@ -38,7 +38,7 @@ export const PieceButton = memo(function PieceButton({ piece, isSelected, onSele
  *   onSave           — optional () => void  (omit to hide Save button)
  *   savedFlash       — optional bool
  */
-export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFlash }) {
+export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFlash, saveError }) {
   const [activeCatId, setActiveCatId] = useState(pieceCategories[0]?.id ?? null);
   const activeCategory = pieceCategories.find(c => c.id === activeCatId);
 
@@ -93,6 +93,16 @@ export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFl
           }}>
             {savedFlash ? "✓ Saved!" : "💾 Save Quest"}
           </button>
+          {saveError && (
+            <div style={{
+              marginTop: 6, padding: "6px 8px",
+              background: "#2a0a0a", color: "#f0c0b0",
+              border: `1px solid ${T.accent}`,
+              fontSize: 10, lineHeight: 1.5,
+            }}>
+              {saveError}
+            </div>
+          )}
         </div>
       )}
     </>

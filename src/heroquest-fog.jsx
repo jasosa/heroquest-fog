@@ -4,14 +4,15 @@ import { persistQuest, loadCalibration, saveCalibration } from "./questStorage.j
 import QuestLibrary from "./QuestLibrary.jsx";
 import MapCalibrator from "./components/MapCalibrator.jsx";
 import { PIECE_CATEGORIES } from "./pieces.js";
-import { useGameState } from "./features/game/useGameState.js";
+import { useGameState, hasHeroStart } from "./features/game/useGameState.js";
 import { BoardGrid } from "./features/board/BoardGrid.jsx";
 import { Sidebar } from "./features/sidebar/Sidebar.jsx";
 
 // ═══════════════════════════════════════════════
 //  BOARD AREA (left panel)
 // ═══════════════════════════════════════════════
-function BoardArea({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage }) {
+function BoardArea({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage,
+  pendingRoomReveal, onConfirmReveal, onCancelReveal }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
@@ -40,6 +41,9 @@ function BoardArea({ fog, placed, doors, mode, lastClick, onCellClick, onCellRot
         fog={fog} placed={placed} doors={doors} mode={mode}
         lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
         bgImage={bgImage}
+        pendingRoomReveal={pendingRoomReveal}
+        onConfirmReveal={onConfirmReveal}
+        onCancelReveal={onCancelReveal}
       />
 
       <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1 }}>
@@ -64,6 +68,12 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
   const [savedFlash, setSavedFlash] = useState(false);
 
   function handleSave() {
+    if (!hasHeroStart(gameState.placed)) {
+      gameState.setSaveError("Add a Hero Start marker before saving.");
+      setTimeout(() => gameState.setSaveError(null), 3000);
+      return;
+    }
+    gameState.setSaveError(null);
     const updated = {
       ...quest,
       title: gameState.questTitle,
@@ -89,6 +99,9 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         mode={gameState.mode} lastClick={gameState.lastClick}
         onCellClick={gameState.handleCell} onCellRotate={gameState.handleCellRotate}
         bgImage={bgImage}
+        pendingRoomReveal={gameState.pendingRoomReveal}
+        onConfirmReveal={gameState.confirmPendingReveal}
+        onCancelReveal={gameState.cancelPendingReveal}
       />
       <Sidebar
         mode={gameState.mode} tool={gameState.tool}
@@ -98,6 +111,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         onBack={onBack}
         onSave={handleSave}
         savedFlash={savedFlash}
+        saveError={gameState.saveError}
         questTitle={gameState.questTitle}
         questDescription={gameState.questDescription}
         setQuestTitle={gameState.setQuestTitle}

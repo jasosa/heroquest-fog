@@ -96,7 +96,7 @@ const inputStyle = {
 
 export function Sidebar({
   mode, tool, setMode, setTool, onReset, bgImage, setBgImage,
-  onBack, onSave, savedFlash,
+  onBack, onSave, savedFlash, saveError,
   questTitle, questDescription, setQuestTitle, setQuestDescription,
 }) {
   return (
@@ -180,7 +180,7 @@ export function Sidebar({
 
       {mode === "play"
         ? <PlayPanel onReset={onReset} />
-        : <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} />
+        : <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} saveError={saveError} />
       }
 
       {/* Board background selector */}

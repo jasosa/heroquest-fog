@@ -6,15 +6,15 @@ export const PIECE_CATEGORIES = [
   {
     id: "monsters", label: "Monsters",
     pieces: [
-      { id: "goblin",       label: "Goblin",         icon: "G",  color: "#66bb6a", shape: "circle",  blocks: false, image: "Monster_Goblin.png",       imageScale: 1 },
-      { id: "orc",          label: "Orc",             icon: "O",  color: "#a5714d", shape: "circle",  blocks: false, image: "Monster_Orc.png",          imageScale: 1 },
-      { id: "skeleton",     label: "Skeleton",        icon: "Sk", color: "#c0cdd4", shape: "circle",  blocks: false, image: "Monster_Skeleton.png",     imageScale: 1 },
-      { id: "zombie",       label: "Zombie",          icon: "Zm", color: "#78909c", shape: "circle",  blocks: false, image: "Monster_Zombie.png",       imageScale: 1 },
-      { id: "mummy",        label: "Mummy",           icon: "Mm", color: "#c4a87a", shape: "circle",  blocks: false, image: "Monster_Mummy.png",        imageScale: 1 },
-      { id: "abomination",  label: "Abomination",     icon: "Ab", color: "#6a4c93", shape: "circle",  blocks: false, image: "Monster_Abomination.png",  imageScale: { board2: 1.2, board3: 1 } },
-      { id: "dread",        label: "Dread Warrior",   icon: "Dw", color: "#b71c1c", shape: "circle",  blocks: false, image: "Monster_DreadWarrior.png", imageScale: 1 },
-      { id: "gargoyle",     label: "Gargoyle",        icon: "Ga", color: "#8d9eaa", shape: "circle",  blocks: false, image: "Monster_Gargoyle.png",     imageScale: 1 },
-      { id: "dreadsorcerer", label: "Dread Sorcerer", icon: "Ds", color: "#4a148c", shape: "circle",  blocks: false, image: "Monster_Dread Sorcerer.png", imageScale: 1 },
+      { id: "goblin",       label: "Goblin",         icon: "G",  color: "#66bb6a", shape: "circle",  blocks: false, image: "Monster_Goblin.png",         imageScale: { board2: 1.2, board3: 1 } },
+      { id: "orc",          label: "Orc",             icon: "O",  color: "#a5714d", shape: "circle",  blocks: false, image: "Monster_Orc.png",            imageScale: { board2: 1.2, board3: 1 } },
+      { id: "skeleton",     label: "Skeleton",        icon: "Sk", color: "#c0cdd4", shape: "circle",  blocks: false, image: "Monster_Skeleton.png",       imageScale: { board2: 1.2, board3: 1 } },
+      { id: "zombie",       label: "Zombie",          icon: "Zm", color: "#78909c", shape: "circle",  blocks: false, image: "Monster_Zombie.png",         imageScale: { board2: 1.2, board3: 1 } },
+      { id: "mummy",        label: "Mummy",           icon: "Mm", color: "#c4a87a", shape: "circle",  blocks: false, image: "Monster_Mummy.png",          imageScale: { board2: 1.2, board3: 1 } },
+      { id: "abomination",  label: "Abomination",     icon: "Ab", color: "#6a4c93", shape: "circle",  blocks: false, image: "Monster_Abomination.png",    imageScale: { board2: 1.2, board3: 1 } },
+      { id: "dread",        label: "Dread Warrior",   icon: "Dw", color: "#b71c1c", shape: "circle",  blocks: false, image: "Monster_DreadWarrior.png",   imageScale: { board2: 1.2, board3: 1 } },
+      { id: "gargoyle",     label: "Gargoyle",        icon: "Ga", color: "#8d9eaa", shape: "circle",  blocks: false, image: "Monster_Gargoyle.png",       imageScale: { board2: 1.2, board3: 1 } },
+      { id: "dreadsorcerer", label: "Dread Sorcerer", icon: "Ds", color: "#4a148c", shape: "circle",  blocks: false, image: "Monster_Dread Sorcerer.png", imageScale: { board2: 1.2, board3: 1 } },
     ],
   },
   {
@@ -29,7 +29,7 @@ export const PIECE_CATEGORIES = [
   {
     id: "furniture", label: "Furniture",
     pieces: [
-      { id: "chest",        label: "Chest",           icon: "Ch", color: "#ffa726", shape: "square",  blocks: false, image: "Chest.png",        imageScale: 1 },
+      { id: "chest",        label: "Chest",           icon: "Ch", color: "#ffa726", shape: "square",  blocks: false, image: "Chest.png", imageScale: { board2: 0.85, board3: 0.95 } },
       { id: "bookcase",     label: "Bookcase",         icon: "Bk", color: "#795548", shape: "square",  blocks: true,  cells: [[0,0],[0,1],[0,2]], image: "Bookcase.png", imageScale: 0.9 },
       { id: "table",        label: "Table",            icon: "Tb", color: "#8d6e63", shape: "square",  blocks: false, cells: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]], image: "Table.png", imageScale: 0.80 },
       { id: "throne",       label: "Throne",           icon: "Th", color: "#ffd54f", shape: "square",  blocks: false, image: "Throne.png", imageScale: 1 },
@@ -46,7 +46,7 @@ export const PIECE_CATEGORIES = [
     id: "markers", label: "Markers",
     pieces: [
       { id: "start",        label: "Hero Start",      icon: "⚔", color: "#f0c040", shape: "diamond", blocks: false },
-      { id: "door",         label: "Door",             icon: "▐",  color: "#9c6b2e", shape: "square",  blocks: false, isEdge: true, image: "Door.png",        imageScale: 1 },
+      { id: "door",         label: "Door",             icon: "▐",  color: "#9c6b2e", shape: "square",  blocks: false, isEdge: true, image: "Door.png",        imageScale: 1.2 },
       { id: "secretdoor",   label: "Secret Door",      icon: "▐",  color: "#5d4037", shape: "square",  blocks: false, image: "Secret_Door.png", imageScale: 1 },
       { id: "stairs",       label: "Stairs",           icon: "St", color: "#90a4ae", shape: "square",  blocks: false, cells: [[0,0],[0,1],[1,0],[1,1]], image: "Stairs.png", imageScale: 1 },
       { id: "blocker",      label: "Blocked Square",  icon: "▪",  color: "#455a64", shape: "square",  blocks: true,  image: "Wall.png", imageScale: 1 },

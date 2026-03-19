@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { makeComputeReveal } from "./reveal.js";
+import { makeComputeReveal, hasVisibleDoorForRoom, DOOR_NEIGHBOR_OFFSETS } from "./reveal.js";
 
 // ─── Test board (8 rows × 9 cols) ───────────────────────────────────────────
 //
@@ -229,6 +229,65 @@ describe("multi-cell blocker (coveredCells)", () => {
     expect(vis.has("4,3")).toBe(true);
     expect(vis.has("3,3")).toBe(true);
     expect(vis.has("2,3")).toBe(true);
+  });
+});
+
+// ─── hasVisibleDoorForRoom ────────────────────────────────────────────────────
+//
+// Board recap: R1 = rows 1-3 cols 1-2, R2 = rows 1-3 cols 4-5,
+// single corridor col 3 rows 1-3, double corridor cols 3-4 rows 4-6.
+// Door rotation 0 = right edge (offset [0,1]).
+
+describe("hasVisibleDoorForRoom", () => {
+  it("returns false when there are no doors", () => {
+    expect(hasVisibleDoorForRoom("1,1", {}, new Set(), BOARD)).toBe(false);
+  });
+
+  it("returns false for a door not adjacent to the queried room", () => {
+    // Door at "6,3" rot 0: sideA="6,3" (C), sideB="6,4" (C) — neither in R1
+    const doors = { "6,3": { rotation: 0 } };
+    const fog   = new Set(["6,3"]);
+    expect(hasVisibleDoorForRoom("1,1", doors, fog, BOARD)).toBe(false);
+  });
+
+  it("returns false when adjacent door has neither side revealed", () => {
+    // Door at "1,2" rot 0: sideA="1,2" (R1), sideB="1,3" (C), fog empty
+    const doors = { "1,2": { rotation: 0 } };
+    expect(hasVisibleDoorForRoom("1,1", doors, new Set(), BOARD)).toBe(false);
+  });
+
+  it("returns true when the room-side cell of the door is revealed", () => {
+    const doors = { "1,2": { rotation: 0 } };
+    const fog   = new Set(["1,2"]);
+    expect(hasVisibleDoorForRoom("1,1", doors, fog, BOARD)).toBe(true);
+  });
+
+  it("returns true when the corridor-side cell of the door is revealed", () => {
+    const doors = { "1,2": { rotation: 0 } };
+    const fog   = new Set(["1,3"]);
+    expect(hasVisibleDoorForRoom("1,1", doors, fog, BOARD)).toBe(true);
+  });
+
+  it("returns false when queried cell is a corridor, not a room", () => {
+    // "1,3" is corridor — function should return false for non-room cells
+    const doors = { "1,2": { rotation: 0 } };
+    const fog   = new Set(["1,2"]);
+    expect(hasVisibleDoorForRoom("1,3", doors, fog, BOARD)).toBe(false);
+  });
+
+  it("returns false when the only door is adjacent to a different room", () => {
+    // Door at "1,4" rot 2: offset [0,-1], sideA="1,4" (R2), sideB="1,3" (C)
+    // Neither is in R1 cells
+    const doors = { "1,4": { rotation: 2 } };
+    const fog   = new Set(["1,4", "1,3"]);
+    expect(hasVisibleDoorForRoom("1,1", doors, fog, BOARD)).toBe(false);
+  });
+
+  it("returns true when one of multiple doors qualifies", () => {
+    // Unrelated door at "6,3" + qualifying door at "1,2" rot 0 with fog on "1,3"
+    const doors = { "6,3": { rotation: 0 }, "1,2": { rotation: 0 } };
+    const fog   = new Set(["1,3"]);
+    expect(hasVisibleDoorForRoom("1,1", doors, fog, BOARD)).toBe(true);
   });
 });
 

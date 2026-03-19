@@ -12,8 +12,12 @@ const GOBLIN   = { id: "goblin",   blocks: false, cells: undefined, isEdge: fals
 const BOOKCASE = { id: "bookcase", blocks: true,  cells: [[0,0],[0,1],[0,2]], isEdge: false };
 const TABLE    = { id: "table",    blocks: false, cells: [[0,0],[0,1]],       isEdge: false };
 const DOOR     = { id: "door",     isEdge: true };
+// Marker: 1×1, no image (e.g. Hero Start)
+const START    = { id: "start",   blocks: false };
+// Furniture with image: 2×2 (e.g. Stairs)
+const STAIRS   = { id: "stairs",  blocks: false, cells: [[0,0],[0,1],[1,0],[1,1]], image: "Stairs.png" };
 
-const PIECES = { goblin: GOBLIN, bookcase: BOOKCASE, table: TABLE, door: DOOR };
+const PIECES = { goblin: GOBLIN, bookcase: BOOKCASE, table: TABLE, door: DOOR, start: START, stairs: STAIRS };
 
 // ─── togglePlacedPiece ────────────────────────────────────────────────────────
 
@@ -81,6 +85,43 @@ describe("togglePlacedPiece — removal", () => {
     const result = togglePlacedPiece(placed, GOBLIN, 1, 1, 0);
     expect(result["1,1"]).toBeUndefined();
     expect(result["5,5"]).toBeDefined();
+  });
+});
+
+// ─── togglePlacedPiece — marker stacking on furniture ────────────────────────
+
+describe("togglePlacedPiece — marker stacking on furniture", () => {
+  it("places a marker on a cell covered (not anchored) by multi-cell furniture", () => {
+    // Stairs at anchor "2,3" covering "2,3","2,4","3,3","3,4"
+    const withStairs = togglePlacedPiece({}, STAIRS, 2, 3, 0);
+    // Place Hero Start at "2,4" (covered by Stairs, not the anchor)
+    const result = togglePlacedPiece(withStairs, START, 2, 4, 0, PIECES);
+    expect(result["2,4"]).toMatchObject({ type: "start" });
+    expect(result["2,3"]).toBeDefined(); // Stairs still there
+  });
+
+  it("removes a marker stacked on furniture without affecting the furniture", () => {
+    let placed = togglePlacedPiece({}, STAIRS, 2, 3, 0);
+    placed = togglePlacedPiece(placed, START, 2, 4, 0, PIECES);
+    const result = togglePlacedPiece(placed, START, 2, 4, 0, PIECES);
+    expect(result["2,4"]).toBeUndefined(); // marker removed
+    expect(result["2,3"]).toBeDefined();   // Stairs still there
+  });
+
+  it("places a marker as overlayMarker on the anchor cell of furniture", () => {
+    const withStairs = togglePlacedPiece({}, STAIRS, 2, 3, 0);
+    const result = togglePlacedPiece(withStairs, START, 2, 3, 0, PIECES);
+    expect(result["2,3"].type).toBe("stairs");        // Stairs not removed
+    expect(result["2,3"].overlayMarker).toBe("start"); // marker stored as overlay
+    expect(Object.keys(result)).toHaveLength(1);       // still one entry
+  });
+
+  it("removes overlayMarker when clicking anchor again with marker tool", () => {
+    let placed = togglePlacedPiece({}, STAIRS, 2, 3, 0);
+    placed = togglePlacedPiece(placed, START, 2, 3, 0, PIECES);
+    const result = togglePlacedPiece(placed, START, 2, 3, 0, PIECES);
+    expect(result["2,3"].type).toBe("stairs");
+    expect(result["2,3"].overlayMarker).toBeUndefined();
   });
 });
 

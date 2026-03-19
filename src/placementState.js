@@ -14,12 +14,41 @@ function findAnchor(placed, k) {
  * - If clicking an existing piece's footprint → remove it.
  * - Otherwise → place the piece.
  * Edge pieces (isEdge) are ignored — use toggleDoor instead.
+ *
+ * Optional `pieces` map enables marker-stacking behaviour:
+ * a marker (1×1, no image) can be placed on top of furniture without
+ * removing the furniture, and clicking a stacked marker removes only it.
  */
-export function togglePlacedPiece(placed, piece, r, c, rotation) {
+export function togglePlacedPiece(placed, piece, r, c, rotation, pieces) {
   if (!piece || piece.isEdge) return placed;
   const k = `${r},${c}`;
 
-  // Remove if clicking an occupied cell.
+  const isIncomingMarker = !piece.cells && !piece.image;
+
+  if (isIncomingMarker && pieces) {
+    const existingAtAnchor = placed[k];
+    if (existingAtAnchor) {
+      const existingDef = pieces[existingAtAnchor.type];
+      const existingIsMarker = !existingDef?.cells && !existingDef?.image;
+      if (existingIsMarker) {
+        // Toggle off the stacked marker entry.
+        const next = { ...placed };
+        delete next[k];
+        return next;
+      }
+      // Anchor belongs to furniture — store/toggle the marker as overlayMarker.
+      if (existingAtAnchor.overlayMarker) {
+        const { overlayMarker: _removed, ...rest } = existingAtAnchor;
+        return { ...placed, [k]: rest };
+      }
+      return { ...placed, [k]: { ...existingAtAnchor, overlayMarker: piece.id } };
+    }
+    // No anchor at k: place marker (even if cell is covered by furniture).
+    const coveredCells = getCoveredCellKeys(r, c, piece.cells ?? [[0, 0]], rotation);
+    return { ...placed, [k]: { type: piece.id, blocks: piece.blocks ?? false, rotation, coveredCells } };
+  }
+
+  // Non-marker (or legacy call without pieces map): original behaviour.
   const anchor = findAnchor(placed, k);
   if (anchor) {
     const next = { ...placed };

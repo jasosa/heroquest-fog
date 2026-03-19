@@ -27,7 +27,7 @@ function Token({ type }) {
 
 // Tokens are rendered as overlays rather than inside grid cells so their
 // position can be driven by calibrated pixel coordinates (useMapTransform).
-export function TokenOverlay({ anchorKey, type, coveredCells, rotation, fog, isEditMode, getTokenPos, tileSet }) {
+export function TokenOverlay({ anchorKey, type, coveredCells, rotation, fog, isEditMode, getTokenPos, tileSet, overlayMarker }) {
   const p = PIECES[type];
   const isVisible = isEditMode || fog.has(anchorKey) ||
     (coveredCells && coveredCells.some(k => fog.has(k)));
@@ -59,32 +59,46 @@ export function TokenOverlay({ anchorKey, type, coveredCells, rotation, fog, isE
     const w = natCols * cellPx * scale;
     const h = natRows * cellPx * scale;
 
+    const [anchorPx, anchorPy] = getTokenPos(c, r);
     return (
-      <img
-        src={`/tiles/${tileSet}/${p.image}`}
-        alt={p.label}
-        style={{
-          position: "absolute",
-          left: cx - w / 2,
-          top: cy - h / 2,
-          width: w,
-          height: h,
-          transform: `rotate(${(rotation ?? 0) * 90}deg)`,
-          zIndex: 5,
-          pointerEvents: "none",
-          objectFit: "fill",
-        }}
-      />
+      <>
+        <img
+          src={`/tiles/${tileSet}/${p.image}`}
+          alt={p.label}
+          style={{
+            position: "absolute",
+            left: cx - w / 2,
+            top: cy - h / 2,
+            width: w,
+            height: h,
+            transform: `rotate(${(rotation ?? 0) * 90}deg)`,
+            zIndex: 5,
+            pointerEvents: "none",
+            objectFit: "fill",
+          }}
+        />
+        {overlayMarker && (
+          <div style={{
+            position: "absolute",
+            left: anchorPx, top: anchorPy,
+            transform: "translate(-50%, -50%)",
+            zIndex: 8, pointerEvents: "none",
+          }}>
+            <Token type={overlayMarker} />
+          </div>
+        )}
+      </>
     );
   }
 
+  const isHeroStart = type === "start";
   const [px, py] = getTokenPos(c, r);
   return (
     <div style={{
       position: "absolute",
       left: px, top: py,
       transform: "translate(-50%, -50%)",
-      zIndex: 5, pointerEvents: "none",
+      zIndex: isHeroStart ? 8 : 5, pointerEvents: "none",
     }}>
       <Token type={type} />
     </div>
