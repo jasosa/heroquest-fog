@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { T } from "./theme.js";
 import {
   loadQuestBooks,
@@ -7,6 +7,8 @@ import {
   deleteQuestBook,
   createQuest,
   deleteQuest,
+  exportQuestAsJson,
+  importQuestFromJson,
 } from "./questStorage.js";
 
 // ─── Small shared input style ─────────────────────────────────────────────────
@@ -32,6 +34,9 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   const [books, setBooks]           = useState(() => loadQuestBooks());
   const [quests, setQuests]         = useState(() => loadQuests());
   const [selectedBookId, setSelectedBookId] = useState(null); // null = "All"
+
+  const importInputRef = useRef(null);
+  const [importError, setImportError] = useState("");
 
   // New-book form
   const [showNewBook, setShowNewBook]   = useState(false);
@@ -91,6 +96,35 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     if (!window.confirm("Delete this quest?")) return;
     deleteQuest(id);
     setQuests(prev => prev.filter(q => q.id !== id));
+  }
+
+  // ── Export / Import ───────────────────────────────────────────────────────
+  function handleExportQuest(quest) {
+    const json = exportQuestAsJson(quest);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${quest.title.replace(/\s+/g, "_")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImportFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const quest = importQuestFromJson(ev.target.result, selectedBookId);
+        setQuests(prev => [...prev, quest]);
+        setImportError("");
+      } catch (err) {
+        setImportError(err.message ?? "Failed to import quest.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
   }
 
   // ── Shared button style ───────────────────────────────────────────────────
@@ -193,6 +227,24 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             >
               ⚙ Calibrate Maps
             </button>
+          )}
+          <input
+            type="file"
+            accept=".json"
+            ref={importInputRef}
+            style={{ display: "none" }}
+            onChange={handleImportFile}
+          />
+          <button
+            onClick={() => { setImportError(""); importInputRef.current.click(); }}
+            style={{ ...btn(false), width: "100%", textAlign: "center", marginBottom: 6 }}
+          >
+            ⬆ Import Quest
+          </button>
+          {importError && (
+            <div style={{ fontSize: 10, color: T.accent, marginBottom: 6, wordBreak: "break-word" }}>
+              {importError}
+            </div>
           )}
           {showNewBook ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -346,6 +398,13 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                     </button>
                     <button onClick={() => onEdit(quest)} style={{ ...btn(false, { flex: 1, fontSize: 10 }) }}>
                       ✎ Edit
+                    </button>
+                    <button
+                      onClick={() => handleExportQuest(quest)}
+                      title="Export quest as JSON"
+                      style={{ ...btn(false, { padding: "7px 10px", fontSize: 11 }) }}
+                    >
+                      ⬇
                     </button>
                     <button
                       onClick={() => handleDeleteQuest(quest.id)}

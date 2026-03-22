@@ -4,8 +4,8 @@ import {
   rotatePlacedPiece,
   toggleDoor,
   cycleDoorRotation,
-  placeLetterMarker,
-  updateLetterMarker,
+  placeNoteMarker,
+  updateNoteMarker,
   setMonsterSpecial,
 } from "./placementState.js";
 
@@ -211,61 +211,61 @@ describe("cycleDoorRotation", () => {
   });
 });
 
-// ─── placeLetterMarker ────────────────────────────────────────────────────────
+// ─── placeNoteMarker ─────────────────────────────────────────────────────────
 
-describe("placeLetterMarker", () => {
-  it("places a letter marker with letter and note", () => {
-    const result = placeLetterMarker({}, 3, 4, "A", "Find the key here");
+describe("placeNoteMarker", () => {
+  it("places a note marker with a note", () => {
+    const result = placeNoteMarker({}, 3, 4, "Find the key here");
     expect(result["3,4"]).toMatchObject({
-      type: "letter", letter: "A", note: "Find the key here",
+      type: "notemarker", note: "Find the key here",
       blocks: false, rotation: 0,
     });
     expect(result["3,4"].coveredCells).toEqual(["3,4"]);
   });
 
-  it("removes an existing letter marker when clicking its cell again", () => {
-    const placed = { "3,4": { type: "letter", letter: "A", note: "old", blocks: false, rotation: 0, coveredCells: ["3,4"] } };
-    const result = placeLetterMarker(placed, 3, 4, "B", "new");
+  it("removes an existing note marker when clicking its cell again", () => {
+    const placed = { "3,4": { type: "notemarker", note: "old", blocks: false, rotation: 0, coveredCells: ["3,4"] } };
+    const result = placeNoteMarker(placed, 3, 4, "new");
     expect(result["3,4"]).toBeUndefined();
   });
 
   it("places on an empty cell even when note is empty", () => {
-    const result = placeLetterMarker({}, 0, 0, "Z", "");
-    expect(result["0,0"]).toMatchObject({ type: "letter", letter: "Z", note: "" });
+    const result = placeNoteMarker({}, 0, 0, "");
+    expect(result["0,0"]).toMatchObject({ type: "notemarker", note: "" });
   });
 
   it("does not affect other placed pieces", () => {
     const placed = { "1,1": { type: "goblin", blocks: false, rotation: 0, coveredCells: ["1,1"] } };
-    const result = placeLetterMarker(placed, 3, 4, "C", "note");
+    const result = placeNoteMarker(placed, 3, 4, "note");
     expect(result["1,1"]).toEqual(placed["1,1"]);
-    expect(result["3,4"].type).toBe("letter");
+    expect(result["3,4"].type).toBe("notemarker");
   });
 });
 
-// ─── updateLetterMarker ───────────────────────────────────────────────────────
+// ─── updateNoteMarker ─────────────────────────────────────────────────────────
 
-describe("updateLetterMarker", () => {
-  const base = { "3,4": { type: "letter", letter: "A", note: "old", blocks: false, rotation: 0, coveredCells: ["3,4"] } };
+describe("updateNoteMarker", () => {
+  const base = { "3,4": { type: "notemarker", note: "old", blocks: false, rotation: 0, coveredCells: ["3,4"] } };
 
-  it("updates letter and note of an existing marker", () => {
-    const result = updateLetterMarker(base, "3,4", "B", "new note");
-    expect(result["3,4"]).toMatchObject({ letter: "B", note: "new note" });
+  it("updates the note of an existing note marker", () => {
+    const result = updateNoteMarker(base, "3,4", "new note");
+    expect(result["3,4"]).toMatchObject({ note: "new note" });
   });
 
   it("preserves other fields on update", () => {
-    const result = updateLetterMarker(base, "3,4", "C", "x");
+    const result = updateNoteMarker(base, "3,4", "x");
     expect(result["3,4"].coveredCells).toEqual(["3,4"]);
-    expect(result["3,4"].type).toBe("letter");
+    expect(result["3,4"].type).toBe("notemarker");
   });
 
   it("is a no-op if anchor does not exist", () => {
-    const result = updateLetterMarker(base, "9,9", "A", "note");
+    const result = updateNoteMarker(base, "9,9", "note");
     expect(result).toEqual(base);
   });
 
-  it("is a no-op if the piece at anchor is not a letter marker", () => {
-    const placed = { "3,4": { type: "goblin", letter: undefined } };
-    const result = updateLetterMarker(placed, "3,4", "A", "note");
+  it("is a no-op if the piece at anchor is not a note marker", () => {
+    const placed = { "3,4": { type: "goblin" } };
+    const result = updateNoteMarker(placed, "3,4", "note");
     expect(result).toEqual(placed);
   });
 });

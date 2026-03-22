@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeDefaultSearchMarkers, moveSearchMarker, setSearchNote } from "./searchMarkers.js";
+import { computeDefaultSearchMarkers, moveSearchMarker, setSearchNote, removeSearchMarker } from "./searchMarkers.js";
 
 // ─── Test board (same layout as reveal.test.js) ──────────────────────────────
 //
@@ -125,5 +125,28 @@ describe("setSearchNote", () => {
     const notes = {};
     const result = setSearchNote(notes, "R1", "note");
     expect(result).not.toBe(notes);
+  });
+});
+
+// ─── removeSearchMarker ───────────────────────────────────────────────────────
+
+describe("removeSearchMarker", () => {
+  it("removes the marker for the given region", () => {
+    const markers = { R1: [2, 2], R2: [4, 4] };
+    const result = removeSearchMarker(markers, "R1");
+    expect(result["R1"]).toBeUndefined();
+    expect(result["R2"]).toEqual([4, 4]);
+  });
+
+  it("returns a new object (immutable)", () => {
+    const markers = { R1: [2, 2] };
+    const result = removeSearchMarker(markers, "R1");
+    expect(result).not.toBe(markers);
+  });
+
+  it("is a no-op if the region has no marker", () => {
+    const markers = { R2: [4, 4] };
+    const result = removeSearchMarker(markers, "R1");
+    expect(result).toEqual(markers);
   });
 });

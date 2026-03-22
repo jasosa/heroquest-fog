@@ -121,26 +121,26 @@ export function cycleDoorRotation(doors, r, c) {
 }
 
 /**
- * Place a letter marker at (r, c).
- * If a letter marker already exists at that cell, remove it (toggle).
+ * Place a note marker at (r, c).
+ * If a note marker already exists at that cell, remove it (toggle).
  */
-export function placeLetterMarker(placed, r, c, letter, note) {
+export function placeNoteMarker(placed, r, c, note) {
   const k = `${r},${c}`;
-  if (placed[k]?.type === "letter") {
+  if (placed[k]?.type === "notemarker") {
     const next = { ...placed };
     delete next[k];
     return next;
   }
-  return { ...placed, [k]: { type: "letter", letter, note: note ?? "", blocks: false, rotation: 0, coveredCells: [k] } };
+  return { ...placed, [k]: { type: "notemarker", note: note ?? "", blocks: false, rotation: 0, coveredCells: [k] } };
 }
 
 /**
- * Update the letter and note of an existing letter marker.
- * No-op if no letter marker at anchorKey.
+ * Update the note of an existing note marker.
+ * No-op if no note marker at anchorKey.
  */
-export function updateLetterMarker(placed, anchorKey, letter, note) {
-  if (!placed[anchorKey] || placed[anchorKey].type !== "letter") return placed;
-  return { ...placed, [anchorKey]: { ...placed[anchorKey], letter, note: note ?? "" } };
+export function updateNoteMarker(placed, anchorKey, note) {
+  if (!placed[anchorKey] || placed[anchorKey].type !== "notemarker") return placed;
+  return { ...placed, [anchorKey]: { ...placed[anchorKey], note: note ?? "" } };
 }
 
 /**

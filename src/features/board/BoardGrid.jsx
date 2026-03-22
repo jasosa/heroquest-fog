@@ -10,8 +10,8 @@ import { SearchMarkerOverlay } from "./SearchMarkerOverlay.jsx";
 
 export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, searchedRegions, mode, lastClick, onCellClick, onCellRotate, bgImage,
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
-  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditLetter,
-  onEditSearchNote, onViewSearchNote }) {
+  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditNote,
+  onEditSearchNote, onViewSearchNote, onRemoveSearchMarker }) {
   const isEditMode = mode === "edit";
 
   // Load natural image dimensions so calibrated pixel coords can be scaled
@@ -132,10 +132,9 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
           coveredCells={piece.coveredCells} rotation={piece.rotation}
           fog={fog} isEditMode={isEditMode} getTokenPos={getTokenPos} tileSet={bgImage}
           overlayMarker={piece.overlayMarker}
-          isLetterMarker={piece.type === "letter"}
-          letter={piece.letter} note={piece.note}
+          note={piece.note}
           isSpecial={piece.isSpecial} specialNote={piece.specialNote}
-          onAnnotateMonster={onAnnotateMonster} onEditLetter={onEditLetter}
+          onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
           onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip} />
       ))}
       {/* Door overlays — calibrated position when available, fixed grid otherwise */}
@@ -155,6 +154,7 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
           getTokenPos={getTokenPos}
           onEditNote={onEditSearchNote}
           onViewNote={onViewSearchNote}
+          onRemoveMarker={onRemoveSearchMarker}
         />
       )}
       {/* Room confirm dialog — shown when a room cell is clicked without a visible door */}

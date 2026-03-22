@@ -7,7 +7,7 @@ import { PIECE_CATEGORIES, PIECES } from "./pieces.js";
 import { useGameState, hasHeroStart } from "./features/game/useGameState.js";
 import { BoardGrid } from "./features/board/BoardGrid.jsx";
 import { Sidebar } from "./features/sidebar/Sidebar.jsx";
-import { LetterMarkerDialog } from "./features/board/LetterMarkerDialog.jsx";
+import { NoteMarkerDialog } from "./features/board/NoteMarkerDialog.jsx";
 import { SpecialMonsterDialog } from "./features/board/SpecialMonsterDialog.jsx";
 import { SearchNoteDialog } from "./features/board/SearchNoteDialog.jsx";
 import { SearchNotePopup } from "./features/board/SearchNotePopup.jsx";
@@ -17,8 +17,8 @@ import { SearchNotePopup } from "./features/board/SearchNotePopup.jsx";
 // ═══════════════════════════════════════════════
 function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedRegions, mode, lastClick, onCellClick, onCellRotate, bgImage,
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
-  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditLetter,
-  onEditSearchNote, onViewSearchNote }) {
+  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditNote,
+  onEditSearchNote, onViewSearchNote, onRemoveSearchMarker }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
@@ -53,8 +53,9 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedReg
         onConfirmReveal={onConfirmReveal}
         onCancelReveal={onCancelReveal}
         onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip}
-        onAnnotateMonster={onAnnotateMonster} onEditLetter={onEditLetter}
+        onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
         onEditSearchNote={onEditSearchNote} onViewSearchNote={onViewSearchNote}
+        onRemoveSearchMarker={onRemoveSearchMarker}
       />
 
       <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1 }}>
@@ -103,13 +104,13 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     onQuestSaved?.(updated);
   }
 
-  const { pendingLetterEdit, saveLetterMarkerEdit, deleteLetterMarker, setPendingLetterEdit } = gameState;
+  const { pendingNoteEdit, saveNoteMarkerEdit, deleteNoteMarker, setPendingNoteEdit } = gameState;
   const { pendingMonsterAnnotation, saveMonsterAnnotation, cancelMonsterAnnotation, openMonsterAnnotation } = gameState;
 
-  function handleEditLetter(anchorKey) {
+  function handleEditNote(anchorKey) {
     const piece = gameState.placed[anchorKey];
-    if (piece?.type === "letter") {
-      gameState.setPendingLetterEdit({ anchorKey, letter: piece.letter, note: piece.note ?? "" });
+    if (piece?.type === "notemarker") {
+      gameState.setPendingNoteEdit({ anchorKey, note: piece.note ?? "" });
     }
   }
 
@@ -139,9 +140,10 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         onConfirmReveal={gameState.confirmPendingReveal}
         onCancelReveal={gameState.cancelPendingReveal}
         onShowTooltip={handleShowTooltip} onHideTooltip={handleHideTooltip}
-        onAnnotateMonster={openMonsterAnnotation} onEditLetter={handleEditLetter}
+        onAnnotateMonster={openMonsterAnnotation} onEditNote={handleEditNote}
         onEditSearchNote={gameState.openSearchNoteEdit}
         onViewSearchNote={gameState.viewSearchNote}
+        onRemoveSearchMarker={gameState.removeSearchMarker}
       />
       <Sidebar
         mode={gameState.mode} tool={gameState.tool}
@@ -156,7 +158,6 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         questDescription={gameState.questDescription}
         setQuestTitle={gameState.setQuestTitle}
         setQuestDescription={gameState.setQuestDescription}
-        activeLetter={gameState.activeLetter} setActiveLetter={gameState.setActiveLetter}
       />
 
       {/* Shared hover tooltip — fixed position, immune to overflow:hidden */}
@@ -182,14 +183,13 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         </div>
       )}
 
-      {/* Feature A: Letter marker edit dialog */}
-      {pendingLetterEdit && (
-        <LetterMarkerDialog
-          initialLetter={pendingLetterEdit.letter}
-          initialNote={pendingLetterEdit.note}
-          onSave={(letter, note) => saveLetterMarkerEdit(pendingLetterEdit.anchorKey, letter, note)}
-          onDelete={() => deleteLetterMarker(pendingLetterEdit.anchorKey)}
-          onCancel={() => setPendingLetterEdit(null)}
+      {/* Note marker edit dialog */}
+      {pendingNoteEdit && (
+        <NoteMarkerDialog
+          initialNote={pendingNoteEdit.note}
+          onSave={(note) => saveNoteMarkerEdit(pendingNoteEdit.anchorKey, note)}
+          onDelete={() => deleteNoteMarker(pendingNoteEdit.anchorKey)}
+          onCancel={() => setPendingNoteEdit(null)}
         />
       )}
 

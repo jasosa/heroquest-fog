@@ -3,8 +3,8 @@ import { BOARD, ROWS, COLS } from "../../map.js";
 import { makeComputeReveal, hasVisibleDoorForRoom } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
-import { placeLetterMarker, updateLetterMarker, setMonsterSpecial } from "../../placementState.js";
-import { computeDefaultSearchMarkers, moveSearchMarker, setSearchNote } from "../../searchMarkers.js";
+import { placeNoteMarker, updateNoteMarker, setMonsterSpecial } from "../../placementState.js";
+import { computeDefaultSearchMarkers, moveSearchMarker, setSearchNote, removeSearchMarker } from "../../searchMarkers.js";
 
 export function hasHeroStart(placed) {
   return Object.values(placed).some(p => p.type === "start" || p.overlayMarker === "start");
@@ -38,10 +38,8 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const [saveError, setSaveError]               = useState(null);
   const [pendingRoomReveal, setPendingRoomReveal] = useState(null); // {r,c}|null
 
-  // Feature A: Letter Markers
-  const [activeLetter, setActiveLetter]           = useState("A");
-  const [letterNotes, setLetterNotes]             = useState({});    // Record<letter, note>
-  const [pendingLetterEdit, setPendingLetterEdit] = useState(null);  // {anchorKey,letter,note}|null
+  // Note markers
+  const [pendingNoteEdit, setPendingNoteEdit] = useState(null); // {anchorKey,note}|null
 
   // Feature B: Special Monsters
   const [pendingMonsterAnnotation, setPendingMonsterAnnotation] = useState(null); // {anchorKey}|null
@@ -63,9 +61,6 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const fogRef      = useLatest(fog);
   const doorsRef    = useLatest(doors);
   const pendingRoomRevealRef    = useLatest(pendingRoomReveal);
-  const activeLetterRef         = useLatest(activeLetter);
-  const letterNotesRef          = useLatest(letterNotes);
-
   // Selecting a new tool always resets rotation to 0.
   const handleSetTool = useCallback((newTool) => {
     setTool(newTool);
@@ -117,15 +112,14 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
         return;
       }
 
-      // Letter markers: click on existing opens note dialog; click on empty places then opens dialog.
-      if (currentTool === "letter") {
+      // Note markers: click on existing opens dialog; click on empty places then opens dialog.
+      if (currentTool === "notemarker") {
         const existing = placedRef.current[k];
-        if (existing?.type === "letter") {
-          setPendingLetterEdit({ anchorKey: k, letter: existing.letter, note: existing.note ?? "" });
+        if (existing?.type === "notemarker") {
+          setPendingNoteEdit({ anchorKey: k, note: existing.note ?? "" });
         } else {
-          const letter = activeLetterRef.current;
-          setPlaced(prev => placeLetterMarker(prev, r, c, letter, ""));
-          setPendingLetterEdit({ anchorKey: k, letter, note: "" });
+          setPlaced(prev => placeNoteMarker(prev, r, c, ""));
+          setPendingNoteEdit({ anchorKey: k, note: "" });
         }
         return;
       }
@@ -227,19 +221,19 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     setLastClick(null);
   }, []);
 
-  // Feature A: save edits from the letter marker dialog.
-  const saveLetterMarkerEdit = useCallback((anchorKey, letter, note) => {
-    setPlaced(prev => updateLetterMarker(prev, anchorKey, letter, note));
-    setPendingLetterEdit(null);
+  // Note markers: save edits from the dialog.
+  const saveNoteMarkerEdit = useCallback((anchorKey, note) => {
+    setPlaced(prev => updateNoteMarker(prev, anchorKey, note));
+    setPendingNoteEdit(null);
   }, []);
 
-  const deleteLetterMarker = useCallback((anchorKey) => {
+  const deleteNoteMarker = useCallback((anchorKey) => {
     setPlaced(prev => {
       const next = { ...prev };
       delete next[anchorKey];
       return next;
     });
-    setPendingLetterEdit(null);
+    setPendingNoteEdit(null);
   }, []);
 
   // Feature B: open special monster annotation dialog from the ★ button in edit mode.
@@ -260,6 +254,10 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const saveSearchNote = useCallback((regionId, note) => {
     setSearchNotes(prev => setSearchNote(prev, regionId, note));
     setPendingSearchEdit(null);
+  }, []);
+
+  const handleRemoveSearchMarker = useCallback((regionId) => {
+    setSearchMarkers(prev => removeSearchMarker(prev, regionId));
   }, []);
 
   // Search marker view (play mode): show note popup, then dismiss marker.
@@ -297,11 +295,9 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     questTitle, setQuestTitle, questDescription, setQuestDescription,
     saveError, setSaveError,
     pendingRoomReveal, confirmPendingReveal, cancelPendingReveal,
-    // Feature A: Letter Markers
-    activeLetter, setActiveLetter,
-    letterNotes, setLetterNotes,
-    pendingLetterEdit, setPendingLetterEdit,
-    saveLetterMarkerEdit, deleteLetterMarker,
+    // Note markers
+    pendingNoteEdit, setPendingNoteEdit,
+    saveNoteMarkerEdit, deleteNoteMarker,
     // Feature B: Special Monsters
     pendingMonsterAnnotation,
     openMonsterAnnotation, saveMonsterAnnotation,
@@ -310,5 +306,6 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     searchMarkers, searchNotes, searchedRegions,
     pendingSearchEdit, setPendingSearchEdit, openSearchNoteEdit, saveSearchNote,
     pendingSearchView, viewSearchNote, closeSearchNote,
+    removeSearchMarker: handleRemoveSearchMarker,
   };
 }

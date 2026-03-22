@@ -24,31 +24,12 @@ function Token({ type }) {
   );
 }
 
-// ─── Letter Marker ────────────────────────────────────────────────────────────
-
-function LetterToken({ letter }) {
-  return (
-    <div style={{
-      width: 28, height: 28,
-      background: "#ffe082",
-      border: "2px solid #f9a825",
-      borderRadius: 4,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 14, fontWeight: "bold", color: "#333",
-      boxShadow: "0 1px 4px #0006",
-      userSelect: "none",
-    }}>
-      {letter}
-    </div>
-  );
-}
-
 // Tokens are rendered as overlays rather than inside grid cells so their
 // position can be driven by calibrated pixel coordinates (useMapTransform).
 export function TokenOverlay({
   anchorKey, type, coveredCells, rotation, fog, isEditMode, getTokenPos, tileSet, overlayMarker,
-  // Feature A
-  isLetterMarker, letter, note, onEditLetter,
+  // Note markers
+  note, onEditNote,
   // Feature B
   isSpecial, specialNote, onAnnotateMonster,
   // Shared tooltip callbacks (fixed-position, avoids overflow:hidden clipping)
@@ -62,11 +43,10 @@ export function TokenOverlay({
   const [r, c] = anchorKey.split(",").map(Number);
   const isMonster = PIECE_CATEGORY_ID[type] === "monsters";
 
-  // ── Letter marker ──────────────────────────────────────────────────────────
-  if (isLetterMarker) {
+  // ── Note marker ────────────────────────────────────────────────────────────
+  if (type === "notemarker") {
     const [px, py] = getTokenPos(c, r);
-    // Same pattern as special monsters: build hover props only when there is content to show.
-    const letterHoverProps = (!isEditMode && note)
+    const hoverProps = (!isEditMode && note)
       ? {
           onMouseEnter: e => onShowTooltip?.(e.clientX, e.clientY, note),
           onMouseLeave: () => onHideTooltip?.(),
@@ -74,27 +54,43 @@ export function TokenOverlay({
       : {};
     return (
       <div style={{ position: "absolute", left: px, top: py, transform: "translate(-50%, -50%)", zIndex: 15, pointerEvents: "none" }}>
-        <div
-          {...letterHoverProps}
-          onClick={e => {
-            e.stopPropagation();
-            if (isEditMode) onEditLetter?.(anchorKey);
-            else if (note) onShowTooltip?.(e.clientX, e.clientY, note);
-          }}
-          style={{
-            width: 28, height: 28,
-            background: "#ffe082",
-            border: "2px solid #f9a825",
-            borderRadius: 4,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 14, fontWeight: "bold", color: "#333",
-            boxShadow: "0 1px 4px #0006",
-            userSelect: "none",
-            pointerEvents: "auto",
-            cursor: isEditMode ? "pointer" : (note ? "pointer" : "default"),
-          }}
-        >
-          {letter}
+        <div style={{ position: "relative" }}>
+          <img
+            src="/tiles/note.png"
+            alt="Event Note"
+            {...hoverProps}
+            onClick={e => {
+              e.stopPropagation();
+              if (isEditMode) onEditNote?.(anchorKey);
+              else if (note) onShowTooltip?.(e.clientX, e.clientY, note);
+            }}
+            style={{
+              width: 28, height: 28,
+              display: "block",
+              pointerEvents: "auto",
+              cursor: "pointer",
+              opacity: isEditMode ? 0.85 : 1,
+            }}
+          />
+          {/* Edit pencil button in edit mode */}
+          {isEditMode && (
+            <button
+              onMouseDown={e => { e.stopPropagation(); onEditNote?.(anchorKey); }}
+              title="Edit note"
+              style={{
+                position: "absolute",
+                top: -8, right: -8,
+                width: 16, height: 16,
+                padding: 0,
+                background: note ? "#c4a870" : "#444",
+                color: "#fff",
+                border: "none", borderRadius: "50%",
+                fontSize: 9, lineHeight: "16px", textAlign: "center",
+                cursor: "pointer",
+                pointerEvents: "auto",
+              }}
+            >✎</button>
+          )}
         </div>
       </div>
     );

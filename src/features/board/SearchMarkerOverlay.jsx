@@ -7,7 +7,7 @@
 export function SearchMarkerOverlay({
   searchMarkers, searchNotes, searchedRegions,
   fog, isEditMode, getTokenPos,
-  onEditNote, onViewNote,
+  onEditNote, onViewNote, onRemoveMarker,
 }) {
   return Object.entries(searchMarkers).map(([region, [r, c]]) => {
     if (!isEditMode) {
@@ -30,9 +30,9 @@ export function SearchMarkerOverlay({
           pointerEvents: "none",
         }}
       >
-        {/* Magnifying glass image */}
+        {/* Treasure image */}
         <img
-          src="/tiles/magnifying-glass.png"
+          src="/tiles/search.png"
           alt=""
           style={{
             width: 28, height: 28,
@@ -62,6 +62,26 @@ export function SearchMarkerOverlay({
               pointerEvents: "auto",
             }}
           >✎</button>
+        )}
+
+        {/* Remove marker button — only in edit mode */}
+        {isEditMode && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemoveMarker?.(region); }}
+            title="Remove search marker"
+            style={{
+              position: "absolute",
+              top: -8, left: -8,
+              width: 16, height: 16,
+              padding: 0,
+              background: "#c62828",
+              color: "#fff",
+              border: "none", borderRadius: "50%",
+              fontSize: 11, lineHeight: "16px", textAlign: "center",
+              cursor: "pointer",
+              pointerEvents: "auto",
+            }}
+          >×</button>
         )}
       </div>
     );

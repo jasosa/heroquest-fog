@@ -39,3 +39,13 @@ export function moveSearchMarker(markers, board, r, c) {
 export function setSearchNote(notes, regionId, note) {
   return { ...notes, [regionId]: note };
 }
+
+/**
+ * Remove the search marker for a given region.
+ * Returns a new markers object (immutable).
+ */
+export function removeSearchMarker(markers, regionId) {
+  const next = { ...markers };
+  delete next[regionId];
+  return next;
+}

@@ -94,6 +94,35 @@ export function deleteQuest(id) {
   saveQuests(quests);
 }
 
+// ── Export / Import ───────────────────────────────────────────────────────────
+
+// Returns a JSON string safe to download (strips runtime-only fields).
+export function exportQuestAsJson(quest) {
+  const { id, questBookId, createdAt, updatedAt, ...content } = quest;
+  return JSON.stringify(content, null, 2);
+}
+
+// Parses a JSON string and saves as a new quest under questBookId.
+// Returns the saved quest, or throws if the JSON is invalid / missing required fields.
+export function importQuestFromJson(jsonString, questBookId = null) {
+  const data = JSON.parse(jsonString); // throws on malformed JSON
+  if (!data.title || typeof data.placed !== "object" || typeof data.doors !== "object") {
+    throw new Error("Invalid quest file — missing required fields.");
+  }
+  return persistQuest({
+    id: uid(),
+    questBookId,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    title: data.title,
+    description: data.description ?? "",
+    placed: data.placed ?? {},
+    doors: data.doors ?? {},
+    searchMarkers: data.searchMarkers ?? null,
+    searchNotes: data.searchNotes ?? {},
+  });
+}
+
 // ── Calibration ───────────────────────────────────────────────────────────────
 
 const CALIBRATION_KEY = "hq_calibration";

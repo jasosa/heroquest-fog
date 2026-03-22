@@ -26,7 +26,7 @@ export function SearchNotePopup({ note, onClose }) {
           🔍 Search Result
         </div>
         <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-          {note || "Nothing of interest found."}
+          {note || "Every hero who searches, draws a treasure card!"}
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button
