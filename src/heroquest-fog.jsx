@@ -9,13 +9,16 @@ import { BoardGrid } from "./features/board/BoardGrid.jsx";
 import { Sidebar } from "./features/sidebar/Sidebar.jsx";
 import { LetterMarkerDialog } from "./features/board/LetterMarkerDialog.jsx";
 import { SpecialMonsterDialog } from "./features/board/SpecialMonsterDialog.jsx";
+import { SearchNoteDialog } from "./features/board/SearchNoteDialog.jsx";
+import { SearchNotePopup } from "./features/board/SearchNotePopup.jsx";
 
 // ═══════════════════════════════════════════════
 //  BOARD AREA (left panel)
 // ═══════════════════════════════════════════════
-function BoardArea({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage,
+function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedRegions, mode, lastClick, onCellClick, onCellRotate, bgImage,
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
-  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditLetter }) {
+  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditLetter,
+  onEditSearchNote, onViewSearchNote }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
@@ -41,7 +44,9 @@ function BoardArea({ fog, placed, doors, mode, lastClick, onCellClick, onCellRot
       </div>
 
       <BoardGrid
-        fog={fog} placed={placed} doors={doors} mode={mode}
+        fog={fog} placed={placed} doors={doors}
+        searchMarkers={searchMarkers} searchNotes={searchNotes} searchedRegions={searchedRegions}
+        mode={mode}
         lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
         bgImage={bgImage}
         pendingRoomReveal={pendingRoomReveal}
@@ -49,6 +54,7 @@ function BoardArea({ fog, placed, doors, mode, lastClick, onCellClick, onCellRot
         onCancelReveal={onCancelReveal}
         onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip}
         onAnnotateMonster={onAnnotateMonster} onEditLetter={onEditLetter}
+        onEditSearchNote={onEditSearchNote} onViewSearchNote={onViewSearchNote}
       />
 
       <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1 }}>
@@ -65,6 +71,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
   const gameState = useGameState({
     initialPlaced: quest?.placed ?? {},
     initialDoors: quest?.doors ?? {},
+    initialSearchMarkers: quest?.searchMarkers ?? null,
+    initialSearchNotes: quest?.searchNotes ?? null,
     initialMode: initialMode ?? "play",
     initialTitle: quest?.title ?? "Untitled Quest",
     initialDescription: quest?.description ?? "",
@@ -86,6 +94,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       description: gameState.questDescription,
       placed: gameState.placed,
       doors: gameState.doors,
+      searchMarkers: gameState.searchMarkers,
+      searchNotes: gameState.searchNotes,
     };
     persistQuest(updated);
     setSavedFlash(true);
@@ -119,6 +129,9 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     }}>
       <BoardArea
         fog={gameState.fog} placed={gameState.placed} doors={gameState.doors}
+        searchMarkers={gameState.searchMarkers}
+        searchNotes={gameState.searchNotes}
+        searchedRegions={gameState.searchedRegions}
         mode={gameState.mode} lastClick={gameState.lastClick}
         onCellClick={gameState.handleCell} onCellRotate={gameState.handleCellRotate}
         bgImage={bgImage}
@@ -127,6 +140,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         onCancelReveal={gameState.cancelPendingReveal}
         onShowTooltip={handleShowTooltip} onHideTooltip={handleHideTooltip}
         onAnnotateMonster={openMonsterAnnotation} onEditLetter={handleEditLetter}
+        onEditSearchNote={gameState.openSearchNoteEdit}
+        onViewSearchNote={gameState.viewSearchNote}
       />
       <Sidebar
         mode={gameState.mode} tool={gameState.tool}
@@ -192,6 +207,24 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           />
         );
       })()}
+
+      {/* Search marker — edit note dialog */}
+      {gameState.pendingSearchEdit && (
+        <SearchNoteDialog
+          regionId={gameState.pendingSearchEdit.regionId}
+          initialNote={gameState.searchNotes[gameState.pendingSearchEdit.regionId] ?? ""}
+          onSave={(note) => gameState.saveSearchNote(gameState.pendingSearchEdit.regionId, note)}
+          onCancel={() => gameState.setPendingSearchEdit(null)}
+        />
+      )}
+
+      {/* Search marker — play mode popup */}
+      {gameState.pendingSearchView && (
+        <SearchNotePopup
+          note={gameState.pendingSearchView.note}
+          onClose={gameState.closeSearchNote}
+        />
+      )}
     </div>
   );
 }

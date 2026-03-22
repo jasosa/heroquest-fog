@@ -224,6 +224,27 @@ export function Sidebar({
                 activeLetter={activeLetter} setActiveLetter={setActiveLetter}
               />
             )}
+            <button
+              onClick={() => setTool("search")}
+              style={{
+                padding: "7px 0",
+                background: tool === "search" ? T.btnActiveBg : T.btnBg,
+                color: tool === "search" ? T.btnActiveText : T.btnText,
+                border: `1px solid ${tool === "search" ? T.btnActiveBdr : T.btnBorder}`,
+                cursor: "pointer", fontFamily: "inherit", fontSize: 11,
+                letterSpacing: 1, transition: "all 0.15s",
+              }}
+            >
+              🔍 Move Search Markers
+            </button>
+            {tool === "search" && (
+              <div style={{
+                background: T.panelBg, border: `1px solid ${T.panelBorder}`,
+                padding: "8px 12px", fontSize: 9, color: T.textFaint, lineHeight: 1.6,
+              }}>
+                Click any cell to move the search marker for that room or corridor.
+              </div>
+            )}
           </>
         )
       }

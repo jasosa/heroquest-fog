@@ -6,10 +6,12 @@ import BoardCell from "./BoardCell.jsx";
 import { TokenOverlay } from "./TokenOverlay.jsx";
 import { DoorOverlay } from "./DoorOverlay.jsx";
 import { RoomConfirmDialog } from "./RoomConfirmDialog.jsx";
+import { SearchMarkerOverlay } from "./SearchMarkerOverlay.jsx";
 
-export function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage,
+export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, searchedRegions, mode, lastClick, onCellClick, onCellRotate, bgImage,
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
-  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditLetter }) {
+  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditLetter,
+  onEditSearchNote, onViewSearchNote }) {
   const isEditMode = mode === "edit";
 
   // Load natural image dimensions so calibrated pixel coords can be scaled
@@ -142,6 +144,19 @@ export function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, on
           fog={fog} isEditMode={isEditMode}
           getTokenPos={getTokenPos} hasCalibration={hasCalibration} tileSet={bgImage} />
       ))}
+      {/* Search marker overlays — magnifying glass per room region */}
+      {searchMarkers && (
+        <SearchMarkerOverlay
+          searchMarkers={searchMarkers}
+          searchNotes={searchNotes}
+          searchedRegions={searchedRegions}
+          fog={fog}
+          isEditMode={isEditMode}
+          getTokenPos={getTokenPos}
+          onEditNote={onEditSearchNote}
+          onViewNote={onViewSearchNote}
+        />
+      )}
       {/* Room confirm dialog — shown when a room cell is clicked without a visible door */}
       {pendingRoomReveal && (
         <RoomConfirmDialog onConfirm={onConfirmReveal} onCancel={onCancelReveal} />

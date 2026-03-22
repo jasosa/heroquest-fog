@@ -4,6 +4,7 @@ import { makeComputeReveal, hasVisibleDoorForRoom } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
 import { placeLetterMarker, updateLetterMarker, setMonsterSpecial } from "../../placementState.js";
+import { computeDefaultSearchMarkers, moveSearchMarker, setSearchNote } from "../../searchMarkers.js";
 
 export function hasHeroStart(placed) {
   return Object.values(placed).some(p => p.type === "start" || p.overlayMarker === "start");
@@ -22,7 +23,7 @@ export function useLatest(value) {
 // ═══════════════════════════════════════════════
 //  GAME STATE HOOK
 // ═══════════════════════════════════════════════
-export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMode = "play", initialTitle = "Untitled Quest", initialDescription = "" } = {}) {
+export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSearchMarkers = null, initialSearchNotes = null, initialMode = "play", initialTitle = "Untitled Quest", initialDescription = "" } = {}) {
   // rerender-lazy-state-init: pass a function so new Set() runs only once,
   // not on every render.
   const [fog, setFog]             = useState(() => new Set());
@@ -44,6 +45,15 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMod
 
   // Feature B: Special Monsters
   const [pendingMonsterAnnotation, setPendingMonsterAnnotation] = useState(null); // {anchorKey}|null
+
+  // Search markers: one per room region
+  const [searchMarkers, setSearchMarkers] = useState(
+    () => initialSearchMarkers ?? computeDefaultSearchMarkers(BOARD, ROWS, COLS)
+  );
+  const [searchNotes, setSearchNotes] = useState(() => initialSearchNotes ?? {});
+  const [searchedRegions, setSearchedRegions] = useState(() => new Set()); // session-only
+  const [pendingSearchEdit, setPendingSearchEdit]   = useState(null); // {regionId}|null
+  const [pendingSearchView, setPendingSearchView]   = useState(null); // {regionId,note}|null
 
   // advanced-use-latest: stable refs so handleCell needs no dependencies.
   const placedRef   = useLatest(placed);
@@ -98,6 +108,12 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMod
           else         next[k] = { rotation: 0, type: currentTool };
           return next;
         });
+        return;
+      }
+
+      // Search tool: move the search marker for the clicked cell's region.
+      if (currentTool === "search") {
+        setSearchMarkers(prev => moveSearchMarker(prev, BOARD, r, c));
         return;
       }
 
@@ -236,6 +252,28 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMod
     setPendingMonsterAnnotation(null);
   }, []);
 
+  // Search marker notes (edit mode).
+  const openSearchNoteEdit = useCallback((regionId) => {
+    setPendingSearchEdit({ regionId });
+  }, []);
+
+  const saveSearchNote = useCallback((regionId, note) => {
+    setSearchNotes(prev => setSearchNote(prev, regionId, note));
+    setPendingSearchEdit(null);
+  }, []);
+
+  // Search marker view (play mode): show note popup, then dismiss marker.
+  const viewSearchNote = useCallback((regionId, note) => {
+    setPendingSearchView({ regionId, note });
+  }, []);
+
+  const closeSearchNote = useCallback(() => {
+    setPendingSearchView(prev => {
+      if (prev) setSearchedRegions(r => new Set([...r, prev.regionId]));
+      return null;
+    });
+  }, []);
+
   const confirmPendingReveal = useCallback(() => {
     const p = pendingRoomRevealRef.current;
     if (!p) return;
@@ -268,5 +306,9 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMod
     pendingMonsterAnnotation,
     openMonsterAnnotation, saveMonsterAnnotation,
     cancelMonsterAnnotation: useCallback(() => setPendingMonsterAnnotation(null), []),
+    // Search markers
+    searchMarkers, searchNotes, searchedRegions,
+    pendingSearchEdit, setPendingSearchEdit, openSearchNoteEdit, saveSearchNote,
+    pendingSearchView, viewSearchNote, closeSearchNote,
   };
 }
