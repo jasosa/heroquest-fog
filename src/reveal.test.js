@@ -77,10 +77,11 @@ describe("room reveal (flood fill)", () => {
     expect(vis.has("2,3")).toBe(false); // col 3 is corridor, not R1
   });
 
-  it("blocker in room is itself invisible and blocks flood fill through it", () => {
-    // (2,2) is blocked — it is NOT revealed, cells reachable only through it are cut off
+  it("blocker in room is itself visible but blocks flood fill through it", () => {
+    // (2,2) is blocked — it IS revealed (you can see the piece), but flood fill
+    // does not continue beyond it.
     const vis = reveal(2, 1, blockerAt("2,2"));
-    expect(vis.has("2,2")).toBe(false);
+    expect(vis.has("2,2")).toBe(true);
     // cells reachable via other paths still visible
     expect(vis.has("1,1")).toBe(true);
     expect(vis.has("3,2")).toBe(true);

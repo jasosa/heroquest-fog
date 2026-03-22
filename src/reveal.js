@@ -62,8 +62,8 @@ export function makeComputeReveal(board, rows, cols) {
         const k = `${cr},${cc}`;
         if (vis.has(k)) continue;
         if (board[cr][cc] !== region) continue;
-        if (blockers.has(k)) continue;
         vis.add(k);
+        if (blockers.has(k)) continue; // reveal the piece itself, but don't flood-fill through it
         for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]])
           q.push([cr + dr, cc + dc]);
       }
