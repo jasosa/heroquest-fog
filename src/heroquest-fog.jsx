@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { T } from "./theme.js";
+import { COLS, ROWS, CELL } from "./map.js";
 import { persistQuest, loadCalibration, saveCalibration } from "./questStorage.js";
 import QuestLibrary from "./QuestLibrary.jsx";
 import MapCalibrator from "./components/MapCalibrator.jsx";
@@ -12,21 +13,35 @@ import { SpecialMonsterDialog } from "./features/board/SpecialMonsterDialog.jsx"
 import { SearchNoteDialog } from "./features/board/SearchNoteDialog.jsx";
 import { SearchNotePopup } from "./features/board/SearchNotePopup.jsx";
 
+const BOARD_W = COLS * CELL;
+const BOARD_H = ROWS * CELL;
+const ZOOM_STEP = 0.25;
+const ZOOM_MIN  = 0.25;
+const ZOOM_MAX  = 3;
+
+const zoomBtnStyle = {
+  width: 28, height: 28, padding: 0, lineHeight: "28px", textAlign: "center",
+  background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`,
+  cursor: "pointer", fontFamily: "inherit", fontSize: 16, borderRadius: 3,
+  userSelect: "none",
+};
+
 // ═══════════════════════════════════════════════
 //  BOARD AREA (left panel)
 // ═══════════════════════════════════════════════
 function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedRegions, mode, lastClick, onCellClick, onCellRotate, bgImage,
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
   onShowTooltip, onHideTooltip, onAnnotateMonster, onEditNote,
-  onEditSearchNote, onViewSearchNote, onRemoveSearchMarker }) {
+  onEditSearchNote, onViewSearchNote, onRemoveSearchMarker,
+  zoom, onZoomIn, onZoomOut }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      gap: 14, padding: 20, overflowY: "auto",
+      alignItems: "center", gap: 10, padding: "16px 20px",
+      overflow: "hidden", minHeight: 0,
     }}>
       <h1 style={{
-        margin: 0, fontSize: 20, letterSpacing: 8,
+        margin: 0, fontSize: 20, letterSpacing: 8, flexShrink: 0,
         color: T.title, textTransform: "uppercase",
         textShadow: "0 2px 4px #c4a87044",
         fontWeight: "normal",
@@ -35,30 +50,57 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedReg
       </h1>
 
       <div style={{
-        fontSize: 10, letterSpacing: 3, textTransform: "uppercase",
+        fontSize: 10, letterSpacing: 3, textTransform: "uppercase", flexShrink: 0,
         color: mode === "edit" ? T.accentGold : "#2a6a2a",
         border: `1px solid ${mode === "edit" ? T.accentGold : "#2a6a2a"}`,
-        padding: "3px 12px", marginTop: -6,
+        padding: "3px 12px",
       }}>
         {mode === "edit" ? "✎ Edit Mode — Click to place · Right-click to rotate" : "⚔ Play Mode — Click to reveal"}
       </div>
 
-      <BoardGrid
-        fog={fog} placed={placed} doors={doors}
-        searchMarkers={searchMarkers} searchNotes={searchNotes} searchedRegions={searchedRegions}
-        mode={mode}
-        lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
-        bgImage={bgImage}
-        pendingRoomReveal={pendingRoomReveal}
-        onConfirmReveal={onConfirmReveal}
-        onCancelReveal={onCancelReveal}
-        onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip}
-        onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
-        onEditSearchNote={onEditSearchNote} onViewSearchNote={onViewSearchNote}
-        onRemoveSearchMarker={onRemoveSearchMarker}
-      />
+      {/* Zoom controls */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+        <button onClick={onZoomOut} disabled={zoom <= ZOOM_MIN} style={zoomBtnStyle} title="Zoom out">−</button>
+        <span style={{ fontSize: 11, color: T.textMuted, minWidth: 38, textAlign: "center" }}>
+          {Math.round(zoom * 100)}%
+        </span>
+        <button onClick={onZoomIn} disabled={zoom >= ZOOM_MAX} style={zoomBtnStyle} title="Zoom in">+</button>
+      </div>
 
-      <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1 }}>
+      {/* Scrollable board area */}
+      <div style={{ overflow: "auto", flex: 1, minHeight: 0, width: "100%" }}>
+        {/* Sizing placeholder: gives the scroll container its scrollable dimensions */}
+        <div style={{
+          width: BOARD_W * zoom,
+          height: BOARD_H * zoom,
+          position: "relative",
+          margin: "0 auto",      // centre horizontally when smaller than container
+        }}>
+          {/* Board scaled from top-left of placeholder */}
+          <div style={{
+            position: "absolute", top: 0, left: 0,
+            transformOrigin: "top left",
+            transform: `scale(${zoom})`,
+          }}>
+            <BoardGrid
+              fog={fog} placed={placed} doors={doors}
+              searchMarkers={searchMarkers} searchNotes={searchNotes} searchedRegions={searchedRegions}
+              mode={mode}
+              lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
+              bgImage={bgImage}
+              pendingRoomReveal={pendingRoomReveal}
+              onConfirmReveal={onConfirmReveal}
+              onCancelReveal={onCancelReveal}
+              onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip}
+              onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
+              onEditSearchNote={onEditSearchNote} onViewSearchNote={onViewSearchNote}
+              onRemoveSearchMarker={onRemoveSearchMarker}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1, flexShrink: 0 }}>
         HEROQUEST BOARD · 22 ROOMS · 26×19
       </div>
     </div>
@@ -81,6 +123,9 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
   const [bgImage, setBgImage]       = useState("board2");
   const [savedFlash, setSavedFlash] = useState(false);
   const [hoverTooltip, setHoverTooltip] = useState(null); // {x,y,content}|null
+  const [zoom, setZoom] = useState(1);
+  const zoomIn  = () => setZoom(z => Math.min(ZOOM_MAX, Math.round((z + ZOOM_STEP) * 100) / 100));
+  const zoomOut = () => setZoom(z => Math.max(ZOOM_MIN, Math.round((z - ZOOM_STEP) * 100) / 100));
 
   function handleSave() {
     if (!hasHeroStart(gameState.placed)) {
@@ -144,6 +189,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         onEditSearchNote={gameState.openSearchNoteEdit}
         onViewSearchNote={gameState.viewSearchNote}
         onRemoveSearchMarker={gameState.removeSearchMarker}
+        zoom={zoom} onZoomIn={zoomIn} onZoomOut={zoomOut}
       />
       <Sidebar
         mode={gameState.mode} tool={gameState.tool}

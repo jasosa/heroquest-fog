@@ -47,6 +47,7 @@ export const PIECE_CATEGORIES = [
     pieces: [
       { id: "start",        label: "Hero Start",      icon: "⚔", color: "#f0c040", shape: "diamond", blocks: false },
       { id: "notemarker",   label: "Event Note",      icon: "📝", color: "#90caf9", shape: "square",  blocks: false },
+      { id: "search",       label: "Search Marker",   icon: "🔍", color: "#c4a870", shape: "square",  blocks: false },
       { id: "door",         label: "Door",             icon: "▐",  color: "#9c6b2e", shape: "square",  blocks: false, isEdge: true, image: "Door.png",        imageScale: 1.2 },
       { id: "secretdoor",   label: "Secret Door",      icon: "▐",  color: "#5d4037", shape: "square",  blocks: false, image: "Secret_Door.png", imageScale: 1 },
       { id: "stairs",       label: "Stairs",           icon: "St", color: "#90a4ae", shape: "square",  blocks: false, cells: [[0,0],[0,1],[1,0],[1,1]], image: "Stairs.png", imageScale: 1 },

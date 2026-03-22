@@ -4,7 +4,7 @@ import { makeComputeReveal, hasVisibleDoorForRoom } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
 import { placeNoteMarker, updateNoteMarker, setMonsterSpecial } from "../../placementState.js";
-import { computeDefaultSearchMarkers, moveSearchMarker, setSearchNote, removeSearchMarker } from "../../searchMarkers.js";
+import { moveSearchMarker, setSearchNote, removeSearchMarker } from "../../searchMarkers.js";
 
 export function hasHeroStart(placed) {
   return Object.values(placed).some(p => p.type === "start" || p.overlayMarker === "start");
@@ -44,9 +44,9 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   // Feature B: Special Monsters
   const [pendingMonsterAnnotation, setPendingMonsterAnnotation] = useState(null); // {anchorKey}|null
 
-  // Search markers: one per room region
+  // Search markers: one per room region (user-placed, no auto-init)
   const [searchMarkers, setSearchMarkers] = useState(
-    () => initialSearchMarkers ?? computeDefaultSearchMarkers(BOARD, ROWS, COLS)
+    () => initialSearchMarkers ?? {}
   );
   const [searchNotes, setSearchNotes] = useState(() => initialSearchNotes ?? {});
   const [searchedRegions, setSearchedRegions] = useState(() => new Set()); // session-only
