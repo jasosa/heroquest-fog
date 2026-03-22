@@ -119,3 +119,35 @@ export function cycleDoorRotation(doors, r, c) {
   if (!doors[k]) return doors;
   return { ...doors, [k]: { rotation: (doors[k].rotation + 1) % 4 } };
 }
+
+/**
+ * Place a letter marker at (r, c).
+ * If a letter marker already exists at that cell, remove it (toggle).
+ */
+export function placeLetterMarker(placed, r, c, letter, note) {
+  const k = `${r},${c}`;
+  if (placed[k]?.type === "letter") {
+    const next = { ...placed };
+    delete next[k];
+    return next;
+  }
+  return { ...placed, [k]: { type: "letter", letter, note: note ?? "", blocks: false, rotation: 0, coveredCells: [k] } };
+}
+
+/**
+ * Update the letter and note of an existing letter marker.
+ * No-op if no letter marker at anchorKey.
+ */
+export function updateLetterMarker(placed, anchorKey, letter, note) {
+  if (!placed[anchorKey] || placed[anchorKey].type !== "letter") return placed;
+  return { ...placed, [anchorKey]: { ...placed[anchorKey], letter, note: note ?? "" } };
+}
+
+/**
+ * Set or clear the special status and note on a placed piece (typically a monster).
+ * No-op if no piece at anchorKey.
+ */
+export function setMonsterSpecial(placed, anchorKey, isSpecial, specialNote) {
+  if (!placed[anchorKey]) return placed;
+  return { ...placed, [anchorKey]: { ...placed[anchorKey], isSpecial, specialNote: specialNote ?? "" } };
+}

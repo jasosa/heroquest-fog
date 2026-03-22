@@ -94,10 +94,46 @@ const inputStyle = {
   fontSize: 12,
 };
 
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+function LetterToolPanel({ activeLetter, setActiveLetter }) {
+  return (
+    <div style={{
+      background: T.panelBg, border: `1px solid ${T.panelBorder}`,
+      padding: "10px 12px", marginTop: 4,
+    }}>
+      <div style={{ fontSize: 10, color: T.textMuted, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" }}>
+        Letter to place
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom: 8 }}>
+        {LETTERS.map(l => (
+          <button
+            key={l}
+            onClick={() => setActiveLetter(l)}
+            style={{
+              width: 22, height: 22, padding: 0,
+              background: activeLetter === l ? T.btnActiveBg : T.btnBg,
+              color: activeLetter === l ? T.btnActiveText : T.btnText,
+              border: `1px solid ${activeLetter === l ? T.btnActiveBdr : T.btnBorder}`,
+              borderRadius: 3, fontSize: 11, fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >{l}</button>
+        ))}
+      </div>
+      <div style={{ fontSize: 9, color: T.textFaint, lineHeight: 1.5 }}>
+        Click a cell to place. A dialog will open to add a note.<br />
+        Click an existing marker to edit its note.
+      </div>
+    </div>
+  );
+}
+
 export function Sidebar({
   mode, tool, setMode, setTool, onReset, bgImage, setBgImage,
   onBack, onSave, savedFlash, saveError,
   questTitle, questDescription, setQuestTitle, setQuestDescription,
+  activeLetter, setActiveLetter,
 }) {
   return (
     <div style={{
@@ -180,7 +216,16 @@ export function Sidebar({
 
       {mode === "play"
         ? <PlayPanel onReset={onReset} />
-        : <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} saveError={saveError} />
+        : (
+          <>
+            <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} saveError={saveError} />
+            {tool === "letter" && (
+              <LetterToolPanel
+                activeLetter={activeLetter} setActiveLetter={setActiveLetter}
+              />
+            )}
+          </>
+        )
       }
 
       {/* Board background selector */}

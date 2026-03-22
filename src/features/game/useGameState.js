@@ -3,6 +3,7 @@ import { BOARD, ROWS, COLS } from "../../map.js";
 import { makeComputeReveal, hasVisibleDoorForRoom } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
+import { placeLetterMarker, updateLetterMarker, setMonsterSpecial } from "../../placementState.js";
 
 export function hasHeroStart(placed) {
   return Object.values(placed).some(p => p.type === "start" || p.overlayMarker === "start");
@@ -36,6 +37,14 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMod
   const [saveError, setSaveError]               = useState(null);
   const [pendingRoomReveal, setPendingRoomReveal] = useState(null); // {r,c}|null
 
+  // Feature A: Letter Markers
+  const [activeLetter, setActiveLetter]           = useState("A");
+  const [letterNotes, setLetterNotes]             = useState({});    // Record<letter, note>
+  const [pendingLetterEdit, setPendingLetterEdit] = useState(null);  // {anchorKey,letter,note}|null
+
+  // Feature B: Special Monsters
+  const [pendingMonsterAnnotation, setPendingMonsterAnnotation] = useState(null); // {anchorKey}|null
+
   // advanced-use-latest: stable refs so handleCell needs no dependencies.
   const placedRef   = useLatest(placed);
   const modeRef     = useLatest(mode);
@@ -43,7 +52,9 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMod
   const rotationRef = useLatest(rotation);
   const fogRef      = useLatest(fog);
   const doorsRef    = useLatest(doors);
-  const pendingRoomRevealRef = useLatest(pendingRoomReveal);
+  const pendingRoomRevealRef    = useLatest(pendingRoomReveal);
+  const activeLetterRef         = useLatest(activeLetter);
+  const letterNotesRef          = useLatest(letterNotes);
 
   // Selecting a new tool always resets rotation to 0.
   const handleSetTool = useCallback((newTool) => {
@@ -87,6 +98,19 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMod
           else         next[k] = { rotation: 0, type: currentTool };
           return next;
         });
+        return;
+      }
+
+      // Letter markers: click on existing opens note dialog; click on empty places then opens dialog.
+      if (currentTool === "letter") {
+        const existing = placedRef.current[k];
+        if (existing?.type === "letter") {
+          setPendingLetterEdit({ anchorKey: k, letter: existing.letter, note: existing.note ?? "" });
+        } else {
+          const letter = activeLetterRef.current;
+          setPlaced(prev => placeLetterMarker(prev, r, c, letter, ""));
+          setPendingLetterEdit({ anchorKey: k, letter, note: "" });
+        }
         return;
       }
 
@@ -187,6 +211,31 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMod
     setLastClick(null);
   }, []);
 
+  // Feature A: save edits from the letter marker dialog.
+  const saveLetterMarkerEdit = useCallback((anchorKey, letter, note) => {
+    setPlaced(prev => updateLetterMarker(prev, anchorKey, letter, note));
+    setPendingLetterEdit(null);
+  }, []);
+
+  const deleteLetterMarker = useCallback((anchorKey) => {
+    setPlaced(prev => {
+      const next = { ...prev };
+      delete next[anchorKey];
+      return next;
+    });
+    setPendingLetterEdit(null);
+  }, []);
+
+  // Feature B: open special monster annotation dialog from the ★ button in edit mode.
+  const openMonsterAnnotation = useCallback((anchorKey) => {
+    setPendingMonsterAnnotation({ anchorKey });
+  }, []);
+
+  const saveMonsterAnnotation = useCallback((anchorKey, isSpecial, specialNote) => {
+    setPlaced(prev => setMonsterSpecial(prev, anchorKey, isSpecial, specialNote));
+    setPendingMonsterAnnotation(null);
+  }, []);
+
   const confirmPendingReveal = useCallback(() => {
     const p = pendingRoomRevealRef.current;
     if (!p) return;
@@ -210,5 +259,14 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialMod
     questTitle, setQuestTitle, questDescription, setQuestDescription,
     saveError, setSaveError,
     pendingRoomReveal, confirmPendingReveal, cancelPendingReveal,
+    // Feature A: Letter Markers
+    activeLetter, setActiveLetter,
+    letterNotes, setLetterNotes,
+    pendingLetterEdit, setPendingLetterEdit,
+    saveLetterMarkerEdit, deleteLetterMarker,
+    // Feature B: Special Monsters
+    pendingMonsterAnnotation,
+    openMonsterAnnotation, saveMonsterAnnotation,
+    cancelMonsterAnnotation: useCallback(() => setPendingMonsterAnnotation(null), []),
   };
 }

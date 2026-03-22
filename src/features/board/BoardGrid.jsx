@@ -8,7 +8,8 @@ import { DoorOverlay } from "./DoorOverlay.jsx";
 import { RoomConfirmDialog } from "./RoomConfirmDialog.jsx";
 
 export function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage,
-  pendingRoomReveal, onConfirmReveal, onCancelReveal }) {
+  pendingRoomReveal, onConfirmReveal, onCancelReveal,
+  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditLetter }) {
   const isEditMode = mode === "edit";
 
   // Load natural image dimensions so calibrated pixel coords can be scaled
@@ -128,7 +129,12 @@ export function BoardGrid({ fog, placed, doors, mode, lastClick, onCellClick, on
         <TokenOverlay key={anchorKey} anchorKey={anchorKey} type={piece.type}
           coveredCells={piece.coveredCells} rotation={piece.rotation}
           fog={fog} isEditMode={isEditMode} getTokenPos={getTokenPos} tileSet={bgImage}
-          overlayMarker={piece.overlayMarker} />
+          overlayMarker={piece.overlayMarker}
+          isLetterMarker={piece.type === "letter"}
+          letter={piece.letter} note={piece.note}
+          isSpecial={piece.isSpecial} specialNote={piece.specialNote}
+          onAnnotateMonster={onAnnotateMonster} onEditLetter={onEditLetter}
+          onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip} />
       ))}
       {/* Door overlays — calibrated position when available, fixed grid otherwise */}
       {Object.entries(doors).map(([anchorKey, { rotation, type }]) => (

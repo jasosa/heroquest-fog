@@ -4,6 +4,9 @@ import {
   rotatePlacedPiece,
   toggleDoor,
   cycleDoorRotation,
+  placeLetterMarker,
+  updateLetterMarker,
+  setMonsterSpecial,
 } from "./placementState.js";
 
 // ─── Piece definitions used across tests ──────────────────────────────────────
@@ -205,5 +208,92 @@ describe("cycleDoorRotation", () => {
   it("returns doors unchanged if no door at cell", () => {
     const doors = { "7,7": { rotation: 1 } };
     expect(cycleDoorRotation(doors, 3, 5)).toEqual(doors);
+  });
+});
+
+// ─── placeLetterMarker ────────────────────────────────────────────────────────
+
+describe("placeLetterMarker", () => {
+  it("places a letter marker with letter and note", () => {
+    const result = placeLetterMarker({}, 3, 4, "A", "Find the key here");
+    expect(result["3,4"]).toMatchObject({
+      type: "letter", letter: "A", note: "Find the key here",
+      blocks: false, rotation: 0,
+    });
+    expect(result["3,4"].coveredCells).toEqual(["3,4"]);
+  });
+
+  it("removes an existing letter marker when clicking its cell again", () => {
+    const placed = { "3,4": { type: "letter", letter: "A", note: "old", blocks: false, rotation: 0, coveredCells: ["3,4"] } };
+    const result = placeLetterMarker(placed, 3, 4, "B", "new");
+    expect(result["3,4"]).toBeUndefined();
+  });
+
+  it("places on an empty cell even when note is empty", () => {
+    const result = placeLetterMarker({}, 0, 0, "Z", "");
+    expect(result["0,0"]).toMatchObject({ type: "letter", letter: "Z", note: "" });
+  });
+
+  it("does not affect other placed pieces", () => {
+    const placed = { "1,1": { type: "goblin", blocks: false, rotation: 0, coveredCells: ["1,1"] } };
+    const result = placeLetterMarker(placed, 3, 4, "C", "note");
+    expect(result["1,1"]).toEqual(placed["1,1"]);
+    expect(result["3,4"].type).toBe("letter");
+  });
+});
+
+// ─── updateLetterMarker ───────────────────────────────────────────────────────
+
+describe("updateLetterMarker", () => {
+  const base = { "3,4": { type: "letter", letter: "A", note: "old", blocks: false, rotation: 0, coveredCells: ["3,4"] } };
+
+  it("updates letter and note of an existing marker", () => {
+    const result = updateLetterMarker(base, "3,4", "B", "new note");
+    expect(result["3,4"]).toMatchObject({ letter: "B", note: "new note" });
+  });
+
+  it("preserves other fields on update", () => {
+    const result = updateLetterMarker(base, "3,4", "C", "x");
+    expect(result["3,4"].coveredCells).toEqual(["3,4"]);
+    expect(result["3,4"].type).toBe("letter");
+  });
+
+  it("is a no-op if anchor does not exist", () => {
+    const result = updateLetterMarker(base, "9,9", "A", "note");
+    expect(result).toEqual(base);
+  });
+
+  it("is a no-op if the piece at anchor is not a letter marker", () => {
+    const placed = { "3,4": { type: "goblin", letter: undefined } };
+    const result = updateLetterMarker(placed, "3,4", "A", "note");
+    expect(result).toEqual(placed);
+  });
+});
+
+// ─── setMonsterSpecial ────────────────────────────────────────────────────────
+
+describe("setMonsterSpecial", () => {
+  const base = { "3,4": { type: "goblin", blocks: false, rotation: 0, coveredCells: ["3,4"] } };
+
+  it("marks a monster as special with a note", () => {
+    const result = setMonsterSpecial(base, "3,4", true, "Boss goblin");
+    expect(result["3,4"]).toMatchObject({ isSpecial: true, specialNote: "Boss goblin" });
+  });
+
+  it("clears special status", () => {
+    const placed = { "3,4": { ...base["3,4"], isSpecial: true, specialNote: "Boss" } };
+    const result = setMonsterSpecial(placed, "3,4", false, "");
+    expect(result["3,4"].isSpecial).toBe(false);
+    expect(result["3,4"].specialNote).toBe("");
+  });
+
+  it("preserves other fields on the piece", () => {
+    const result = setMonsterSpecial(base, "3,4", true, "note");
+    expect(result["3,4"].type).toBe("goblin");
+    expect(result["3,4"].coveredCells).toEqual(["3,4"]);
+  });
+
+  it("is a no-op if no piece at anchor", () => {
+    expect(setMonsterSpecial({}, "3,4", true, "note")).toEqual({});
   });
 });

@@ -3,16 +3,19 @@ import { T } from "./theme.js";
 import { persistQuest, loadCalibration, saveCalibration } from "./questStorage.js";
 import QuestLibrary from "./QuestLibrary.jsx";
 import MapCalibrator from "./components/MapCalibrator.jsx";
-import { PIECE_CATEGORIES } from "./pieces.js";
+import { PIECE_CATEGORIES, PIECES } from "./pieces.js";
 import { useGameState, hasHeroStart } from "./features/game/useGameState.js";
 import { BoardGrid } from "./features/board/BoardGrid.jsx";
 import { Sidebar } from "./features/sidebar/Sidebar.jsx";
+import { LetterMarkerDialog } from "./features/board/LetterMarkerDialog.jsx";
+import { SpecialMonsterDialog } from "./features/board/SpecialMonsterDialog.jsx";
 
 // ═══════════════════════════════════════════════
 //  BOARD AREA (left panel)
 // ═══════════════════════════════════════════════
 function BoardArea({ fog, placed, doors, mode, lastClick, onCellClick, onCellRotate, bgImage,
-  pendingRoomReveal, onConfirmReveal, onCancelReveal }) {
+  pendingRoomReveal, onConfirmReveal, onCancelReveal,
+  onShowTooltip, onHideTooltip, onAnnotateMonster, onEditLetter }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
@@ -44,6 +47,8 @@ function BoardArea({ fog, placed, doors, mode, lastClick, onCellClick, onCellRot
         pendingRoomReveal={pendingRoomReveal}
         onConfirmReveal={onConfirmReveal}
         onCancelReveal={onCancelReveal}
+        onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip}
+        onAnnotateMonster={onAnnotateMonster} onEditLetter={onEditLetter}
       />
 
       <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1 }}>
@@ -66,6 +71,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
   });
   const [bgImage, setBgImage]       = useState("board2");
   const [savedFlash, setSavedFlash] = useState(false);
+  const [hoverTooltip, setHoverTooltip] = useState(null); // {x,y,content}|null
 
   function handleSave() {
     if (!hasHeroStart(gameState.placed)) {
@@ -87,6 +93,23 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     onQuestSaved?.(updated);
   }
 
+  const { pendingLetterEdit, saveLetterMarkerEdit, deleteLetterMarker, setPendingLetterEdit } = gameState;
+  const { pendingMonsterAnnotation, saveMonsterAnnotation, cancelMonsterAnnotation, openMonsterAnnotation } = gameState;
+
+  function handleEditLetter(anchorKey) {
+    const piece = gameState.placed[anchorKey];
+    if (piece?.type === "letter") {
+      gameState.setPendingLetterEdit({ anchorKey, letter: piece.letter, note: piece.note ?? "" });
+    }
+  }
+
+  function handleShowTooltip(x, y, content) {
+    setHoverTooltip({ x, y, content });
+  }
+  function handleHideTooltip() {
+    setHoverTooltip(null);
+  }
+
   return (
     <div style={{
       display: "flex", height: "100vh", overflow: "hidden",
@@ -102,6 +125,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         pendingRoomReveal={gameState.pendingRoomReveal}
         onConfirmReveal={gameState.confirmPendingReveal}
         onCancelReveal={gameState.cancelPendingReveal}
+        onShowTooltip={handleShowTooltip} onHideTooltip={handleHideTooltip}
+        onAnnotateMonster={openMonsterAnnotation} onEditLetter={handleEditLetter}
       />
       <Sidebar
         mode={gameState.mode} tool={gameState.tool}
@@ -116,7 +141,57 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         questDescription={gameState.questDescription}
         setQuestTitle={gameState.setQuestTitle}
         setQuestDescription={gameState.setQuestDescription}
+        activeLetter={gameState.activeLetter} setActiveLetter={gameState.setActiveLetter}
       />
+
+      {/* Shared hover tooltip — fixed position, immune to overflow:hidden */}
+      {hoverTooltip?.content && (
+        <div style={{
+          position: "fixed",
+          left: hoverTooltip.x,
+          top: hoverTooltip.y - 12,
+          transform: "translate(-50%, -100%)",
+          background: "#1a0f04",
+          color: "#f0e6d0",
+          border: "1px solid #c4a870",
+          borderRadius: 6,
+          padding: "6px 10px",
+          fontSize: 12,
+          whiteSpace: "pre-wrap",
+          maxWidth: 220,
+          boxShadow: "0 4px 12px #0008",
+          zIndex: 200,
+          pointerEvents: "none",
+        }}>
+          {hoverTooltip.content}
+        </div>
+      )}
+
+      {/* Feature A: Letter marker edit dialog */}
+      {pendingLetterEdit && (
+        <LetterMarkerDialog
+          initialLetter={pendingLetterEdit.letter}
+          initialNote={pendingLetterEdit.note}
+          onSave={(letter, note) => saveLetterMarkerEdit(pendingLetterEdit.anchorKey, letter, note)}
+          onDelete={() => deleteLetterMarker(pendingLetterEdit.anchorKey)}
+          onCancel={() => setPendingLetterEdit(null)}
+        />
+      )}
+
+      {/* Feature B: Special monster annotation dialog */}
+      {pendingMonsterAnnotation && (() => {
+        const piece = gameState.placed[pendingMonsterAnnotation.anchorKey];
+        const pieceDef = PIECES[piece?.type];
+        return (
+          <SpecialMonsterDialog
+            monsterLabel={pieceDef?.label}
+            initialIsSpecial={piece?.isSpecial ?? false}
+            initialNote={piece?.specialNote ?? ""}
+            onSave={(isSpecial, note) => saveMonsterAnnotation(pendingMonsterAnnotation.anchorKey, isSpecial, note)}
+            onCancel={cancelMonsterAnnotation}
+          />
+        );
+      })()}
     </div>
   );
 }
