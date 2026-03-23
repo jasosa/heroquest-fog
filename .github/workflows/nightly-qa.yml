@@ -32,21 +32,33 @@ jobs:
         run: npx wait-on http://localhost:5173 --timeout 60000
 
       - name: Run QA tests (general)
+        id: qa_general
+        continue-on-error: true
         run: node qa-test.mjs
 
       - name: Run QA tests (calibration)
+        id: qa_calibration
+        continue-on-error: true
         run: node qa-calibration.cjs
 
       - name: Run QA tests (pieces)
+        id: qa_pieces
+        continue-on-error: true
         run: node qa-pieces.cjs
 
       - name: Run QA tests (fog of war)
+        id: qa_fog
+        continue-on-error: true
         run: node qa-fog.cjs
 
       - name: Run QA tests (markers & special monsters)
+        id: qa_markers
+        continue-on-error: true
         run: node qa-markers.cjs
 
       - name: Run QA tests (quest library)
+        id: qa_library
+        continue-on-error: true
         run: node qa-library.cjs
 
       - name: Upload screenshots
@@ -56,3 +68,24 @@ jobs:
           name: qa-screenshots-${{ github.run_number }}
           path: qa-screenshots/
           if-no-files-found: ignore
+
+      - name: Summary and fail if any suite failed
+        if: always()
+        run: |
+          echo "## QA Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Suite | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| General | ${{ steps.qa_general.outcome == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Calibration | ${{ steps.qa_calibration.outcome == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pieces | ${{ steps.qa_pieces.outcome == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Fog of War | ${{ steps.qa_fog.outcome == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Markers | ${{ steps.qa_markers.outcome == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Library | ${{ steps.qa_library.outcome == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.qa_general.outcome }}" != "success" || \
+                "${{ steps.qa_calibration.outcome }}" != "success" || \
+                "${{ steps.qa_pieces.outcome }}" != "success" || \
+                "${{ steps.qa_fog.outcome }}" != "success" || \
+                "${{ steps.qa_markers.outcome }}" != "success" || \
+                "${{ steps.qa_library.outcome }}" != "success" ]]; then
+            echo "One or more QA suites failed." && exit 1
+          fi
