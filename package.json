@@ -9,7 +9,14 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:qa": "node qa-test.mjs",
+    "test:qa:calibration": "node qa-calibration.cjs",
+    "test:qa:pieces": "node qa-pieces.cjs",
+    "test:qa:fog": "node qa-fog.cjs",
+    "test:qa:markers": "node qa-markers.cjs",
+    "test:qa:library": "node qa-library.cjs",
+    "test:qa:all": "node qa-test.mjs && node qa-calibration.cjs && node qa-pieces.cjs && node qa-fog.cjs && node qa-markers.cjs && node qa-library.cjs"
   },
   "dependencies": {
     "react": "^19.2.0",

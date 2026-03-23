@@ -12,7 +12,7 @@
  * Once calibrated, use the exported JSON with useMapTransform (see bottom of file).
  */
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { ROWS, COLS } from "../map.js";
 import { togglePlacedPiece, rotatePlacedPiece, toggleDoor, cycleDoorRotation } from "../placementState.js";
 import { EditPanel } from "./EditPanel.jsx";
@@ -377,6 +377,18 @@ export default function MapCalibrator({ maps = DEFAULT_MAPS, onExport, initialCa
 
   const transform = buildTransform(activeCalib.anchors);
 
+  // Auto-save calibrations to localStorage whenever anchors change.
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    if (!onExport) return;
+    const output = {};
+    for (const map of maps) {
+      const calib = calibrations[map.id];
+      output[map.id] = { anchors: calib.anchors, ready: calib.anchors.length >= 3 };
+    }
+    onExport(output);
+  }, [calibrations]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleExport = () => {
     const output = {};
@@ -583,8 +595,17 @@ export default function MapCalibrator({ maps = DEFAULT_MAPS, onExport, initialCa
           {/* Upload + mode toggle */}
           <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <label style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>Image:</label>
-              <input type="file" accept="image/*" onChange={handleFileUpload} style={{ fontSize: 13 }} />
+              {activeMap.src ? (
+                <>
+                  <label style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>Override image:</label>
+                  <input type="file" accept="image/*" onChange={handleFileUpload} style={{ fontSize: 11, color: "#6b7280" }} />
+                </>
+              ) : (
+                <>
+                  <label style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>Image:</label>
+                  <input type="file" accept="image/*" onChange={handleFileUpload} style={{ fontSize: 13 }} />
+                </>
+              )}
             </div>
             <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1px solid #d1d5db" }}>
               {["calibrate", "test"].map((m) => (

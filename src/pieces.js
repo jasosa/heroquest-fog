@@ -52,6 +52,7 @@ export const PIECE_CATEGORIES = [
       { id: "secretdoor",   label: "Secret Door",      icon: "▐",  color: "#5d4037", shape: "square",  blocks: false, image: "Secret_Door.png", imageScale: 1 },
       { id: "stairs",       label: "Stairs",           icon: "St", color: "#90a4ae", shape: "square",  blocks: false, cells: [[0,0],[0,1],[1,0],[1,1]], image: "Stairs.png", imageScale: 1 },
       { id: "blocker",      label: "Blocked Square",  icon: "▪",  color: "#455a64", shape: "square",  blocks: true,  image: "Wall.png", imageScale: 1 },
+      { id: "doubleblocker",  label: "Double Blocked Square",  icon: "▪▪",  color: "#455a64", shape: "square",  blocks: true,  image: "Double_Wall.png",  cells: [[0,0],[0,1]], imageScale: { board2: 1, board3: 0.95 } },
     ],
   },
 ];

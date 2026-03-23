@@ -1,0 +1,58 @@
+name: Nightly QA
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 2am UTC every night
+  workflow_dispatch:      # allows manual trigger from GitHub Actions UI
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start dev server
+        run: npm run dev &
+
+      - name: Wait for server to be ready
+        run: npx wait-on http://localhost:5174 --timeout 30000
+
+      - name: Run QA tests (general)
+        run: node qa-test.mjs
+
+      - name: Run QA tests (calibration)
+        run: node qa-calibration.cjs
+
+      - name: Run QA tests (pieces)
+        run: node qa-pieces.cjs
+
+      - name: Run QA tests (fog of war)
+        run: node qa-fog.cjs
+
+      - name: Run QA tests (markers & special monsters)
+        run: node qa-markers.cjs
+
+      - name: Run QA tests (quest library)
+        run: node qa-library.cjs
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-screenshots-${{ github.run_number }}
+          path: qa-screenshots/
+          if-no-files-found: ignore
