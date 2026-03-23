@@ -33,7 +33,7 @@ export const PIECE_CATEGORIES = [
       { id: "bookcase",     label: "Bookcase",         icon: "Bk", color: "#795548", shape: "square",  blocks: true,  cells: [[0,0],[0,1],[0,2]], image: "Bookcase.png", imageScale: 0.9 },
       { id: "table",        label: "Table",            icon: "Tb", color: "#8d6e63", shape: "square",  blocks: false, cells: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]], image: "Table.png", imageScale: 0.80 },
       { id: "throne",       label: "Throne",           icon: "Th", color: "#ffd54f", shape: "square",  blocks: false, image: "Throne.png", imageScale: 1 },
-      { id: "fireplace",    label: "Fireplace",        icon: "Fi", color: "#ff6f00", shape: "square",  blocks: true,  cells: [[0,0],[0,1],[0,2]], image: "Fireplace.png", imageScale: 0.9 },
+      { id: "fireplace",    label: "Fireplace",        icon: "Fi", color: "#ff6f00", shape: "square",  blocks: true,  cells: [[0,0],[0,1],[0,2]], image: "Fireplace.png", imageScale: 0.95 },
       { id: "cupboard",     label: "Cupboard",         icon: "Cu", color: "#6d4c41", shape: "square",  blocks: true, cells: [[0,0],[0,1],[0,2]], image: "Cupboard.png",  imageScale: 0.9 },
       { id: "alchemist",    label: "Alchemist's Bench",icon: "Al", color: "#80cbc4", shape: "square",  blocks: false, cells: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]], image: "Alchemist_Bench.png", imageScale: { board2: 0.8, board3: 0.95 } },
       { id: "rack",         label: "Torture Rack",     icon: "Rk", color: "#546e7a", shape: "square",  blocks: false, cells: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]], image: "Torture_Rack.png",  imageScale: { board2: 0.8, board3: 0.95 } },
