@@ -137,12 +137,14 @@ async function switchToEdit(page) {
     console.log('\n=== 5. Blocking piece in corridor ===');
     await switchToEdit(page);
     // Place a Bookcase (blocks: true) in the corridor
-    const bookcaseBtn = page.locator('button, div', { hasText: 'Bookcase' }).first();
-    await page.locator('button, div', { hasText: 'Furniture' }).first().click();
-    await page.waitForTimeout(200);
-    await bookcaseBtn.scrollIntoViewIfNeeded().catch(() => {});
-    if (await bookcaseBtn.isVisible()) {
-      await bookcaseBtn.click();
+    const furnitureCat = page.locator('button', { hasText: 'Furniture' });
+    await furnitureCat.first().waitFor({ state: 'visible', timeout: 8000 });
+    await furnitureCat.first().click();
+    await page.waitForTimeout(300);
+    const bookcaseBtn = page.locator('button', { hasText: 'Bookcase' });
+    await bookcaseBtn.first().waitFor({ state: 'visible', timeout: 8000 });
+    if (await bookcaseBtn.first().isVisible()) {
+      await bookcaseBtn.first().click();
       await page.mouse.click(540, 350);
       await page.waitForTimeout(300);
       pass('Blocking piece placed in corridor');
@@ -158,12 +160,14 @@ async function switchToEdit(page) {
     // ── 6. Door visibility — hidden until adjacent cell revealed ────────────
     console.log('\n=== 6. Door visibility ===');
     await switchToEdit(page);
-    await page.locator('button, div', { hasText: 'Markers' }).first().click();
-    await page.waitForTimeout(200);
-    const doorTool = page.locator('button, div', { hasText: 'Door' }).first();
-    await doorTool.scrollIntoViewIfNeeded().catch(() => {});
-    if (await doorTool.isVisible()) {
-      await doorTool.click();
+    const markersCat1 = page.locator('button', { hasText: 'Markers' });
+    await markersCat1.first().waitFor({ state: 'visible', timeout: 8000 });
+    await markersCat1.first().click();
+    await page.waitForTimeout(300);
+    const doorTool = page.locator('button', { hasText: 'Door' });
+    await doorTool.first().waitFor({ state: 'visible', timeout: 8000 });
+    if (await doorTool.first().isVisible()) {
+      await doorTool.first().click();
       await page.mouse.click(650, 350);
       await page.waitForTimeout(300);
 
@@ -194,12 +198,14 @@ async function switchToEdit(page) {
     await page.locator('button', { hasText: 'Create & Edit' }).click();
     await page.waitForTimeout(800);
 
-    await page.locator('button, div', { hasText: 'Markers' }).first().click();
-    await page.waitForTimeout(200);
-    const heroStartBtn = page.locator('button, div', { hasText: 'Hero Start' }).first();
-    await heroStartBtn.scrollIntoViewIfNeeded().catch(() => {});
-    if (await heroStartBtn.isVisible()) {
-      await heroStartBtn.click();
+    const markersCat2 = page.locator('button', { hasText: 'Markers' });
+    await markersCat2.first().waitFor({ state: 'visible', timeout: 8000 });
+    await markersCat2.first().click();
+    await page.waitForTimeout(300);
+    const heroStartBtn = page.locator('button', { hasText: 'Hero Start' });
+    await heroStartBtn.first().waitFor({ state: 'visible', timeout: 8000 });
+    if (await heroStartBtn.first().isVisible()) {
+      await heroStartBtn.first().click();
       await page.mouse.click(500, 350);
       await page.waitForTimeout(300);
       await shot(page, 'hero-start-placed-edit');

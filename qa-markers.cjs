@@ -58,11 +58,14 @@ async function switchToEdit(page) {
 }
 
 async function selectTool(page, categoryText, toolText) {
-  await page.locator('button, div', { hasText: categoryText }).first().click();
-  await page.waitForTimeout(200);
-  const tool = page.locator('button, div', { hasText: toolText }).first();
-  await tool.scrollIntoViewIfNeeded().catch(() => {});
-  await tool.click();
+  const cat = page.locator('button', { hasText: categoryText });
+  await cat.first().waitFor({ state: 'visible', timeout: 8000 });
+  await cat.first().click();
+  await page.waitForTimeout(300);
+  const tool = page.locator('button', { hasText: toolText });
+  await tool.first().waitFor({ state: 'visible', timeout: 8000 });
+  await tool.first().scrollIntoViewIfNeeded().catch(() => {});
+  await tool.first().click();
   await page.waitForTimeout(200);
 }
 

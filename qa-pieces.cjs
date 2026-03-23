@@ -49,15 +49,18 @@ async function openGameScreen(page) {
   await page.waitForTimeout(800);
 }
 
-// Select a tool from the sidebar by label text
+// Select a tool from the sidebar — clicks the category tab then the piece button
 async function selectTool(page, categoryText, toolText) {
-  const cat = page.locator('button, div', { hasText: categoryText }).first();
-  await cat.scrollIntoViewIfNeeded().catch(() => {});
-  await cat.click();
-  await page.waitForTimeout(200);
-  const tool = page.locator('button, div', { hasText: toolText }).first();
-  await tool.scrollIntoViewIfNeeded().catch(() => {});
-  await tool.click();
+  // Category tabs are small uppercase buttons in the edit panel
+  const cat = page.locator('button', { hasText: categoryText });
+  await cat.first().waitFor({ state: 'visible', timeout: 8000 });
+  await cat.first().click();
+  await page.waitForTimeout(300);
+  // Piece buttons are full-width buttons containing the tool label
+  const tool = page.locator('button', { hasText: toolText });
+  await tool.first().waitFor({ state: 'visible', timeout: 8000 });
+  await tool.first().scrollIntoViewIfNeeded().catch(() => {});
+  await tool.first().click();
   await page.waitForTimeout(200);
 }
 
