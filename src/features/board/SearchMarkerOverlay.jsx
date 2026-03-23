@@ -64,25 +64,6 @@ export function SearchMarkerOverlay({
           >✎</button>
         )}
 
-        {/* Remove marker button — only in edit mode */}
-        {isEditMode && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onRemoveMarker?.(region); }}
-            title="Remove search marker"
-            style={{
-              position: "absolute",
-              top: -8, left: -8,
-              width: 16, height: 16,
-              padding: 0,
-              background: "#c62828",
-              color: "#fff",
-              border: "none", borderRadius: "50%",
-              fontSize: 11, lineHeight: "16px", textAlign: "center",
-              cursor: "pointer",
-              pointerEvents: "auto",
-            }}
-          >×</button>
-        )}
       </div>
     );
   });

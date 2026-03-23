@@ -18,7 +18,7 @@ const dialogStyle = {
   display: "flex", flexDirection: "column", gap: 14,
 };
 
-export function SearchNoteDialog({ regionId, initialNote, onSave, onCancel }) {
+export function SearchNoteDialog({ regionId, initialNote, onSave, onDelete, onCancel }) {
   const [note, setNote] = useState(initialNote ?? "");
 
   return (
@@ -47,6 +47,17 @@ export function SearchNoteDialog({ regionId, initialNote, onSave, onCancel }) {
         </div>
 
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              style={{
+                marginRight: "auto",
+                background: "#c62828", color: "#fff",
+                border: "none", borderRadius: 4,
+                padding: "6px 14px", cursor: "pointer", fontSize: 13,
+              }}
+            >Delete</button>
+          )}
           <button
             onClick={onCancel}
             style={{

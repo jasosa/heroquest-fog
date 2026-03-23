@@ -8,7 +8,9 @@
       "Bash(npm run:*)",
       "Bash(ls \"C:\\\\Users\\\\Juanan\\\\code\\\\heroquest-fog\\\\heroquest-fog\\\\public\\\\tiles 2>/dev/null; ls C:UsersJuanancodeheroquest-fogheroquest-fogpublic\")",
       "Bash(node:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(ls -la /tmp/*.png)",
+      "Bash(find /tmp -name *.png)"
     ]
   }
 }

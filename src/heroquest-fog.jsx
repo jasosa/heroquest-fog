@@ -260,6 +260,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           regionId={gameState.pendingSearchEdit.regionId}
           initialNote={gameState.searchNotes[gameState.pendingSearchEdit.regionId] ?? ""}
           onSave={(note) => gameState.saveSearchNote(gameState.pendingSearchEdit.regionId, note)}
+          onDelete={() => { gameState.removeSearchMarker(gameState.pendingSearchEdit.regionId); gameState.setPendingSearchEdit(null); }}
           onCancel={() => gameState.setPendingSearchEdit(null)}
         />
       )}
