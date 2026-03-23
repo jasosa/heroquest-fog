@@ -49,11 +49,9 @@ if (await newBookBtn.isVisible()) {
   await newBookBtn.click();
   await page.waitForTimeout(500);
   await shot(page, 'after-new-book');
-  // If a text input appeared for the book name, fill it
-  const bookInput = page.locator('input').filter({ hasText: '' }).first();
-  const bookInputVisible = await page.locator('input[placeholder]').first().isVisible().catch(() => false);
-  if (bookInputVisible) {
-    await page.locator('input[placeholder]').first().fill('Test Book');
+  const bookTitleInput = page.locator('input[placeholder="Book title"]');
+  if (await bookTitleInput.isVisible()) {
+    await bookTitleInput.fill('Test Book');
     const confirmBtn = await findBtn(page, 'Create');
     if (await confirmBtn.isVisible()) { await confirmBtn.click(); await page.waitForTimeout(400); }
   }
@@ -70,8 +68,8 @@ if (await newQuestBtn.isVisible()) {
   await page.waitForTimeout(400);
   await shot(page, 'new-quest-form');
 
-  // Fill title
-  const titleInput = page.locator('input').first();
+  // Fill title using specific placeholder
+  const titleInput = page.locator('input[placeholder="Quest title"]');
   if (await titleInput.isVisible()) {
     await titleInput.fill('Test Quest');
     ok('Filled quest title');
