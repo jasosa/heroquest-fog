@@ -8,7 +8,7 @@ import { DoorOverlay } from "./DoorOverlay.jsx";
 import { RoomConfirmDialog } from "./RoomConfirmDialog.jsx";
 import { SearchMarkerOverlay } from "./SearchMarkerOverlay.jsx";
 
-export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, searchedRegions, mode, lastClick, onCellClick, onCellRotate, bgImage,
+export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, searchedCounts, mode, lastClick, onCellClick, onCellRotate, bgImage,
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
   onShowTooltip, onHideTooltip, onAnnotateMonster, onEditNote,
   onEditSearchNote, onViewSearchNote, onRemoveSearchMarker }) {
@@ -148,13 +148,15 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
         <SearchMarkerOverlay
           searchMarkers={searchMarkers}
           searchNotes={searchNotes}
-          searchedRegions={searchedRegions}
+          searchedCounts={searchedCounts}
           fog={fog}
           isEditMode={isEditMode}
           getTokenPos={getTokenPos}
           onEditNote={onEditSearchNote}
           onViewNote={onViewSearchNote}
           onRemoveMarker={onRemoveSearchMarker}
+          onShowTooltip={onShowTooltip}
+          onHideTooltip={onHideTooltip}
         />
       )}
       {/* Room confirm dialog — shown when a room cell is clicked without a visible door */}

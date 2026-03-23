@@ -4,7 +4,19 @@ import { makeComputeReveal, hasVisibleDoorForRoom } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
 import { placeNoteMarker, updateNoteMarker, setMonsterSpecial } from "../../placementState.js";
-import { moveSearchMarker, setSearchNote, removeSearchMarker } from "../../searchMarkers.js";
+import { moveSearchMarker, setSearchNoteAt, normalizeSearchNotes, removeSearchMarker } from "../../searchMarkers.js";
+
+export const SEARCH_MAX = 4;
+
+export function incrementSearchCount(counts, regionId) {
+  const current = counts[regionId] ?? 0;
+  if (current >= SEARCH_MAX) return counts;
+  return { ...counts, [regionId]: current + 1 };
+}
+
+export function resetSearchCounts() {
+  return {};
+}
 
 export function hasHeroStart(placed) {
   return Object.values(placed).some(p => p.type === "start" || p.overlayMarker === "start");
@@ -48,10 +60,10 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const [searchMarkers, setSearchMarkers] = useState(
     () => initialSearchMarkers ?? {}
   );
-  const [searchNotes, setSearchNotes] = useState(() => initialSearchNotes ?? {});
-  const [searchedRegions, setSearchedRegions] = useState(() => new Set()); // session-only
+  const [searchNotes, setSearchNotes] = useState(() => normalizeSearchNotes(initialSearchNotes ?? {}));
+  const [searchedCounts, setSearchedCounts] = useState(() => ({})); // session-only: Record<regionId, number>
   const [pendingSearchEdit, setPendingSearchEdit]   = useState(null); // {regionId}|null
-  const [pendingSearchView, setPendingSearchView]   = useState(null); // {regionId,note}|null
+  const [pendingSearchView, setPendingSearchView]   = useState(null); // {regionId,notes,count}|null
 
   // advanced-use-latest: stable refs so handleCell needs no dependencies.
   const placedRef   = useLatest(placed);
@@ -61,6 +73,7 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const fogRef      = useLatest(fog);
   const doorsRef    = useLatest(doors);
   const pendingRoomRevealRef    = useLatest(pendingRoomReveal);
+  const searchNotesRef          = useLatest(searchNotes);
   // Selecting a new tool always resets rotation to 0.
   const handleSetTool = useCallback((newTool) => {
     setTool(newTool);
@@ -219,6 +232,7 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const resetFog = useCallback(() => {
     setFog(new Set());
     setLastClick(null);
+    setSearchedCounts({});
   }, []);
 
   // Note markers: save edits from the dialog.
@@ -251,8 +265,8 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     setPendingSearchEdit({ regionId });
   }, []);
 
-  const saveSearchNote = useCallback((regionId, note) => {
-    setSearchNotes(prev => setSearchNote(prev, regionId, note));
+  const saveSearchNote = useCallback((regionId, notes) => {
+    setSearchNotes(prev => ({ ...prev, [regionId]: notes }));
     setPendingSearchEdit(null);
   }, []);
 
@@ -260,17 +274,20 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     setSearchMarkers(prev => removeSearchMarker(prev, regionId));
   }, []);
 
-  // Search marker view (play mode): show note popup, then dismiss marker.
-  const viewSearchNote = useCallback((regionId, note) => {
-    setPendingSearchView({ regionId, note });
-  }, []);
+  // Search marker view (play mode): open popup for current search count.
+  const searchedCountsRef      = useLatest(searchedCounts);
+  const pendingSearchViewRef   = useLatest(pendingSearchView);
+  const viewSearchNote = useCallback((regionId) => {
+    const notes = searchNotesRef.current[regionId] ?? [];
+    const count = searchedCountsRef.current[regionId] ?? 0;
+    setPendingSearchView({ regionId, notes, count });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const closeSearchNote = useCallback(() => {
-    setPendingSearchView(prev => {
-      if (prev) setSearchedRegions(r => new Set([...r, prev.regionId]));
-      return null;
-    });
-  }, []);
+    const regionId = pendingSearchViewRef.current?.regionId;
+    setPendingSearchView(null);
+    if (regionId) setSearchedCounts(c => incrementSearchCount(c, regionId));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const confirmPendingReveal = useCallback(() => {
     const p = pendingRoomRevealRef.current;
@@ -303,7 +320,7 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     openMonsterAnnotation, saveMonsterAnnotation,
     cancelMonsterAnnotation: useCallback(() => setPendingMonsterAnnotation(null), []),
     // Search markers
-    searchMarkers, searchNotes, searchedRegions,
+    searchMarkers, searchNotes, searchedCounts,
     pendingSearchEdit, setPendingSearchEdit, openSearchNoteEdit, saveSearchNote,
     pendingSearchView, viewSearchNote, closeSearchNote,
     removeSearchMarker: handleRemoveSearchMarker,

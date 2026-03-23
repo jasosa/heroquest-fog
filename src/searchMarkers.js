@@ -40,6 +40,41 @@ export function setSearchNote(notes, regionId, note) {
   return { ...notes, [regionId]: note };
 }
 
+const SEARCH_SLOTS = 4;
+
+/**
+ * Set the note at a specific search slot (0–3) for a region.
+ * Missing slots are initialised as empty strings.
+ * Returns a new notes object (immutable).
+ */
+export function setSearchNoteAt(notes, regionId, index, note) {
+  const existing = Array.isArray(notes[regionId])
+    ? notes[regionId]
+    : Array(SEARCH_SLOTS).fill("");
+  const updated = [...existing];
+  while (updated.length < SEARCH_SLOTS) updated.push("");
+  updated[index] = note;
+  return { ...notes, [regionId]: updated };
+}
+
+/**
+ * Normalize legacy searchNotes (string values) to 4-element arrays.
+ * - string → [string, "", "", ""]
+ * - short array → padded to 4 with ""
+ * - 4-element array → unchanged (new object)
+ */
+export function normalizeSearchNotes(notes) {
+  const result = {};
+  for (const [regionId, value] of Object.entries(notes)) {
+    const arr = Array.isArray(value)
+      ? [...value]
+      : [typeof value === "string" ? value : ""];
+    while (arr.length < SEARCH_SLOTS) arr.push("");
+    result[regionId] = arr;
+  }
+  return result;
+}
+
 /**
  * Remove the search marker for a given region.
  * Returns a new markers object (immutable).

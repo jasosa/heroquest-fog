@@ -1,5 +1,7 @@
 import { T } from "../../theme.js";
 
+const SEARCH_DEFAULT_MESSAGE = "Draw a treasure card!";
+
 const overlayStyle = {
   position: "fixed", inset: 0,
   background: "#0008",
@@ -18,15 +20,20 @@ const dialogStyle = {
   display: "flex", flexDirection: "column", gap: 14,
 };
 
-export function SearchNotePopup({ note, onClose }) {
+export function SearchNotePopup({ notes, count, onClose }) {
+  const text = (Array.isArray(notes) ? notes[count] : "") || SEARCH_DEFAULT_MESSAGE;
+
   return (
     <div style={overlayStyle} onMouseDown={onClose}>
       <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
         <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>
           🔍 Search Result
+        </div>       
+        <div style={{ fontSize: 15, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+          {text}
         </div>
-        <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-          {note || "Every hero who searches, draws a treasure card!"}
+         <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1, textTransform: "uppercase" }}>
+          Search number {count + 1}
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeDefaultSearchMarkers, moveSearchMarker, setSearchNote, removeSearchMarker } from "./searchMarkers.js";
+import { computeDefaultSearchMarkers, moveSearchMarker, setSearchNote, setSearchNoteAt, normalizeSearchNotes, removeSearchMarker } from "./searchMarkers.js";
 
 // ─── Test board (same layout as reveal.test.js) ──────────────────────────────
 //
@@ -125,6 +125,74 @@ describe("setSearchNote", () => {
     const notes = {};
     const result = setSearchNote(notes, "R1", "note");
     expect(result).not.toBe(notes);
+  });
+});
+
+// ─── setSearchNoteAt ──────────────────────────────────────────────────────────
+
+describe("setSearchNoteAt", () => {
+  it("sets the note at the given index", () => {
+    const result = setSearchNoteAt({}, "R1", 0, "First clue");
+    expect(result["R1"][0]).toBe("First clue");
+  });
+
+  it("initialises missing slots as empty strings", () => {
+    const result = setSearchNoteAt({}, "R1", 2, "Third clue");
+    expect(result["R1"]).toEqual(["", "", "Third clue", ""]);
+  });
+
+  it("preserves existing notes at other indices", () => {
+    const notes = { R1: ["a", "b", "c", "d"] };
+    const result = setSearchNoteAt(notes, "R1", 1, "updated");
+    expect(result["R1"]).toEqual(["a", "updated", "c", "d"]);
+  });
+
+  it("does not affect other regions", () => {
+    const notes = { R1: ["a", "", "", ""], R2: ["x", "", "", ""] };
+    const result = setSearchNoteAt(notes, "R1", 0, "new");
+    expect(result["R2"]).toEqual(["x", "", "", ""]);
+  });
+
+  it("returns a new object (immutable)", () => {
+    const notes = {};
+    const result = setSearchNoteAt(notes, "R1", 0, "note");
+    expect(result).not.toBe(notes);
+  });
+});
+
+// ─── normalizeSearchNotes ─────────────────────────────────────────────────────
+
+describe("normalizeSearchNotes", () => {
+  it("converts a legacy string value to a 4-element array with the string at index 0", () => {
+    const result = normalizeSearchNotes({ R1: "old note" });
+    expect(result["R1"]).toEqual(["old note", "", "", ""]);
+  });
+
+  it("leaves a 4-element array unchanged", () => {
+    const notes = { R1: ["a", "b", "c", "d"] };
+    const result = normalizeSearchNotes(notes);
+    expect(result["R1"]).toEqual(["a", "b", "c", "d"]);
+  });
+
+  it("pads a short array to 4 elements with empty strings", () => {
+    const result = normalizeSearchNotes({ R1: ["only one"] });
+    expect(result["R1"]).toEqual(["only one", "", "", ""]);
+  });
+
+  it("processes all regions", () => {
+    const result = normalizeSearchNotes({ R1: "a", R2: ["b", "c"] });
+    expect(result["R1"]).toEqual(["a", "", "", ""]);
+    expect(result["R2"]).toEqual(["b", "c", "", ""]);
+  });
+
+  it("returns a new object (immutable)", () => {
+    const notes = { R1: ["a", "b", "c", "d"] };
+    const result = normalizeSearchNotes(notes);
+    expect(result).not.toBe(notes);
+  });
+
+  it("handles an empty notes object", () => {
+    expect(normalizeSearchNotes({})).toEqual({});
   });
 });
 

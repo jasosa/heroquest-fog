@@ -4,15 +4,18 @@
  * Play mode: visible only when the marker's cell is revealed and the region
  *            has not yet been searched; clicking the icon opens the note popup.
  */
+const SEARCH_TOOLTIP = "Search for Treasure";
+
 export function SearchMarkerOverlay({
-  searchMarkers, searchNotes, searchedRegions,
+  searchMarkers, searchNotes, searchedCounts,
   fog, isEditMode, getTokenPos,
   onEditNote, onViewNote, onRemoveMarker,
+  onShowTooltip, onHideTooltip,
 }) {
   return Object.entries(searchMarkers).map(([region, [r, c]]) => {
     if (!isEditMode) {
-      // Hide if not yet revealed or already searched.
-      if (!fog.has(`${r},${c}`) || searchedRegions?.has(region)) return null;
+      // Hide if not yet revealed or fully exhausted (4 searches done).
+      if (!fog.has(`${r},${c}`) || (searchedCounts?.[region] ?? 0) >= 4) return null;
     }
 
     const [px, py] = getTokenPos(c, r);
@@ -41,6 +44,8 @@ export function SearchMarkerOverlay({
             pointerEvents: isEditMode ? "none" : "auto",
             cursor: isEditMode ? "default" : "pointer",
           }}
+          onMouseEnter={isEditMode ? undefined : (e) => onShowTooltip?.(e.clientX, e.clientY, SEARCH_TOOLTIP)}
+          onMouseLeave={isEditMode ? undefined : () => onHideTooltip?.()}
           onClick={isEditMode ? undefined : () => onViewNote(region, searchNotes?.[region] ?? "")}
         />
 

@@ -29,7 +29,7 @@ const zoomBtnStyle = {
 // ═══════════════════════════════════════════════
 //  BOARD AREA (left panel)
 // ═══════════════════════════════════════════════
-function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedRegions, mode, lastClick, onCellClick, onCellRotate, bgImage,
+function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCounts, mode, lastClick, onCellClick, onCellRotate, bgImage,
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
   onShowTooltip, onHideTooltip, onAnnotateMonster, onEditNote,
   onEditSearchNote, onViewSearchNote, onRemoveSearchMarker,
@@ -84,7 +84,7 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedReg
           }}>
             <BoardGrid
               fog={fog} placed={placed} doors={doors}
-              searchMarkers={searchMarkers} searchNotes={searchNotes} searchedRegions={searchedRegions}
+              searchMarkers={searchMarkers} searchNotes={searchNotes} searchedCounts={searchedCounts}
               mode={mode}
               lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
               bgImage={bgImage}
@@ -177,7 +177,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         fog={gameState.fog} placed={gameState.placed} doors={gameState.doors}
         searchMarkers={gameState.searchMarkers}
         searchNotes={gameState.searchNotes}
-        searchedRegions={gameState.searchedRegions}
+        searchedCounts={gameState.searchedCounts}
         mode={gameState.mode} lastClick={gameState.lastClick}
         onCellClick={gameState.handleCell} onCellRotate={gameState.handleCellRotate}
         bgImage={bgImage}
@@ -258,8 +258,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       {gameState.pendingSearchEdit && (
         <SearchNoteDialog
           regionId={gameState.pendingSearchEdit.regionId}
-          initialNote={gameState.searchNotes[gameState.pendingSearchEdit.regionId] ?? ""}
-          onSave={(note) => gameState.saveSearchNote(gameState.pendingSearchEdit.regionId, note)}
+          initialNotes={gameState.searchNotes[gameState.pendingSearchEdit.regionId] ?? []}
+          onSave={(notes) => gameState.saveSearchNote(gameState.pendingSearchEdit.regionId, notes)}
           onDelete={() => { gameState.removeSearchMarker(gameState.pendingSearchEdit.regionId); gameState.setPendingSearchEdit(null); }}
           onCancel={() => gameState.setPendingSearchEdit(null)}
         />
@@ -268,7 +268,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       {/* Search marker — play mode popup */}
       {gameState.pendingSearchView && (
         <SearchNotePopup
-          note={gameState.pendingSearchView.note}
+          notes={gameState.pendingSearchView.notes}
+          count={gameState.pendingSearchView.count}
           onClose={gameState.closeSearchNote}
         />
       )}
