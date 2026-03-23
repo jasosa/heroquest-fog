@@ -2,7 +2,8 @@ import { chromium } from 'playwright';
 import { mkdir } from 'fs/promises';
 import path from 'path';
 
-const BASE = 'http://localhost:5174';
+const BASE_URL = process.env.QA_BASE_URL || 'http://localhost:5173';
+const BASE = BASE_URL; // alias for compatibility
 const SS = 'qa-screenshots';
 await mkdir(SS, { recursive: true });
 

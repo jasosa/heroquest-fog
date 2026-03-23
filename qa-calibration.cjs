@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
-const BASE_URL = 'http://localhost:5173';
+const BASE_URL = process.env.QA_BASE_URL || 'http://localhost:5173';
 const SCREENSHOT_DIR = path.join(__dirname, 'qa-screenshots');
 
 if (!fs.existsSync(SCREENSHOT_DIR)) {
