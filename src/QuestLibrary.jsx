@@ -4,12 +4,14 @@ import {
   loadQuestBooks,
   loadQuests,
   createQuestBook,
+  updateQuestBook,
   deleteQuestBook,
   createQuest,
   deleteQuest,
   exportQuestAsJson,
   importQuestFromJson,
 } from "./questStorage.js";
+import { EditQuestBookDialog } from "./features/library/EditQuestBookDialog.jsx";
 
 // ─── Small shared input style ─────────────────────────────────────────────────
 const inputStyle = {
@@ -37,6 +39,9 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
   const importInputRef = useRef(null);
   const [importError, setImportError] = useState("");
+
+  // Edit-book dialog
+  const [editingBook, setEditingBook] = useState(null); // null | book object
 
   // New-book form
   const [showNewBook, setShowNewBook]   = useState(false);
@@ -74,6 +79,12 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     setBooks(prev => prev.filter(b => b.id !== id));
     setQuests(prev => prev.filter(q => q.questBookId !== id));
     if (selectedBookId === id) setSelectedBookId(null);
+  }
+
+  function handleSaveEditBook(title, description) {
+    updateQuestBook(editingBook.id, { title, description });
+    setBooks(prev => prev.map(b => b.id === editingBook.id ? { ...b, title, description } : b));
+    setEditingBook(null);
   }
 
   // ── Quest actions ─────────────────────────────────────────────────────────
@@ -148,6 +159,14 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
       fontFamily: "'Palatino Linotype', 'Palatino', 'Book Antiqua', Georgia, serif",
       color: T.text,
     }}>
+      {editingBook && (
+        <EditQuestBookDialog
+          initialTitle={editingBook.title}
+          initialDescription={editingBook.description}
+          onSave={handleSaveEditBook}
+          onCancel={() => setEditingBook(null)}
+        />
+      )}
 
       {/* ── Left sidebar — Quest Books ───────────────────────────────────── */}
       <div style={{
@@ -200,6 +219,13 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
               <span style={{ fontSize: 10, opacity: 0.7, flexShrink: 0 }}>
                 ({bookQuestCount(book.id)})
               </span>
+            </button>
+            <button
+              onClick={() => setEditingBook(book)}
+              title="Edit book"
+              style={{ ...btn(false, { padding: "5px 7px", fontSize: 12, flexShrink: 0 }) }}
+            >
+              ✎
             </button>
             <button
               onClick={() => handleDeleteBook(book.id)}

@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { exportQuestAsJson, importQuestFromJson } from "./questStorage.js";
+import {
+  exportQuestAsJson,
+  importQuestFromJson,
+  createQuestBook,
+  updateQuestBook,
+  loadQuestBooks,
+} from "./questStorage.js";
 
 // ── Minimal localStorage mock ──────────────────────────────────────────────
 const store = {};
@@ -13,6 +19,68 @@ vi.stubGlobal("localStorage", localStorageMock);
 
 beforeEach(() => {
   localStorageMock.clear();
+});
+
+// ── updateQuestBook ────────────────────────────────────────────────────────
+describe("updateQuestBook", () => {
+  it("updates the title of an existing book", () => {
+    const book = createQuestBook("Original", "desc");
+    updateQuestBook(book.id, { title: "Updated" });
+    const books = loadQuestBooks();
+    expect(books.find(b => b.id === book.id).title).toBe("Updated");
+  });
+
+  it("updates the description of an existing book", () => {
+    const book = createQuestBook("Title", "old desc");
+    updateQuestBook(book.id, { description: "new desc" });
+    const books = loadQuestBooks();
+    expect(books.find(b => b.id === book.id).description).toBe("new desc");
+  });
+
+  it("updates both title and description", () => {
+    const book = createQuestBook("T", "D");
+    updateQuestBook(book.id, { title: "T2", description: "D2" });
+    const books = loadQuestBooks();
+    const updated = books.find(b => b.id === book.id);
+    expect(updated.title).toBe("T2");
+    expect(updated.description).toBe("D2");
+  });
+
+  it("preserves other fields such as createdAt and id", () => {
+    const book = createQuestBook("Keep", "");
+    updateQuestBook(book.id, { title: "New" });
+    const books = loadQuestBooks();
+    const updated = books.find(b => b.id === book.id);
+    expect(updated.id).toBe(book.id);
+    expect(updated.createdAt).toBe(book.createdAt);
+  });
+
+  it("returns the updated book", () => {
+    const book = createQuestBook("Ret", "");
+    const result = updateQuestBook(book.id, { title: "RetNew" });
+    expect(result.title).toBe("RetNew");
+    expect(result.id).toBe(book.id);
+  });
+
+  it("does not affect other books", () => {
+    const a = createQuestBook("A", "");
+    const b = createQuestBook("B", "");
+    updateQuestBook(a.id, { title: "A2" });
+    const books = loadQuestBooks();
+    expect(books.find(bk => bk.id === b.id).title).toBe("B");
+  });
+
+  it("returns undefined when id does not exist", () => {
+    const result = updateQuestBook("nonexistent-id", { title: "X" });
+    expect(result).toBeUndefined();
+  });
+
+  it("does not mutate the store when id does not exist", () => {
+    const book = createQuestBook("Safe", "");
+    updateQuestBook("bad-id", { title: "Injected" });
+    const books = loadQuestBooks();
+    expect(books.find(b => b.id === book.id).title).toBe("Safe");
+  });
 });
 
 // ── exportQuestAsJson ──────────────────────────────────────────────────────
