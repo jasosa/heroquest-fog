@@ -4,7 +4,7 @@
 
 ### [FEAT-001] As a user I want to see quests sorted by Quest Book and Quest number
 Priority: medium
-Status: not_started
+Status: done
 Description: In the main window the quests should be sorted firts by Quest Book and then by Quest number. In case a quest doesn´t have a quest number the sorting order would be alphabetically
 
 ### [FEAT-002] As a user I want to be able to edit the quest book after the book is created
@@ -12,6 +12,14 @@ Priority: high
 Status: done
 Description: Once a quest book is created, name and description can't be edited. It should be possible to edit both (and other possible attributes in the future)
 
+### [FEAT-003] As a user I want to add a quest to a quest book after it has been already created
+Priority: medium
+Status: not_started
+Description: When a quest is created without adding it to any quest book, should be possible later to add it to a quest book. Or to move from one quest book to another
 
+### [FEAT-004] As a user I want to see all quests buttons aligned to the boom in the quests screen
+Priority: medium
+Status: not_started
+Description: In the Quest Library the buttons on each quest are not aligned. Depending on the text lenght of description of the quest the buttons are higher or lower on the quest card. I want all the buttons aligned independently of the text size;
 
 

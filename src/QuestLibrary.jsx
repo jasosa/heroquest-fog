@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { T } from "./theme.js";
 import {
   loadQuestBooks,
@@ -8,10 +8,15 @@ import {
   deleteQuestBook,
   createQuest,
   deleteQuest,
+  persistQuest,
   exportQuestAsJson,
   importQuestFromJson,
+  migrateQuests,
 } from "./questStorage.js";
+import { sortQuests } from "./questSort.js";
 import { EditQuestBookDialog } from "./features/library/EditQuestBookDialog.jsx";
+import { AssignQuestBookDialog } from "./features/library/AssignQuestBookDialog.jsx";
+import { assignQuestToBook } from "./features/library/assignQuestBook.js";
 
 // ─── Small shared input style ─────────────────────────────────────────────────
 const inputStyle = {
@@ -37,11 +42,16 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   const [quests, setQuests]         = useState(() => loadQuests());
   const [selectedBookId, setSelectedBookId] = useState(null); // null = "All"
 
+  useEffect(() => { migrateQuests(); }, []);
+
   const importInputRef = useRef(null);
   const [importError, setImportError] = useState("");
 
   // Edit-book dialog
   const [editingBook, setEditingBook] = useState(null); // null | book object
+
+  // Assign-quest-book dialog
+  const [assigningQuest, setAssigningQuest] = useState(null); // null | quest object
 
   // New-book form
   const [showNewBook, setShowNewBook]   = useState(false);
@@ -49,15 +59,17 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   const [newBookDesc, setNewBookDesc]   = useState("");
 
   // New-quest form
-  const [showNewQuest, setShowNewQuest]     = useState(false);
-  const [newQuestTitle, setNewQuestTitle]   = useState("");
-  const [newQuestDesc, setNewQuestDesc]     = useState("");
-  const [newQuestBookId, setNewQuestBookId] = useState(null);
+  const [showNewQuest, setShowNewQuest]         = useState(false);
+  const [newQuestTitle, setNewQuestTitle]       = useState("");
+  const [newQuestDesc, setNewQuestDesc]         = useState("");
+  const [newQuestBookId, setNewQuestBookId]     = useState(null);
+  const [newQuestNumber, setNewQuestNumber]     = useState("");
 
   // ── Derived ──────────────────────────────────────────────────────────────
-  const visibleQuests = selectedBookId === null
+  const filteredQuests = selectedBookId === null
     ? quests
     : quests.filter(q => q.questBookId === selectedBookId);
+  const visibleQuests = sortQuests(filteredQuests, books);
 
   function bookQuestCount(bookId) {
     return quests.filter(q => q.questBookId === bookId).length;
@@ -87,6 +99,13 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     setEditingBook(null);
   }
 
+  function handleSaveAssignment(questBookId, questNumber) {
+    const updated = assignQuestToBook(assigningQuest, questBookId, questNumber);
+    const saved = persistQuest(updated);
+    setQuests(prev => prev.map(q => q.id === saved.id ? saved : q));
+    setAssigningQuest(null);
+  }
+
   // ── Quest actions ─────────────────────────────────────────────────────────
   function handleCreateQuest() {
     if (!newQuestTitle.trim()) return;
@@ -94,11 +113,13 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
       title: newQuestTitle.trim(),
       description: newQuestDesc.trim(),
       questBookId: newQuestBookId,
+      questNumber: newQuestNumber === "" ? null : Number(newQuestNumber),
     });
     setQuests(prev => [...prev, quest]);
     setNewQuestTitle("");
     setNewQuestDesc("");
     setNewQuestBookId(null);
+    setNewQuestNumber("");
     setShowNewQuest(false);
     onEdit(quest);
   }
@@ -165,6 +186,14 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           initialDescription={editingBook.description}
           onSave={handleSaveEditBook}
           onCancel={() => setEditingBook(null)}
+        />
+      )}
+      {assigningQuest && (
+        <AssignQuestBookDialog
+          quest={assigningQuest}
+          books={books}
+          onSave={handleSaveAssignment}
+          onCancel={() => setAssigningQuest(null)}
         />
       )}
 
@@ -359,11 +388,19 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                   <option key={b.id} value={b.id}>{b.title}</option>
                 ))}
               </select>
+              <input
+                type="number"
+                placeholder="Quest number (optional)"
+                value={newQuestNumber}
+                onChange={e => setNewQuestNumber(e.target.value)}
+                min={0}
+                style={inputStyle}
+              />
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={handleCreateQuest} style={{ ...btn(true), fontSize: 12 }}>
                   Create &amp; Edit
                 </button>
-                <button onClick={() => { setShowNewQuest(false); setNewQuestTitle(""); setNewQuestDesc(""); setNewQuestBookId(null); }} style={{ ...btn(false), fontSize: 12 }}>
+                <button onClick={() => { setShowNewQuest(false); setNewQuestTitle(""); setNewQuestDesc(""); setNewQuestBookId(null); setNewQuestNumber(""); }} style={{ ...btn(false), fontSize: 12 }}>
                   Cancel
                 </button>
               </div>
@@ -416,6 +453,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                   )}
                   <div style={{ fontSize: 10, color: T.textFaint, display: "flex", flexDirection: "column", gap: 2 }}>
                     {bookName && <span>Book: {bookName}</span>}
+                    {quest.questNumber != null && <span>Quest #{quest.questNumber}</span>}
                     <span>Updated: {fmtDate(quest.updatedAt)}</span>
                   </div>
                   <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
@@ -424,6 +462,13 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                     </button>
                     <button onClick={() => onEdit(quest)} style={{ ...btn(false, { flex: 1, fontSize: 10 }) }}>
                       ✎ Edit
+                    </button>
+                    <button
+                      onClick={() => setAssigningQuest(quest)}
+                      title="Assign to quest book"
+                      style={{ ...btn(false, { padding: "7px 10px", fontSize: 11 }) }}
+                    >
+                      ☰
                     </button>
                     <button
                       onClick={() => handleExportQuest(quest)}

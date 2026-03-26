@@ -5,6 +5,9 @@ import {
   createQuestBook,
   updateQuestBook,
   loadQuestBooks,
+  createQuest,
+  loadQuests,
+  migrateQuests,
 } from "./questStorage.js";
 
 // ── Minimal localStorage mock ──────────────────────────────────────────────
@@ -80,6 +83,54 @@ describe("updateQuestBook", () => {
     updateQuestBook("bad-id", { title: "Injected" });
     const books = loadQuestBooks();
     expect(books.find(b => b.id === book.id).title).toBe("Safe");
+  });
+});
+
+// ── createQuest questNumber ────────────────────────────────────────────────
+describe("createQuest questNumber", () => {
+  it("defaults questNumber to null when not provided", () => {
+    const quest = createQuest({ title: "Q" });
+    expect(quest.questNumber).toBeNull();
+  });
+
+  it("stores questNumber when provided", () => {
+    const quest = createQuest({ title: "Q", questNumber: 3 });
+    expect(quest.questNumber).toBe(3);
+    const stored = loadQuests().find(q => q.id === quest.id);
+    expect(stored.questNumber).toBe(3);
+  });
+
+  it("stores questNumber: 0 as 0", () => {
+    const quest = createQuest({ title: "Q", questNumber: 0 });
+    expect(quest.questNumber).toBe(0);
+  });
+});
+
+// ── migrateQuests ──────────────────────────────────────────────────────────
+describe("migrateQuests", () => {
+  it("adds questNumber: null to quests that lack the field", () => {
+    // Manually write a quest without questNumber to localStorage
+    const raw = [{ id: "q1", title: "Old", questBookId: null, placed: {}, doors: {} }];
+    localStorage.setItem("hq_quests", JSON.stringify(raw));
+    migrateQuests();
+    const quests = loadQuests();
+    expect(quests[0].questNumber).toBeNull();
+  });
+
+  it("does not overwrite an existing questNumber", () => {
+    const raw = [{ id: "q1", title: "Q", questNumber: 5 }];
+    localStorage.setItem("hq_quests", JSON.stringify(raw));
+    migrateQuests();
+    const quests = loadQuests();
+    expect(quests[0].questNumber).toBe(5);
+  });
+
+  it("is a no-op when all quests already have questNumber", () => {
+    const raw = [{ id: "q1", title: "Q", questNumber: null }];
+    localStorage.setItem("hq_quests", JSON.stringify(raw));
+    const setItemCallsBefore = localStorageMock.setItem.mock.calls.length;
+    migrateQuests();
+    expect(localStorageMock.setItem.mock.calls.length).toBe(setItemCallsBefore);
   });
 });
 

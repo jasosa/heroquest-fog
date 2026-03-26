@@ -59,12 +59,21 @@ export function saveQuests(quests) {
   localStorage.setItem(QUESTS_KEY, JSON.stringify(quests));
 }
 
-export function createQuest({ title, description = "", questBookId = null }) {
+export function migrateQuests() {
+  const quests = loadQuests();
+  const needsMigration = quests.some(q => !("questNumber" in q));
+  if (!needsMigration) return;
+  const migrated = quests.map(q => "questNumber" in q ? q : { ...q, questNumber: null });
+  saveQuests(migrated);
+}
+
+export function createQuest({ title, description = "", questBookId = null, questNumber = null }) {
   const quest = {
     id: uid(),
     title,
     description,
     questBookId,
+    questNumber,
     placed: {},
     doors: {},
     createdAt: Date.now(),
@@ -116,6 +125,7 @@ export function importQuestFromJson(jsonString, questBookId = null) {
     updatedAt: Date.now(),
     title: data.title,
     description: data.description ?? "",
+    questNumber: data.questNumber ?? null,
     placed: data.placed ?? {},
     doors: data.doors ?? {},
     searchMarkers: data.searchMarkers ?? null,
