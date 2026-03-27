@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { BOARD, ROWS, COLS } from "../../map.js";
-import { makeComputeReveal, hasVisibleDoorForRoom } from "../../reveal.js";
+import { makeComputeReveal, hasVisibleDoorForRoom, DOOR_NEIGHBOR_OFFSETS } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
 import { placeNoteMarker, updateNoteMarker, setMonsterSpecial } from "../../placementState.js";
@@ -33,6 +33,35 @@ export function shouldInterceptTrapClick(pieceAtCell, isFogRevealed, isAlreadyRe
     && isTrapPiece(pieceAtCell.type)
     && isFogRevealed
     && !isAlreadyRevealedTrap;
+}
+
+export function isCellBlocked(cellKey, placed) {
+  return Object.entries(placed).some(
+    ([ak, v]) => v.blocks && (v.coveredCells ?? [ak]).includes(cellKey)
+  );
+}
+
+export function isCorridorConnected(r, c, revealSet, fog, placed, doors, revealedSecretDoors) {
+  const blockers = new Set();
+  for (const [anchorKey, v] of Object.entries(placed)) {
+    if (!v.blocks) continue;
+    for (const cellKey of (v.coveredCells ?? [anchorKey])) blockers.add(cellKey);
+  }
+  if ([...revealSet].some(k => fog.has(k) && !blockers.has(k))) return true;
+  const cellKey = `${r},${c}`;
+  for (const [anchorKey, { rotation }] of Object.entries(doors)) {
+    const [ar, ac] = anchorKey.split(",").map(Number);
+    const [dr, dc] = DOOR_NEIGHBOR_OFFSETS[rotation];
+    const sideA = anchorKey;
+    const sideB = `${ar + dr},${ac + dc}`;
+    if ((sideA === cellKey || sideB === cellKey) && (fog.has(sideA) || fog.has(sideB)))
+      return true;
+  }
+  for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+    const nk = `${r + dr},${c + dc}`;
+    if (revealedSecretDoors?.has(nk)) return true;
+  }
+  return false;
 }
 
 export function hasHeroStart(placed) {
@@ -240,6 +269,9 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
         return next;
       });
     } else {
+      // Play mode: clicking a blocking piece does nothing.
+      if (isCellBlocked(k, placedRef.current)) return;
+
       // Play mode: clicking a trap warning intercepts fog reveal until revealed.
       const pieceAtCell = placedRef.current[k];
       if (shouldInterceptTrapClick(pieceAtCell, fogRef.current.has(k), revealedTrapsRef.current.has(k))) {
@@ -262,6 +294,15 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
         return;
       }
       setLastClick(k);
+      if (region === "C") {
+        const visible = computeReveal(r, c, placedRef.current);
+        if (!isCorridorConnected(r, c, visible, fogRef.current, placedRef.current, doorsRef.current, revealedSecretDoorsRef.current)) {
+          setPendingRoomReveal({ r, c });
+          return;
+        }
+        setFog(prev => new Set([...prev, ...visible]));
+        return;
+      }
       if (region !== "C") {
         // Room cell: require a visible connecting door
         if (!hasVisibleDoorForRoom(k, doorsRef.current, fogRef.current, BOARD)) {

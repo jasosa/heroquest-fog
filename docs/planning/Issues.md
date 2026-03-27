@@ -23,7 +23,7 @@ Description: When a user resets the fog in play mode, the hero start positions s
 ### [ISSUE-004] Clicking on an unexplorable or not connected corridor it reveals is
 Priority: medium
 Impact: high
-Status: not_started
+Status: done
 Description: When a user clicks on a room that is not connected to any door, a popup is shown to ask the user if they want to reveal it, but it´s not the same for corridor. If a cell in a corridor is not currently connected to a revealed zone it should ask as well.
 
 

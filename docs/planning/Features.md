@@ -60,4 +60,14 @@ Priority: medium
 Status: not_started
 Description: At the beggining of each quest a popup should indicate to the players where to put their hero figurines. The default message should say something like "Place your heroes in the stairway". The message should be editable in Edit mode as well.
 
+### [FEAT-011] [Cleanup] Rename `pendingRoomReveal` to `pendingUnconfirmedReveal`
+Priority: low
+Status: not_started
+Description: After ISSUE-004, the state variable `pendingRoomReveal` in `useGameState.js` is also used for unconnected corridor cells, not just rooms. The name is now misleading. Rename it to `pendingUnconfirmedReveal` across all files: useGameState.js (state declaration, setters, return value), BoardGrid.jsx, heroquest-fog.jsx, and any tests that reference it by name. Pure mechanical rename — no behaviour change.
+
+
+### [FEAT-012] Adding search for secret door traps marker do not show popup
+Priority: medium
+Status: not_started
+Description: In Edit mode adding a search for secret door marker shouldn´t add inmediately the popup. Should place the marker with default values. Clicking the edit button should open the popup to configure the marker (same as search for treasure)
 
