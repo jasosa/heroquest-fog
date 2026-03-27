@@ -40,3 +40,24 @@ icons as normal. Revealed trap state is not persisted — it resets with the ses
 Switching between play and edit mode does not reset revealed traps; only a session reset
 (Reset Fog) clears them.
 
+### [FEAT-007] As a hero player I don´t want to see hero starter icons in Play mode
+Priority: high
+Status: not_started
+Description: Starter hero icons shouldn't be shown on play mode
+
+### [FEAT-008] As a hero player I don´t want to see hero starter icons in Play mode
+Priority: high
+Status: not_started
+Description: Starter hero icons shouldn't be shown on play mode
+
+### [FEAT-009] Edit mode panel should include same images for markers instead of the default icons
+Priority: low
+Status: not_started
+Description: Edit mode panel should include same images for markers instead of the default icons. Make as wide as needed to make sure that the images are displayer properly
+
+### [FEAT-010] Edit mode panel should be collapsable
+Priority: low
+Status: not_started
+Description: Edit mode panel should be collapsable. By default it should be expanded. Should be closed by an icon and opened again with the same icon
+
+

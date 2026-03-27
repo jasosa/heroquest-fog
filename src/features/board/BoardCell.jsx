@@ -25,7 +25,7 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
         display: "flex", alignItems: "center", justifyContent: "center",
         transition: "filter 0.1s",
         userSelect: "none",
-        outline: isLastClick && !isEditMode ? "2px solid #c0302066" : "none",
+        outline: isLastClick && isEditMode ? "2px solid #c0302066" : "none",
         outlineOffset: "-2px",
       }}
       onContextMenu={e => { e.preventDefault(); if (!isWall && onRightClick) onRightClick(); }}

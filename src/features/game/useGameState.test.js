@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hasHeroStart, incrementSearchCount, resetSearchCounts, addRevealedTrap } from "./useGameState.js";
+import { hasHeroStart, incrementSearchCount, resetSearchCounts, addRevealedTrap, shouldInterceptTrapClick } from "./useGameState.js";
 
 describe("hasHeroStart", () => {
   it("returns false for empty placed", () => {
@@ -102,5 +102,30 @@ describe("resetSearchCounts", () => {
   it("returns a new object (immutable)", () => {
     const counts = { R1: 1 };
     expect(resetSearchCounts(counts)).not.toBe(counts);
+  });
+});
+
+describe("shouldInterceptTrapClick", () => {
+  const trapPiece = { type: "pit" };
+  const nonTrapPiece = { type: "goblin" };
+
+  it("returns false when cell is fogged (not yet revealed)", () => {
+    expect(shouldInterceptTrapClick(trapPiece, false, false)).toBe(false);
+  });
+
+  it("returns true when cell is revealed and trap not yet revealed", () => {
+    expect(shouldInterceptTrapClick(trapPiece, true, false)).toBe(true);
+  });
+
+  it("returns false when trap has already been revealed", () => {
+    expect(shouldInterceptTrapClick(trapPiece, true, true)).toBe(false);
+  });
+
+  it("returns false when there is no piece at the cell", () => {
+    expect(shouldInterceptTrapClick(null, true, false)).toBe(false);
+  });
+
+  it("returns false when the piece is not a trap", () => {
+    expect(shouldInterceptTrapClick(nonTrapPiece, true, false)).toBe(false);
   });
 });

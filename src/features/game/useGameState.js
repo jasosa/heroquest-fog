@@ -25,6 +25,16 @@ export function addRevealedTrap(prev, key) {
   return new Set([...prev, key]);
 }
 
+// Pure helper: determines whether a click on a trap cell should intercept
+// fog reveal — only when the cell is already visible and the trap has not
+// yet been revealed to the players.
+export function shouldInterceptTrapClick(pieceAtCell, isFogRevealed, isAlreadyRevealedTrap) {
+  return pieceAtCell != null
+    && isTrapPiece(pieceAtCell.type)
+    && isFogRevealed
+    && !isAlreadyRevealedTrap;
+}
+
 export function hasHeroStart(placed) {
   return Object.values(placed).some(p => p.type === "start" || p.overlayMarker === "start");
 }
@@ -221,7 +231,7 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     } else {
       // Play mode: clicking a trap warning intercepts fog reveal until revealed.
       const pieceAtCell = placedRef.current[k];
-      if (pieceAtCell && isTrapPiece(pieceAtCell.type) && !revealedTrapsRef.current.has(k)) {
+      if (shouldInterceptTrapClick(pieceAtCell, fogRef.current.has(k), revealedTrapsRef.current.has(k))) {
         setRevealedTraps(prev => addRevealedTrap(prev, k));
         return;
       }
