@@ -130,6 +130,7 @@ export function importQuestFromJson(jsonString, questBookId = null) {
     doors: data.doors ?? {},
     searchMarkers: data.searchMarkers ?? null,
     searchNotes: data.searchNotes ?? {},
+    secretDoorMarkers: data.secretDoorMarkers ?? {},
   });
 }
 

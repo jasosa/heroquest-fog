@@ -19,7 +19,24 @@ Description: When a quest is created without adding it to any quest book, should
 
 ### [FEAT-004] As a user I want to see all quests buttons aligned to the boom in the quests screen
 Priority: medium
-Status: not_started
+Status: done
 Description: In the Quest Library the buttons on each quest are not aligned. Depending on the text lenght of description of the quest the buttons are higher or lower on the quest card. I want all the buttons aligned independently of the text size;
 
+### [FEAT-005] As a hero player I want to search for secret doors in play mode
+Priority: high
+Status: done
+Description: Secret doors added in edit mode should be not visible to the hero players in edit mode until they search for them. To search for a secret door hero players will use a similar icon to the search for treasure one. If a secret door search icon has associated a hidden secret door in the board it will make it visible, otherwise it will show a message showing a message. In Edit mode should be possible to add a search for secret door icon in a similar way to the search for treasure icon. By default they won´t be associated to any secret door and it will have a default message to be shown in play mode. An already placed secret door icon can be associated to the search secret door icon and the default message can be overriden. Only one search for secret door icon can be placed on a room but more than one can be placed in corridors.
+
+### [FEAT-006] As a hero player I want trap types to be hidden in play mode
+Priority: high
+Status: done
+Description: Traps placed in edit mode are shown in play mode as a generic warning marker
+(Trap_Warning.png) instead of their real icon — the specific trap type is hidden until
+triggered. When a hero player clicks the warning marker, the real trap piece is revealed
+(the warning disappears and the actual trap icon takes its place), and it stays revealed
+for the rest of the session. A tooltip on the warning marker should inform the player that
+clicking it will reveal the trap. In edit mode, all traps are always shown with their real
+icons as normal. Revealed trap state is not persisted — it resets with the session.
+Switching between play and edit mode does not reset revealed traps; only a session reset
+(Reset Fog) clears them.
 

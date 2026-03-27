@@ -45,3 +45,11 @@ Rules:
 - Reveal logic is in `reveal.js`, not in components — tested independently
 - Piece rotation never normalizes to `[0,0]` — negative offsets are intentional
 - `key={quest.id}` on GameScreen forces full remount on quest switch — intentional
+
+## Workflow
+
+When asked to work on a feature:
+1. Read `docs/planning/FEATURES.md`, pick the highest-priority `not_started` feature, update its status to `in_progress`
+2. Invoke the `planner` subagent — review the plan before proceeding
+3. Invoke the `swe` subagent with the approved plan to implement it
+4. Update `docs/planning/FEATURES.md` status to `done` when complete

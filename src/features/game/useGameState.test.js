@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hasHeroStart, incrementSearchCount, resetSearchCounts } from "./useGameState.js";
+import { hasHeroStart, incrementSearchCount, resetSearchCounts, addRevealedTrap } from "./useGameState.js";
 
 describe("hasHeroStart", () => {
   it("returns false for empty placed", () => {
@@ -65,6 +65,32 @@ describe("incrementSearchCount idempotency under double-call", () => {
     const result2 = incrementSearchCount(counts, "R1"); // same input → same output
     expect(result1).toEqual(result2);                   // idempotent on same input
     expect(result1["R1"]).toBe(1);                      // only 1 increment
+  });
+});
+
+describe("addRevealedTrap", () => {
+  it("adds a new key to an empty Set", () => {
+    const result = addRevealedTrap(new Set(), "3,5");
+    expect(result.has("3,5")).toBe(true);
+  });
+
+  it("adds a key to a non-empty Set", () => {
+    const prev = new Set(["1,2"]);
+    const result = addRevealedTrap(prev, "3,5");
+    expect(result.has("1,2")).toBe(true);
+    expect(result.has("3,5")).toBe(true);
+  });
+
+  it("returns a new Set (immutable)", () => {
+    const prev = new Set(["1,2"]);
+    const result = addRevealedTrap(prev, "3,5");
+    expect(result).not.toBe(prev);
+  });
+
+  it("adding a key already present does not duplicate", () => {
+    const prev = new Set(["3,5"]);
+    const result = addRevealedTrap(prev, "3,5");
+    expect(result.size).toBe(1);
   });
 });
 

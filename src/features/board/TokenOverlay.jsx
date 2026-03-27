@@ -1,5 +1,17 @@
 import { CELL } from "../../map.js";
-import { PIECES, PIECE_CATEGORY_ID, resolveScale } from "../../pieces.js";
+import { PIECES, PIECE_CATEGORY_ID, resolveScale, isTrapPiece } from "../../pieces.js";
+
+// Pure helper: returns "warning", "real", or "hidden" for a given piece/state combo.
+// "hidden"  — piece is not visible (not in fog)
+// "warning" — trap in play mode, not yet revealed → show generic warning marker
+// "real"    — show actual piece image/token
+export function getTrapRenderMode(type, isEditMode, fog, revealedTraps, anchorKey, coveredCells) {
+  const isVisible = isEditMode || fog.has(anchorKey) ||
+    (coveredCells && coveredCells.some(k => fog.has(k)));
+  if (!isVisible) return "hidden";
+  if (isTrapPiece(type) && !isEditMode && !revealedTraps?.has(anchorKey)) return "warning";
+  return "real";
+}
 
 function Token({ type }) {
   const p = PIECES[type];
@@ -32,13 +44,46 @@ export function TokenOverlay({
   note, onEditNote,
   // Feature B
   isSpecial, specialNote, onAnnotateMonster,
+  // Secret doors
+  revealedSecretDoors,
+  // Trap reveal
+  revealedTraps, onRevealTrap,
   // Shared tooltip callbacks (fixed-position, avoids overflow:hidden clipping)
   onShowTooltip, onHideTooltip,
 }) {
   const p = PIECES[type];
-  const isVisible = isEditMode || fog.has(anchorKey) ||
-    (coveredCells && coveredCells.some(k => fog.has(k)));
-  if (!isVisible) return null;
+
+  // Use getTrapRenderMode to determine visibility and warning state.
+  const trapMode = getTrapRenderMode(type, isEditMode, fog, revealedTraps, anchorKey, coveredCells);
+  if (trapMode === "hidden") return null;
+
+  // Secret doors are hidden in play mode until explicitly revealed via search.
+  if (type === "secretdoor" && !isEditMode && !revealedSecretDoors?.has(anchorKey)) return null;
+
+  // ── Trap warning marker (play mode, not yet revealed) ─────────────────────
+  if (trapMode === "warning") {
+    const [r, c] = anchorKey.split(",").map(Number);
+    const [px, py] = getTokenPos(c, r);
+    return (
+      <img
+        src="/tiles/Trap_Warning.png"
+        alt="Trap"
+        onClick={e => { e.stopPropagation(); onRevealTrap?.(anchorKey); }}
+        onMouseEnter={e => onShowTooltip?.(e.clientX, e.clientY, "Trap!")}
+        onMouseLeave={() => onHideTooltip?.()}
+        style={{
+          position: "absolute",
+          left: px - CELL * 0.4,
+          top: py - CELL * 0.4,
+          width: CELL * 0.8,
+          height: CELL * 0.8,
+          zIndex: 10,
+          pointerEvents: "auto",
+          cursor: "pointer",
+        }}
+      />
+    );
+  }
 
   const [r, c] = anchorKey.split(",").map(Number);
   const isMonster = PIECE_CATEGORY_ID[type] === "monsters";

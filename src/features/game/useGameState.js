@@ -4,7 +4,9 @@ import { makeComputeReveal, hasVisibleDoorForRoom } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
 import { placeNoteMarker, updateNoteMarker, setMonsterSpecial } from "../../placementState.js";
+import { isTrapPiece } from "../../pieces.js";
 import { moveSearchMarker, setSearchNoteAt, normalizeSearchNotes, removeSearchMarker } from "../../searchMarkers.js";
+import { placeSecretDoorMarker, removeSecretDoorMarker, linkSecretDoor, setSecretDoorMessage, resolveSecretDoorSearch } from "../../secretDoorMarkers.js";
 
 export const SEARCH_MAX = 4;
 
@@ -16,6 +18,11 @@ export function incrementSearchCount(counts, regionId) {
 
 export function resetSearchCounts() {
   return {};
+}
+
+// Pure helper: add a trap cell key to a revealedTraps Set (immutable).
+export function addRevealedTrap(prev, key) {
+  return new Set([...prev, key]);
 }
 
 export function hasHeroStart(placed) {
@@ -35,7 +42,7 @@ export function useLatest(value) {
 // ═══════════════════════════════════════════════
 //  GAME STATE HOOK
 // ═══════════════════════════════════════════════
-export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSearchMarkers = null, initialSearchNotes = null, initialMode = "play", initialTitle = "Untitled Quest", initialDescription = "" } = {}) {
+export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSearchMarkers = null, initialSearchNotes = null, initialSecretDoorMarkers = null, initialMode = "play", initialTitle = "Untitled Quest", initialDescription = "" } = {}) {
   // rerender-lazy-state-init: pass a function so new Set() runs only once,
   // not on every render.
   const [fog, setFog]             = useState(() => new Set());
@@ -65,6 +72,15 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const [pendingSearchEdit, setPendingSearchEdit]   = useState(null); // {regionId}|null
   const [pendingSearchView, setPendingSearchView]   = useState(null); // {regionId,notes,count}|null
 
+  // Secret door markers: cell-keyed, persisted
+  const [secretDoorMarkers, setSecretDoorMarkers] = useState(() => initialSecretDoorMarkers ?? {});
+  // Session-only: set of secretdoor anchor keys revealed this session
+  const [revealedSecretDoors, setRevealedSecretDoors] = useState(() => new Set());
+  // Session-only: set of trap cell keys revealed this session
+  const [revealedTraps, setRevealedTraps] = useState(() => new Set());
+  const [pendingSecretDoorEdit, setPendingSecretDoorEdit] = useState(null); // {cellKey}|null
+  const [pendingSecretDoorResult, setPendingSecretDoorResult] = useState(null); // {action,doorKey?,text?}|null
+
   // advanced-use-latest: stable refs so handleCell needs no dependencies.
   const placedRef   = useLatest(placed);
   const modeRef     = useLatest(mode);
@@ -74,6 +90,9 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const doorsRef    = useLatest(doors);
   const pendingRoomRevealRef    = useLatest(pendingRoomReveal);
   const searchNotesRef          = useLatest(searchNotes);
+  const secretDoorMarkersRef    = useLatest(secretDoorMarkers);
+  const revealedSecretDoorsRef  = useLatest(revealedSecretDoors);
+  const revealedTrapsRef        = useLatest(revealedTraps);
   // Selecting a new tool always resets rotation to 0.
   const handleSetTool = useCallback((newTool) => {
     setTool(newTool);
@@ -122,6 +141,23 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
       // Search tool: move the search marker for the clicked cell's region.
       if (currentTool === "search") {
         setSearchMarkers(prev => moveSearchMarker(prev, BOARD, r, c));
+        return;
+      }
+
+      // Secret door search tool: place/remove per-cell markers.
+      if (currentTool === "searchsecret") {
+        const currentSecretMarkers = secretDoorMarkersRef.current;
+        if (currentSecretMarkers[k]) {
+          // Toggle off: remove marker and its config
+          setSecretDoorMarkers(prev => removeSecretDoorMarker(prev, k));
+          setPlaced(prev => { const next = { ...prev }; delete next[k]; return next; });
+        } else {
+          const placed = placeSecretDoorMarker(currentSecretMarkers, BOARD, r, c);
+          if (placed !== currentSecretMarkers) {
+            setSecretDoorMarkers(placed);
+            setPendingSecretDoorEdit({ cellKey: k });
+          }
+        }
         return;
       }
 
@@ -183,6 +219,27 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
         return next;
       });
     } else {
+      // Play mode: clicking a trap warning intercepts fog reveal until revealed.
+      const pieceAtCell = placedRef.current[k];
+      if (pieceAtCell && isTrapPiece(pieceAtCell.type) && !revealedTrapsRef.current.has(k)) {
+        setRevealedTraps(prev => addRevealedTrap(prev, k));
+        return;
+      }
+
+      // Play mode: clicking a searchsecret marker triggers secret door search.
+      if (secretDoorMarkersRef.current[k]) {
+        const result = resolveSecretDoorSearch(
+          secretDoorMarkersRef.current,
+          placedRef.current,
+          revealedSecretDoorsRef.current,
+          k
+        );
+        if (result.action === "reveal") {
+          setRevealedSecretDoors(prev => new Set([...prev, result.doorKey]));
+        }
+        setPendingSecretDoorResult(result);
+        return;
+      }
       setLastClick(k);
       if (region !== "C") {
         // Room cell: require a visible connecting door
@@ -233,6 +290,8 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     setFog(new Set());
     setLastClick(null);
     setSearchedCounts({});
+    setRevealedSecretDoors(new Set());
+    setRevealedTraps(new Set());
   }, []);
 
   // Note markers: save edits from the dialog.
@@ -289,6 +348,33 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     if (regionId) setSearchedCounts(c => incrementSearchCount(c, regionId));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Secret door marker callbacks.
+  const openSecretDoorEdit = useCallback((cellKey) => {
+    setPendingSecretDoorEdit({ cellKey });
+  }, []);
+
+  const saveSecretDoorConfig = useCallback((cellKey, linkedDoorKey, message) => {
+    setSecretDoorMarkers(prev => {
+      let next = linkSecretDoor(prev, cellKey, linkedDoorKey);
+      next = setSecretDoorMessage(next, cellKey, message);
+      return next;
+    });
+    setPendingSecretDoorEdit(null);
+  }, []);
+
+  const deleteSecretDoorMarker = useCallback((cellKey) => {
+    setSecretDoorMarkers(prev => removeSecretDoorMarker(prev, cellKey));
+    setPendingSecretDoorEdit(null);
+  }, []);
+
+  const closeSecretDoorResult = useCallback(() => {
+    setPendingSecretDoorResult(null);
+  }, []);
+
+  const revealTrap = useCallback((key) => {
+    setRevealedTraps(prev => addRevealedTrap(prev, key));
+  }, []);
+
   const confirmPendingReveal = useCallback(() => {
     const p = pendingRoomRevealRef.current;
     if (!p) return;
@@ -324,5 +410,11 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     pendingSearchEdit, setPendingSearchEdit, openSearchNoteEdit, saveSearchNote,
     pendingSearchView, viewSearchNote, closeSearchNote,
     removeSearchMarker: handleRemoveSearchMarker,
+    // Secret door markers
+    secretDoorMarkers, revealedSecretDoors,
+    pendingSecretDoorEdit, openSecretDoorEdit, saveSecretDoorConfig, deleteSecretDoorMarker,
+    pendingSecretDoorResult, closeSecretDoorResult,
+    // Trap reveal
+    revealedTraps, revealTrap,
   };
 }

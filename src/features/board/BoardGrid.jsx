@@ -7,11 +7,14 @@ import { TokenOverlay } from "./TokenOverlay.jsx";
 import { DoorOverlay } from "./DoorOverlay.jsx";
 import { RoomConfirmDialog } from "./RoomConfirmDialog.jsx";
 import { SearchMarkerOverlay } from "./SearchMarkerOverlay.jsx";
+import { SecretDoorMarkerOverlay } from "./SecretDoorMarkerOverlay.jsx";
 
 export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, searchedCounts, mode, lastClick, onCellClick, onCellRotate, bgImage,
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
   onShowTooltip, onHideTooltip, onAnnotateMonster, onEditNote,
-  onEditSearchNote, onViewSearchNote, onRemoveSearchMarker }) {
+  onEditSearchNote, onViewSearchNote, onRemoveSearchMarker,
+  secretDoorMarkers, revealedSecretDoors, onEditSecretDoorConfig, onSearchSecretDoor,
+  revealedTraps, onRevealTrap }) {
   const isEditMode = mode === "edit";
 
   // Load natural image dimensions so calibrated pixel coords can be scaled
@@ -134,6 +137,8 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
           overlayMarker={piece.overlayMarker}
           note={piece.note}
           isSpecial={piece.isSpecial} specialNote={piece.specialNote}
+          revealedSecretDoors={revealedSecretDoors}
+          revealedTraps={revealedTraps} onRevealTrap={onRevealTrap}
           onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
           onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip} />
       ))}
@@ -155,6 +160,20 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
           onEditNote={onEditSearchNote}
           onViewNote={onViewSearchNote}
           onRemoveMarker={onRemoveSearchMarker}
+          onShowTooltip={onShowTooltip}
+          onHideTooltip={onHideTooltip}
+        />
+      )}
+      {/* Secret door search marker overlays */}
+      {secretDoorMarkers && (
+        <SecretDoorMarkerOverlay
+          secretDoorMarkers={secretDoorMarkers}
+          placed={placed}
+          fog={fog}
+          isEditMode={isEditMode}
+          getTokenPos={getTokenPos}
+          onEditConfig={onEditSecretDoorConfig}
+          onSearch={onSearchSecretDoor}
           onShowTooltip={onShowTooltip}
           onHideTooltip={onHideTooltip}
         />

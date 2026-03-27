@@ -12,6 +12,8 @@ import { NoteMarkerDialog } from "./features/board/NoteMarkerDialog.jsx";
 import { SpecialMonsterDialog } from "./features/board/SpecialMonsterDialog.jsx";
 import { SearchNoteDialog } from "./features/board/SearchNoteDialog.jsx";
 import { SearchNotePopup } from "./features/board/SearchNotePopup.jsx";
+import { SecretDoorConfigDialog } from "./features/board/SecretDoorConfigDialog.jsx";
+import { SecretDoorResultPopup } from "./features/board/SecretDoorResultPopup.jsx";
 
 const BOARD_W = COLS * CELL;
 const BOARD_H = ROWS * CELL;
@@ -33,6 +35,8 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
   onShowTooltip, onHideTooltip, onAnnotateMonster, onEditNote,
   onEditSearchNote, onViewSearchNote, onRemoveSearchMarker,
+  secretDoorMarkers, revealedSecretDoors, onEditSecretDoorConfig, onSearchSecretDoor,
+  revealedTraps, onRevealTrap,
   zoom, onZoomIn, onZoomOut }) {
   return (
     <div style={{
@@ -95,6 +99,12 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
               onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
               onEditSearchNote={onEditSearchNote} onViewSearchNote={onViewSearchNote}
               onRemoveSearchMarker={onRemoveSearchMarker}
+              secretDoorMarkers={secretDoorMarkers}
+              revealedSecretDoors={revealedSecretDoors}
+              onEditSecretDoorConfig={onEditSecretDoorConfig}
+              onSearchSecretDoor={onSearchSecretDoor}
+              revealedTraps={revealedTraps}
+              onRevealTrap={onRevealTrap}
             />
           </div>
         </div>
@@ -116,6 +126,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     initialDoors: quest?.doors ?? {},
     initialSearchMarkers: quest?.searchMarkers ?? null,
     initialSearchNotes: quest?.searchNotes ?? null,
+    initialSecretDoorMarkers: quest?.secretDoorMarkers ?? null,
     initialMode: initialMode ?? "play",
     initialTitle: quest?.title ?? "Untitled Quest",
     initialDescription: quest?.description ?? "",
@@ -142,6 +153,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       doors: gameState.doors,
       searchMarkers: gameState.searchMarkers,
       searchNotes: gameState.searchNotes,
+      secretDoorMarkers: gameState.secretDoorMarkers,
     };
     persistQuest(updated);
     setSavedFlash(true);
@@ -189,6 +201,15 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         onEditSearchNote={gameState.openSearchNoteEdit}
         onViewSearchNote={gameState.viewSearchNote}
         onRemoveSearchMarker={gameState.removeSearchMarker}
+        secretDoorMarkers={gameState.secretDoorMarkers}
+        revealedSecretDoors={gameState.revealedSecretDoors}
+        onEditSecretDoorConfig={gameState.openSecretDoorEdit}
+        onSearchSecretDoor={cellKey => {
+          const [r, c] = cellKey.split(",").map(Number);
+          gameState.handleCell(r, c);
+        }}
+        revealedTraps={gameState.revealedTraps}
+        onRevealTrap={gameState.revealTrap}
         zoom={zoom} onZoomIn={zoomIn} onZoomOut={zoomOut}
       />
       <Sidebar
@@ -271,6 +292,34 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           notes={gameState.pendingSearchView.notes}
           count={gameState.pendingSearchView.count}
           onClose={gameState.closeSearchNote}
+        />
+      )}
+
+      {/* Secret door search — edit config dialog */}
+      {gameState.pendingSecretDoorEdit && (() => {
+        const { cellKey } = gameState.pendingSecretDoorEdit;
+        const entry = gameState.secretDoorMarkers[cellKey] ?? { linkedDoorKey: null, message: "" };
+        const secretDoorOptions = Object.entries(gameState.placed)
+          .filter(([, p]) => p.type === "secretdoor")
+          .map(([k]) => k);
+        return (
+          <SecretDoorConfigDialog
+            cellKey={cellKey}
+            entry={entry}
+            secretDoorOptions={secretDoorOptions}
+            onSave={(linkedDoorKey, message) => gameState.saveSecretDoorConfig(cellKey, linkedDoorKey, message)}
+            onDelete={() => gameState.deleteSecretDoorMarker(cellKey)}
+            onCancel={() => gameState.saveSecretDoorConfig(cellKey, entry.linkedDoorKey, entry.message)}
+          />
+        );
+      })()}
+
+      {/* Secret door search — play mode result popup */}
+      {gameState.pendingSecretDoorResult && (
+        <SecretDoorResultPopup
+          action={gameState.pendingSecretDoorResult.action}
+          text={gameState.pendingSecretDoorResult.text}
+          onClose={gameState.closeSecretDoorResult}
         />
       )}
     </div>
