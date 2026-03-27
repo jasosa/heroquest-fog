@@ -42,7 +42,7 @@ Switching between play and edit mode does not reset revealed traps; only a sessi
 
 ### [FEAT-007] As a hero player I don´t want to see hero starter icons in Play mode
 Priority: high
-Status: not_started
+Status: done
 Description: Starter hero icons shouldn't be shown on play mode
 
 ### [FEAT-008] As a hero player I don´t want to see hero starter icons in Play mode

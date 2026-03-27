@@ -1,6 +1,11 @@
 import { CELL } from "../../map.js";
 import { PIECES, PIECE_CATEGORY_ID, resolveScale, isTrapPiece } from "../../pieces.js";
 
+// Pure helper: returns true when a Hero Start marker should be hidden (play mode only).
+export function shouldHideHeroStart(type, isEditMode) {
+  return type === "start" && !isEditMode;
+}
+
 // Pure helper: returns "warning", "real", or "hidden" for a given piece/state combo.
 // "hidden"  — piece is not visible (not in fog)
 // "warning" — trap in play mode, not yet revealed → show generic warning marker
@@ -59,6 +64,9 @@ export function TokenOverlay({
 
   // Secret doors are hidden in play mode until explicitly revealed via search.
   if (type === "secretdoor" && !isEditMode && !revealedSecretDoors?.has(anchorKey)) return null;
+
+  // Hero Start markers are invisible in play mode (auto-reveal still runs via useGameState).
+  if (shouldHideHeroStart(type, isEditMode)) return null;
 
   // ── Trap warning marker (play mode, not yet revealed) ─────────────────────
   if (trapMode === "warning") {
@@ -222,7 +230,7 @@ export function TokenOverlay({
           >★</button>
         )}
 
-        {overlayMarker && (
+        {overlayMarker && !(overlayMarker === "start" && !isEditMode) && (
           <div style={{
             position: "absolute",
             left: anchorPx, top: anchorPy,

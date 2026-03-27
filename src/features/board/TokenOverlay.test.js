@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getTrapRenderMode } from "./TokenOverlay.jsx";
+import { getTrapRenderMode, shouldHideHeroStart } from "./TokenOverlay.jsx";
 
 describe("getTrapRenderMode", () => {
   const fog = new Set(["3,5"]);
@@ -55,5 +55,37 @@ describe("getTrapRenderMode", () => {
   it("returns 'hidden' when neither anchor nor covered cells are in fog", () => {
     const fog2 = new Set(["3,6"]);
     expect(getTrapRenderMode("pit", false, fog2, emptyRevealedTraps, "3,5", ["3,5"])).toBe("hidden");
+  });
+});
+
+describe("shouldHideHeroStart", () => {
+  // Hero Start in play mode → should be hidden
+  it("returns true for type='start' in play mode (isEditMode=false)", () => {
+    expect(shouldHideHeroStart("start", false)).toBe(true);
+  });
+
+  // Hero Start in edit mode → should NOT be hidden
+  it("returns false for type='start' in edit mode (isEditMode=true)", () => {
+    expect(shouldHideHeroStart("start", true)).toBe(false);
+  });
+
+  // Non-start piece in play mode → should NOT be hidden
+  it("returns false for type='goblin' in play mode (isEditMode=false)", () => {
+    expect(shouldHideHeroStart("goblin", false)).toBe(false);
+  });
+});
+
+describe("shouldHideHeroStart — overlayMarker guard", () => {
+  // The overlayMarker path uses the same helper to decide whether to render.
+  it("returns true for overlayMarker='start' in play mode", () => {
+    expect(shouldHideHeroStart("start", false)).toBe(true);
+  });
+
+  it("returns false for overlayMarker='start' in edit mode", () => {
+    expect(shouldHideHeroStart("start", true)).toBe(false);
+  });
+
+  it("returns false for overlayMarker='search' in play mode", () => {
+    expect(shouldHideHeroStart("search", false)).toBe(false);
   });
 });
