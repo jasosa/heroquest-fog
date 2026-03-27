@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hasHeroStart, incrementSearchCount, resetSearchCounts, addRevealedTrap, shouldInterceptTrapClick } from "./useGameState.js";
+import { hasHeroStart, incrementSearchCount, resetSearchCounts, addRevealedTrap, shouldInterceptTrapClick, computeHeroStartFog } from "./useGameState.js";
 
 describe("hasHeroStart", () => {
   it("returns false for empty placed", () => {
@@ -127,5 +127,46 @@ describe("shouldInterceptTrapClick", () => {
 
   it("returns false when the piece is not a trap", () => {
     expect(shouldInterceptTrapClick(nonTrapPiece, true, false)).toBe(false);
+  });
+});
+
+describe("computeHeroStartFog", () => {
+  const stubReveal = (r, c, _placed) => new Set([`${r},${c}`, `${r},${c + 1}`]);
+
+  it("returns empty Set for empty placed", () => {
+    const result = computeHeroStartFog({}, stubReveal);
+    expect(result.size).toBe(0);
+  });
+
+  it("reveals cells from a start piece", () => {
+    const placed = { "5,3": { type: "start" } };
+    const result = computeHeroStartFog(placed, stubReveal);
+    expect(result.has("5,3")).toBe(true);
+    expect(result.has("5,4")).toBe(true);
+  });
+
+  it("reveals cells from a start overlayMarker on furniture", () => {
+    const placed = { "5,3": { type: "chest", overlayMarker: "start" } };
+    const result = computeHeroStartFog(placed, stubReveal);
+    expect(result.has("5,3")).toBe(true);
+    expect(result.has("5,4")).toBe(true);
+  });
+
+  it("returns empty Set for non-start pieces", () => {
+    const placed = { "5,3": { type: "goblin" } };
+    const result = computeHeroStartFog(placed, stubReveal);
+    expect(result.size).toBe(0);
+  });
+
+  it("returns union of reveal sets for multiple start pieces", () => {
+    const placed = {
+      "5,3": { type: "start" },
+      "9,7": { type: "start" },
+    };
+    const result = computeHeroStartFog(placed, stubReveal);
+    expect(result.has("5,3")).toBe(true);
+    expect(result.has("5,4")).toBe(true);
+    expect(result.has("9,7")).toBe(true);
+    expect(result.has("9,8")).toBe(true);
   });
 });

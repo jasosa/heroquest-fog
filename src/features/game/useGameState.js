@@ -41,6 +41,17 @@ export function hasHeroStart(placed) {
 
 const computeReveal = makeComputeReveal(BOARD, ROWS, COLS);
 
+export function computeHeroStartFog(placed, computeRevealFn) {
+  const result = new Set();
+  for (const [key, v] of Object.entries(placed)) {
+    if (v.type === "start" || v.overlayMarker === "start") {
+      const [r, c] = key.split(",").map(Number);
+      for (const k of computeRevealFn(r, c, placed)) result.add(k);
+    }
+  }
+  return result;
+}
+
 // advanced-use-latest: stable ref that always holds the latest value,
 // lets callbacks read current state without listing it as a dependency.
 export function useLatest(value) {
@@ -297,7 +308,8 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   }, []);
 
   const resetFog = useCallback(() => {
-    setFog(new Set());
+    const seedFog = computeHeroStartFog(placedRef.current, computeReveal);
+    setFog(seedFog);
     setLastClick(null);
     setSearchedCounts({});
     setRevealedSecretDoors(new Set());

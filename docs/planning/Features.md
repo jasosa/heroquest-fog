@@ -45,19 +45,19 @@ Priority: high
 Status: done
 Description: Starter hero icons shouldn't be shown on play mode
 
-### [FEAT-008] As a hero player I don´t want to see hero starter icons in Play mode
-Priority: high
-Status: not_started
-Description: Starter hero icons shouldn't be shown on play mode
-
-### [FEAT-009] Edit mode panel should include same images for markers instead of the default icons
+### [FEAT-008] Edit mode panel should include same images for markers instead of the default icons
 Priority: low
 Status: not_started
 Description: Edit mode panel should include same images for markers instead of the default icons. Make as wide as needed to make sure that the images are displayer properly
 
-### [FEAT-010] Edit mode panel should be collapsable
+### [FEAT-009] Edit mode panel should be collapsable
 Priority: low
 Status: not_started
 Description: Edit mode panel should be collapsable. By default it should be expanded. Should be closed by an icon and opened again with the same icon
+
+### [FEAT-010] As I hero player I want to know where to place my hero when a quest starts
+Priority: medium
+Status: not_started
+Description: At the beggining of each quest a popup should indicate to the players where to put their hero figurines. The default message should say something like "Place your heroes in the stairway". The message should be editable in Edit mode as well.
 
 
