@@ -456,7 +456,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                     {quest.questNumber != null && <span>Quest #{quest.questNumber}</span>}
                     <span>Updated: {fmtDate(quest.updatedAt)}</span>
                   </div>
-                  <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+                  <div style={{ display: "flex", gap: 6, marginTop: "auto" }}>
                     <button onClick={() => onPlay(quest)} style={{ ...btn(false, { flex: 1, fontSize: 10 }) }}>
                       ⚔ Play
                     </button>

@@ -14,7 +14,7 @@ Description: Once a quest book is created, name and description can't be edited.
 
 ### [FEAT-003] As a user I want to add a quest to a quest book after it has been already created
 Priority: medium
-Status: not_started
+Status: done
 Description: When a quest is created without adding it to any quest book, should be possible later to add it to a quest book. Or to move from one quest book to another
 
 ### [FEAT-004] As a user I want to see all quests buttons aligned to the boom in the quests screen
