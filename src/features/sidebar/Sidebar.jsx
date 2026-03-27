@@ -98,6 +98,7 @@ export function Sidebar({
   mode, tool, setMode, setTool, onReset, bgImage, setBgImage,
   onBack, onSave, savedFlash, saveError,
   questTitle, questDescription, setQuestTitle, setQuestDescription,
+  placementMessage, setQuestPlacementMessage,
 }) {
   return (
     <div style={{
@@ -163,6 +164,17 @@ export function Sidebar({
           </div>
         ) : null
       ) : null}
+
+      {/* Placement message — edit mode only */}
+      {setQuestPlacementMessage && mode === "edit" && (
+        <textarea
+          value={placementMessage ?? ""}
+          onChange={e => setQuestPlacementMessage(e.target.value)}
+          placeholder="Hero placement message (shown at quest start)"
+          rows={3}
+          style={{ ...inputStyle, resize: "vertical" }}
+        />
+      )}
 
       {/* Divider */}
       <div style={{ borderTop: `1px solid ${T.divider}`, marginTop: 2, marginBottom: 2 }} />

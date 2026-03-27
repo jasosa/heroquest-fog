@@ -14,6 +14,7 @@ import { SearchNoteDialog } from "./features/board/SearchNoteDialog.jsx";
 import { SearchNotePopup } from "./features/board/SearchNotePopup.jsx";
 import { SecretDoorConfigDialog } from "./features/board/SecretDoorConfigDialog.jsx";
 import { SecretDoorResultPopup } from "./features/board/SecretDoorResultPopup.jsx";
+import { HeroPlacementPopup } from "./features/board/HeroPlacementPopup.jsx";
 
 const BOARD_W = COLS * CELL;
 const BOARD_H = ROWS * CELL;
@@ -33,6 +34,7 @@ const zoomBtnStyle = {
 // ═══════════════════════════════════════════════
 function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCounts, mode, lastClick, onCellClick, onCellRotate, bgImage,
   pendingRoomReveal, onConfirmReveal, onCancelReveal,
+  pendingPlacementPopup, placementMessage, onDismissPlacementPopup,
   onShowTooltip, onHideTooltip, onAnnotateMonster, onEditNote,
   onEditSearchNote, onViewSearchNote, onRemoveSearchMarker,
   secretDoorMarkers, revealedSecretDoors, onEditSecretDoorConfig, onSearchSecretDoor,
@@ -80,6 +82,14 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
           position: "relative",
           margin: "0 auto",      // centre horizontally when smaller than container
         }}>
+          {/* Hero placement popup — shown once when entering play mode */}
+          {pendingPlacementPopup && (
+            <HeroPlacementPopup
+              message={placementMessage}
+              onClose={onDismissPlacementPopup}
+            />
+          )}
+
           {/* Board scaled from top-left of placeholder */}
           <div style={{
             position: "absolute", top: 0, left: 0,
@@ -130,6 +140,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     initialMode: initialMode ?? "play",
     initialTitle: quest?.title ?? "Untitled Quest",
     initialDescription: quest?.description ?? "",
+    initialPlacementMessage: quest?.placementMessage ?? "",
   });
   const [bgImage, setBgImage]       = useState("board2");
   const [savedFlash, setSavedFlash] = useState(false);
@@ -149,6 +160,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       ...quest,
       title: gameState.questTitle,
       description: gameState.questDescription,
+      placementMessage: gameState.questPlacementMessage,
       placed: gameState.placed,
       doors: gameState.doors,
       searchMarkers: gameState.searchMarkers,
@@ -210,6 +222,9 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         }}
         revealedTraps={gameState.revealedTraps}
         onRevealTrap={gameState.revealTrap}
+        pendingPlacementPopup={gameState.pendingPlacementPopup}
+        placementMessage={gameState.questPlacementMessage}
+        onDismissPlacementPopup={gameState.dismissPlacementPopup}
         zoom={zoom} onZoomIn={zoomIn} onZoomOut={zoomOut}
       />
       <Sidebar
@@ -225,6 +240,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         questDescription={gameState.questDescription}
         setQuestTitle={gameState.setQuestTitle}
         setQuestDescription={gameState.setQuestDescription}
+        placementMessage={gameState.questPlacementMessage}
+        setQuestPlacementMessage={gameState.setQuestPlacementMessage}
       />
 
       {/* Shared hover tooltip — fixed position, immune to overflow:hidden */}
@@ -322,6 +339,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           onClose={gameState.closeSecretDoorResult}
         />
       )}
+
     </div>
   );
 }

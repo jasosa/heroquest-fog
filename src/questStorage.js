@@ -67,13 +67,14 @@ export function migrateQuests() {
   saveQuests(migrated);
 }
 
-export function createQuest({ title, description = "", questBookId = null, questNumber = null }) {
+export function createQuest({ title, description = "", questBookId = null, questNumber = null, placementMessage = "" }) {
   const quest = {
     id: uid(),
     title,
     description,
     questBookId,
     questNumber,
+    placementMessage,
     placed: {},
     doors: {},
     createdAt: Date.now(),
@@ -131,6 +132,7 @@ export function importQuestFromJson(jsonString, questBookId = null) {
     searchMarkers: data.searchMarkers ?? null,
     searchNotes: data.searchNotes ?? {},
     secretDoorMarkers: data.secretDoorMarkers ?? {},
+    placementMessage: data.placementMessage ?? "",
   });
 }
 

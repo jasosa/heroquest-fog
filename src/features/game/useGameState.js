@@ -10,6 +10,10 @@ import { placeSecretDoorMarker, removeSecretDoorMarker, linkSecretDoor, setSecre
 
 export const SEARCH_MAX = 4;
 
+export function shouldShowPlacementPopup(mode, hasShown) {
+  return mode === "play" && !hasShown;
+}
+
 export function incrementSearchCount(counts, regionId) {
   const current = counts[regionId] ?? 0;
   if (current >= SEARCH_MAX) return counts;
@@ -92,7 +96,7 @@ export function useLatest(value) {
 // ═══════════════════════════════════════════════
 //  GAME STATE HOOK
 // ═══════════════════════════════════════════════
-export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSearchMarkers = null, initialSearchNotes = null, initialSecretDoorMarkers = null, initialMode = "play", initialTitle = "Untitled Quest", initialDescription = "" } = {}) {
+export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSearchMarkers = null, initialSearchNotes = null, initialSecretDoorMarkers = null, initialMode = "play", initialTitle = "Untitled Quest", initialDescription = "", initialPlacementMessage } = {}) {
   // rerender-lazy-state-init: pass a function so new Set() runs only once,
   // not on every render.
   const [fog, setFog]             = useState(() => new Set());
@@ -131,6 +135,12 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const [pendingSecretDoorEdit, setPendingSecretDoorEdit] = useState(null); // {cellKey}|null
   const [pendingSecretDoorResult, setPendingSecretDoorResult] = useState(null); // {action,doorKey?,text?}|null
 
+  // Hero placement popup
+  const [questPlacementMessage, setQuestPlacementMessage] = useState(initialPlacementMessage ?? "Place your heroes in the stairway");
+  const [hasShownPlacementPopup, setHasShownPlacementPopup] = useState(false);
+  const [pendingPlacementPopup, setPendingPlacementPopup] = useState(false);
+  const hasShownPlacementPopupRef = useLatest(hasShownPlacementPopup);
+
   // advanced-use-latest: stable refs so handleCell needs no dependencies.
   const placedRef   = useLatest(placed);
   const modeRef     = useLatest(mode);
@@ -166,6 +176,16 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
       return next;
     });
   }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Show placement popup when entering play mode for the first time this session.
+  useEffect(() => {
+    if (mode !== "play") return;
+    if (hasShownPlacementPopupRef.current) return;
+    setPendingPlacementPopup(true);
+    setHasShownPlacementPopup(true);
+  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const dismissPlacementPopup = useCallback(() => setPendingPlacementPopup(false), []);
 
   const handleCell = useCallback((r, c) => {
     const region = BOARD[r]?.[c];
@@ -205,7 +225,6 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
           const placed = placeSecretDoorMarker(currentSecretMarkers, BOARD, r, c);
           if (placed !== currentSecretMarkers) {
             setSecretDoorMarkers(placed);
-            setPendingSecretDoorEdit({ cellKey: k });
           }
         }
         return;
@@ -479,5 +498,8 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     pendingSecretDoorResult, closeSecretDoorResult,
     // Trap reveal
     revealedTraps, revealTrap,
+    // Hero placement popup
+    questPlacementMessage, setQuestPlacementMessage,
+    pendingPlacementPopup, dismissPlacementPopup,
   };
 }

@@ -55,9 +55,9 @@ Priority: low
 Status: not_started
 Description: Edit mode panel should be collapsable. By default it should be expanded. Should be closed by an icon and opened again with the same icon
 
-### [FEAT-010] As I hero player I want to know where to place my hero when a quest starts
+### [FEAT-010] Hero Placement Popup at Quest Start
 Priority: medium
-Status: not_started
+Status: done
 Description: At the beggining of each quest a popup should indicate to the players where to put their hero figurines. The default message should say something like "Place your heroes in the stairway". The message should be editable in Edit mode as well.
 
 ### [FEAT-011] [Cleanup] Rename `pendingRoomReveal` to `pendingUnconfirmedReveal`
@@ -68,6 +68,6 @@ Description: After ISSUE-004, the state variable `pendingRoomReveal` in `useGame
 
 ### [FEAT-012] Adding search for secret door traps marker do not show popup
 Priority: medium
-Status: not_started
+Status: done
 Description: In Edit mode adding a search for secret door marker shouldn´t add inmediately the popup. Should place the marker with default values. Clicking the edit button should open the popup to configure the marker (same as search for treasure)
 

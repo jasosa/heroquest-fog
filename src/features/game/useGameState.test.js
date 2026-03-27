@@ -1,5 +1,7 @@
+// @vitest-environment jsdom
 import { describe, it, expect } from "vitest";
-import { hasHeroStart, incrementSearchCount, resetSearchCounts, addRevealedTrap, shouldInterceptTrapClick, computeHeroStartFog, isCorridorConnected, isCellBlocked } from "./useGameState.js";
+import { renderHook, act } from "@testing-library/react";
+import { hasHeroStart, incrementSearchCount, resetSearchCounts, addRevealedTrap, shouldInterceptTrapClick, computeHeroStartFog, isCorridorConnected, isCellBlocked, shouldShowPlacementPopup, useGameState } from "./useGameState.js";
 
 describe("hasHeroStart", () => {
   it("returns false for empty placed", () => {
@@ -287,6 +289,20 @@ describe("isCellBlocked", () => {
   });
 });
 
+describe("shouldShowPlacementPopup", () => {
+  it("returns true when mode is play and hasShown is false", () => {
+    expect(shouldShowPlacementPopup("play", false)).toBe(true);
+  });
+
+  it("returns false when mode is play but hasShown is true", () => {
+    expect(shouldShowPlacementPopup("play", true)).toBe(false);
+  });
+
+  it("returns false when mode is edit regardless of hasShown", () => {
+    expect(shouldShowPlacementPopup("edit", false)).toBe(false);
+  });
+});
+
 describe("computeHeroStartFog", () => {
   const stubReveal = (r, c, _placed) => new Set([`${r},${c}`, `${r},${c + 1}`]);
 
@@ -325,5 +341,36 @@ describe("computeHeroStartFog", () => {
     expect(result.has("5,4")).toBe(true);
     expect(result.has("9,7")).toBe(true);
     expect(result.has("9,8")).toBe(true);
+  });
+});
+
+// BOARD[9][9] === "C" (corridor) — valid cell for searchsecret placement tests.
+describe("searchsecret tool in edit mode — no auto-popup", () => {
+  it("placing a searchsecret marker does not open the config dialog", () => {
+    const { result } = renderHook(() =>
+      useGameState({ initialMode: "edit" })
+    );
+    act(() => { result.current.setTool("searchsecret"); });
+    act(() => { result.current.handleCell(9, 9); });
+    expect(result.current.pendingSecretDoorEdit).toBeNull();
+  });
+
+  it("secretDoorMarkers is populated after placing", () => {
+    const { result } = renderHook(() =>
+      useGameState({ initialMode: "edit" })
+    );
+    act(() => { result.current.setTool("searchsecret"); });
+    act(() => { result.current.handleCell(9, 9); });
+    expect(result.current.secretDoorMarkers["9,9"]).toBeDefined();
+  });
+
+  it("openSecretDoorEdit still opens the dialog when called explicitly", () => {
+    const { result } = renderHook(() =>
+      useGameState({ initialMode: "edit" })
+    );
+    act(() => { result.current.setTool("searchsecret"); });
+    act(() => { result.current.handleCell(9, 9); });
+    act(() => { result.current.openSecretDoorEdit("9,9"); });
+    expect(result.current.pendingSecretDoorEdit).toEqual({ cellKey: "9,9" });
   });
 });

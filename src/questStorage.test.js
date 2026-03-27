@@ -207,6 +207,21 @@ describe("exportQuestAsJson", () => {
   });
 });
 
+// ── createQuest placementMessage ──────────────────────────────────────────
+describe("createQuest placementMessage", () => {
+  it("includes placementMessage as empty string by default", () => {
+    const quest = createQuest({ title: "Q" });
+    expect(quest.placementMessage).toBe("");
+  });
+
+  it("stores the provided placementMessage", () => {
+    const quest = createQuest({ title: "Q", placementMessage: "Place heroes at the stairs" });
+    expect(quest.placementMessage).toBe("Place heroes at the stairs");
+    const stored = loadQuests().find(q => q.id === quest.id);
+    expect(stored.placementMessage).toBe("Place heroes at the stairs");
+  });
+});
+
 // ── importQuestFromJson ────────────────────────────────────────────────────
 describe("importQuestFromJson", () => {
   it("saves the quest and returns it with a fresh id", () => {
