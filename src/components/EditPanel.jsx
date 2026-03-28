@@ -1,7 +1,9 @@
 import { memo, useState } from "react";
 import { T } from "../theme.js";
+import { resolveTilePath } from "./editPanelUtils.js";
 
-export const PieceButton = memo(function PieceButton({ piece, isSelected, onSelect }) {
+export const PieceButton = memo(function PieceButton({ piece, isSelected, onSelect, tileSet }) {
+  const imgSrc = resolveTilePath(piece, tileSet);
   return (
     <button onClick={() => onSelect(piece.id)} style={{
       padding: "6px 8px",
@@ -12,13 +14,16 @@ export const PieceButton = memo(function PieceButton({ piece, isSelected, onSele
       textAlign: "left", display: "flex", alignItems: "center", gap: 8,
       transition: "all 0.12s", width: "100%",
     }}>
-      <div style={{
-        width: 16, height: 16, background: piece.color, flexShrink: 0,
-        borderRadius: piece.shape === "circle" ? "50%" : "2px",
-        transform: piece.shape === "diamond" ? "rotate(45deg)" : "none",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 5, fontWeight: "bold", color: "#000",
-      }} />
+      {imgSrc
+        ? <img src={imgSrc} alt={piece.label} style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }} />
+        : <div style={{
+            width: 28, height: 28, background: piece.color, flexShrink: 0,
+            borderRadius: piece.shape === "circle" ? "50%" : "2px",
+            transform: piece.shape === "diamond" ? "rotate(45deg)" : "none",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 5, fontWeight: "bold", color: "#000",
+          }} />
+      }
       <span style={{ flex: 1 }}>{piece.label}</span>
       {piece.blocks && (
         <span style={{ fontSize: 8, color: T.accent, border: `1px solid ${T.accent}`, padding: "1px 3px" }}>
@@ -38,7 +43,7 @@ export const PieceButton = memo(function PieceButton({ piece, isSelected, onSele
  *   onSave           — optional () => void  (omit to hide Save button)
  *   savedFlash       — optional bool
  */
-export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFlash, saveError }) {
+export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFlash, saveError, tileSet }) {
   const [activeCatId, setActiveCatId] = useState(pieceCategories[0]?.id ?? null);
   const activeCategory = pieceCategories.find(c => c.id === activeCatId);
 
@@ -68,6 +73,7 @@ export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFl
             piece={piece}
             isSelected={tool === piece.id}
             onSelect={onSelectTool}
+            tileSet={tileSet}
           />
         ))}
       </div>

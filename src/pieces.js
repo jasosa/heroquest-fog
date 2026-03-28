@@ -46,9 +46,9 @@ export const PIECE_CATEGORIES = [
     id: "markers", label: "Markers",
     pieces: [
       { id: "start",        label: "Hero Start",      icon: "⚔", color: "#f0c040", shape: "diamond", blocks: false },
-      { id: "notemarker",   label: "Event Note",      icon: "📝", color: "#90caf9", shape: "square",  blocks: false },
-      { id: "search",       label: "Search Marker",   icon: "🔍", color: "#c4a870", shape: "square",  blocks: false },
-      { id: "searchsecret", label: "Search — Secret Door", icon: "🗝", color: "#7a5a10", shape: "square", blocks: false },
+      { id: "notemarker",   label: "Event Note",      icon: "📝", color: "#90caf9", shape: "square",  blocks: false, image: "note.png",                tileIndependent: true },
+      { id: "search",       label: "Search Marker",   icon: "🔍", color: "#c4a870", shape: "square",  blocks: false, image: "search.png",               tileIndependent: true },
+      { id: "searchsecret", label: "Search — Secret Door", icon: "🗝", color: "#7a5a10", shape: "square", blocks: false, image: "search-secret-door.png", tileIndependent: true },
       { id: "door",         label: "Door",             icon: "▐",  color: "#9c6b2e", shape: "square",  blocks: false, isEdge: true, image: "Door.png",        imageScale:  { board: 1.2, board2: 1.2, board3: 1 } },
       { id: "secretdoor",   label: "Secret Door",      icon: "▐",  color: "#5d4037", shape: "square",  blocks: false, image: "Secret_Door.png", imageScale: 1 },
       { id: "stairs",       label: "Stairs",           icon: "St", color: "#90a4ae", shape: "square",  blocks: false, cells: [[0,0],[0,1],[1,0],[1,1]], image: "Stairs.png", imageScale: 1 },

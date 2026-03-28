@@ -5,31 +5,37 @@
 ### [FEAT-001] As a user I want to see quests sorted by Quest Book and Quest number
 Priority: medium
 Status: done
+Complexity: low
 Description: In the main window the quests should be sorted firts by Quest Book and then by Quest number. In case a quest doesn´t have a quest number the sorting order would be alphabetically
 
 ### [FEAT-002] As a user I want to be able to edit the quest book after the book is created
 Priority: high
 Status: done
+Complexity: low
 Description: Once a quest book is created, name and description can't be edited. It should be possible to edit both (and other possible attributes in the future)
 
 ### [FEAT-003] As a user I want to add a quest to a quest book after it has been already created
 Priority: medium
 Status: done
+Complexity: medium
 Description: When a quest is created without adding it to any quest book, should be possible later to add it to a quest book. Or to move from one quest book to another
 
 ### [FEAT-004] As a user I want to see all quests buttons aligned to the boom in the quests screen
 Priority: medium
 Status: done
+Complexity: low
 Description: In the Quest Library the buttons on each quest are not aligned. Depending on the text lenght of description of the quest the buttons are higher or lower on the quest card. I want all the buttons aligned independently of the text size;
 
 ### [FEAT-005] As a hero player I want to search for secret doors in play mode
 Priority: high
 Status: done
+Complexity: high
 Description: Secret doors added in edit mode should be not visible to the hero players in edit mode until they search for them. To search for a secret door hero players will use a similar icon to the search for treasure one. If a secret door search icon has associated a hidden secret door in the board it will make it visible, otherwise it will show a message showing a message. In Edit mode should be possible to add a search for secret door icon in a similar way to the search for treasure icon. By default they won´t be associated to any secret door and it will have a default message to be shown in play mode. An already placed secret door icon can be associated to the search secret door icon and the default message can be overriden. Only one search for secret door icon can be placed on a room but more than one can be placed in corridors.
 
 ### [FEAT-006] As a hero player I want trap types to be hidden in play mode
 Priority: high
 Status: done
+Complexity: high
 Description: Traps placed in edit mode are shown in play mode as a generic warning marker
 (Trap_Warning.png) instead of their real icon — the specific trap type is hidden until
 triggered. When a hero player clicks the warning marker, the real trap piece is revealed
@@ -43,31 +49,48 @@ Switching between play and edit mode does not reset revealed traps; only a sessi
 ### [FEAT-007] As a hero player I don´t want to see hero starter icons in Play mode
 Priority: high
 Status: done
+Complexity: low
 Description: Starter hero icons shouldn't be shown on play mode
 
 ### [FEAT-008] Edit mode panel should include same images for markers instead of the default icons
 Priority: low
-Status: not_started
+Status: done
+Complexity: medium
 Description: Edit mode panel should include same images for markers instead of the default icons. Make as wide as needed to make sure that the images are displayer properly
 
 ### [FEAT-009] Edit mode panel should be collapsable
 Priority: low
 Status: not_started
+Complexity: low
 Description: Edit mode panel should be collapsable. By default it should be expanded. Should be closed by an icon and opened again with the same icon
 
 ### [FEAT-010] Hero Placement Popup at Quest Start
 Priority: medium
 Status: done
+Complexity: medium
 Description: At the beggining of each quest a popup should indicate to the players where to put their hero figurines. The default message should say something like "Place your heroes in the stairway". The message should be editable in Edit mode as well.
 
 ### [FEAT-011] [Cleanup] Rename `pendingRoomReveal` to `pendingUnconfirmedReveal`
 Priority: low
 Status: not_started
+Complexity: low
 Description: After ISSUE-004, the state variable `pendingRoomReveal` in `useGameState.js` is also used for unconnected corridor cells, not just rooms. The name is now misleading. Rename it to `pendingUnconfirmedReveal` across all files: useGameState.js (state declaration, setters, return value), BoardGrid.jsx, heroquest-fog.jsx, and any tests that reference it by name. Pure mechanical rename — no behaviour change.
 
 
 ### [FEAT-012] Adding search for secret door traps marker do not show popup
 Priority: medium
 Status: done
+Complexity: low
 Description: In Edit mode adding a search for secret door marker shouldn´t add inmediately the popup. Should place the marker with default values. Clicking the edit button should open the popup to configure the marker (same as search for treasure)
 
+### [FEAT-013] Manage traps in Chests
+Priority: medium
+Status: not_started
+Complexity: medium
+Description: In play mode chests should behave similar to traps but without a tile hiding them. They should red glow border to indicate that can be interacted with. On hover a tooltip should say something like "Chests can have traps. Click to reveal". After clicking a popup will shown if there is a trap or not. In Edit mode a note can be added a chest to indicate if there is a trap and the message to shown in case there is any and is revealed. By default no message and no trap. Should work similar to other markers.
+
+### [FEAT-014] Remove search for secret doors marker after search
+Priority: low
+Status: not_started
+Complexity: low
+Description: After a hero uses a marker in play mode to search for secret doors, remove the marker

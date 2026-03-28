@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isTrapPiece } from "./pieces.js";
+import { isTrapPiece, PIECES } from "./pieces.js";
 
 describe("isTrapPiece", () => {
   it("returns true for 'trap'", () => {
@@ -32,5 +32,23 @@ describe("isTrapPiece", () => {
 
   it("returns false for an unknown id", () => {
     expect(isTrapPiece("unknown")).toBe(false);
+  });
+});
+
+describe("marker piece image fields", () => {
+  it("notemarker has image note.png", () => {
+    expect(PIECES.notemarker.image).toBe("note.png");
+  });
+
+  it("search has image search.png", () => {
+    expect(PIECES.search.image).toBe("search.png");
+  });
+
+  it("searchsecret has image search-secret-door.png", () => {
+    expect(PIECES.searchsecret.image).toBe("search-secret-door.png");
+  });
+
+  it("start has no image", () => {
+    expect(PIECES.start.image).toBeUndefined();
   });
 });

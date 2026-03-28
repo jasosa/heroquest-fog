@@ -102,7 +102,7 @@ export function Sidebar({
 }) {
   return (
     <div style={{
-      width: 230,
+      width: 270,
       background: T.sidebarBg,
       borderLeft: `1px solid ${T.sidebarBorder}`,
       display: "flex", flexDirection: "column",
@@ -194,7 +194,7 @@ export function Sidebar({
         ? <PlayPanel onReset={onReset} />
         : (
           <>
-            <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} saveError={saveError} />
+            <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} saveError={saveError} tileSet={bgImage} />
           </>
         )
       }
