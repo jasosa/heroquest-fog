@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, fireEvent, cleanup } from "@testing-library/react";
 import { TrapInteractionPopup } from "./TrapInteractionPopup.jsx";
 
@@ -7,52 +7,58 @@ afterEach(() => cleanup());
 
 const noop = () => {};
 
-// ─── Task 4: options phase (isRevealed=false) ─────────────────────────────────
+const baseProps = {
+  anchorKey: "3,5",
+  pieceType: "pit",
+  pieceLabel: "Pit Trap",
+  pieceImage: "Pit_Tile.png",
+  springMessage: "Loses 1 BP",
+  removeAfterSpring: true,
+  alreadySprung: false,
+  onSpringTrap: vi.fn(),
+  onDisarmTrap: vi.fn(),
+  onClose: vi.fn(),
+};
+
+// ─── options phase ────────────────────────────────────────────────────────────
 
 describe("TrapInteractionPopup — options phase", () => {
-  const baseProps = {
-    anchorKey: "3,5",
-    isRevealed: false,
-    pieceType: "pit",
-    pieceLabel: "Pit Trap",
-    pieceImage: "Pit_Tile.png",
-    trapNote: "",
-    onRevealTrap: vi.fn(),
-    onDisarmTrap: vi.fn(),
-    onClose: vi.fn(),
-  };
-
-  it("when isRevealed=false, renders header 'Trap Spotted!'", () => {
+  it("renders 'Trap Spotted!' heading", () => {
     const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
     expect(getByText("Trap Spotted!")).toBeTruthy();
   });
 
-  it("renders jump-over rule text containing 'black shield'", () => {
-    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
-    expect(getByText(/black shield/i)).toBeTruthy();
-  });
-
-  it("renders disarm-adjacent rule text", () => {
+  it("renders jump-over rule containing 'black shield' AND 'springs the trap'", () => {
     const { container } = render(<TrapInteractionPopup {...baseProps} />);
-    expect(container.textContent).toMatch(/disarm/i);
+    expect(container.textContent).toMatch(/black shield/i);
+    expect(container.textContent).toMatch(/springs the trap/i);
   });
 
-  it("renders 'Reveal Trap' button", () => {
-    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
-    expect(getByText("Reveal Trap")).toBeTruthy();
+  it("renders 'Spring' button with sub-label about triggering", () => {
+    const { container } = render(<TrapInteractionPopup {...baseProps} />);
+    expect(container.textContent).toMatch(/Spring/);
+    expect(container.textContent).toMatch(/Trigger the trap/i);
   });
 
-  it("renders 'Disarm Trap' button", () => {
-    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
-    expect(getByText("Disarm Trap")).toBeTruthy();
+  it("renders 'Reveal' button with sub-label about seeing type", () => {
+    const { container } = render(<TrapInteractionPopup {...baseProps} />);
+    expect(container.textContent).toMatch(/Reveal/);
+    expect(container.textContent).toMatch(/See trap type/i);
   });
 
-  it("renders 'Dismiss' button/link", () => {
-    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
-    expect(getByText("Dismiss")).toBeTruthy();
+  it("renders 'Disarm' button with sub-label about removing", () => {
+    const { container } = render(<TrapInteractionPopup {...baseProps} />);
+    expect(container.textContent).toMatch(/Disarm/);
+    expect(container.textContent).toMatch(/Remove trap for this session/i);
   });
 
-  it("'Dismiss' calls onClose", () => {
+  it("renders 'Dismiss' with sub-label about closing", () => {
+    const { container } = render(<TrapInteractionPopup {...baseProps} />);
+    expect(container.textContent).toMatch(/Dismiss/);
+    expect(container.textContent).toMatch(/Close without doing anything/i);
+  });
+
+  it("clicking 'Dismiss' calls onClose", () => {
     const onClose = vi.fn();
     const { getByText } = render(<TrapInteractionPopup {...baseProps} onClose={onClose} />);
     fireEvent.click(getByText("Dismiss"));
@@ -67,215 +73,173 @@ describe("TrapInteractionPopup — options phase", () => {
   });
 });
 
-// ─── Task 5: revealed phase ───────────────────────────────────────────────────
+// ─── Spring → spring_result phase ────────────────────────────────────────────
 
-describe("TrapInteractionPopup — revealed phase", () => {
-  const baseRevealedProps = {
-    anchorKey: "3,5",
-    isRevealed: true,
-    pieceType: "pit",
-    pieceLabel: "Pit Trap",
-    pieceImage: "Pit_Tile.png",
-    trapNote: "",
-    onRevealTrap: noop,
-    onDisarmTrap: noop,
-    onClose: noop,
-  };
-
-  it("when isRevealed=true, renders pieceLabel as header immediately", () => {
-    const { getByText } = render(<TrapInteractionPopup {...baseRevealedProps} />);
-    expect(getByText("Pit Trap")).toBeTruthy();
+describe("TrapInteractionPopup — Spring → spring_result phase", () => {
+  it("clicking 'Spring' calls onSpringTrap(anchorKey, removeAfterSpring)", () => {
+    const onSpringTrap = vi.fn();
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} onSpringTrap={onSpringTrap} />);
+    fireEvent.click(getByText("Spring"));
+    expect(onSpringTrap).toHaveBeenCalledWith("3,5", true);
   });
 
-  it("when isRevealed=true, does NOT show 'Trap Spotted!'", () => {
-    const { queryByText } = render(<TrapInteractionPopup {...baseRevealedProps} />);
-    expect(queryByText("Trap Spotted!")).toBeNull();
+  it("after clicking 'Spring', shows resolved spring message", () => {
+    const { getByText, container } = render(<TrapInteractionPopup {...baseProps} springMessage="Loses 1 BP" />);
+    fireEvent.click(getByText("Spring"));
+    expect(container.textContent).toMatch(/Loses 1 BP/);
   });
 
-  it("when pieceImage is provided, renders an img element", () => {
-    const { container } = render(<TrapInteractionPopup {...baseRevealedProps} />);
-    expect(container.querySelector("img")).toBeTruthy();
-  });
-
-  it("when pieceImage is undefined, renders no img element", () => {
-    const { container } = render(<TrapInteractionPopup {...baseRevealedProps} pieceImage={undefined} />);
-    expect(container.querySelector("img")).toBeNull();
-  });
-
-  it("when trapNote is provided, renders the trapNote text (not fallback)", () => {
-    const { getByText } = render(<TrapInteractionPopup {...baseRevealedProps} trapNote="Custom DM note" />);
-    expect(getByText("Custom DM note")).toBeTruthy();
-  });
-
-  it("when trapNote is falsy and pieceType is 'pit', renders the pit fallback text", () => {
-    const { container } = render(<TrapInteractionPopup {...baseRevealedProps} trapNote="" />);
-    expect(container.textContent).toMatch(/lose 1 Body Point/i);
-  });
-
-  it("renders 'Disarm' button", () => {
-    const { getByText } = render(<TrapInteractionPopup {...baseRevealedProps} />);
-    expect(getByText("Disarm")).toBeTruthy();
-  });
-
-  it("renders 'Close' button", () => {
-    const { getByText } = render(<TrapInteractionPopup {...baseRevealedProps} />);
+  it("after clicking 'Spring', shows single 'Close' button, no other actions", () => {
+    const { getByText, queryByText } = render(<TrapInteractionPopup {...baseProps} />);
+    fireEvent.click(getByText("Spring"));
     expect(getByText("Close")).toBeTruthy();
+    expect(queryByText("Spring")).toBeNull();
+    expect(queryByText("Reveal")).toBeNull();
+    expect(queryByText("Disarm")).toBeNull();
   });
 
-  it("'Close' calls onClose", () => {
+  it("backdrop click in spring_result calls onClose", () => {
     const onClose = vi.fn();
-    const { getByText } = render(<TrapInteractionPopup {...baseRevealedProps} onClose={onClose} />);
-    fireEvent.click(getByText("Close"));
+    const { getByText, container } = render(<TrapInteractionPopup {...baseProps} onClose={onClose} />);
+    fireEvent.click(getByText("Spring"));
+    fireEvent.mouseDown(container.firstChild);
     expect(onClose).toHaveBeenCalled();
   });
 });
 
-// ─── Task 6: Reveal Trap transitions to revealed ──────────────────────────────
+// ─── Reveal → post_reveal phase ───────────────────────────────────────────────
 
-describe("TrapInteractionPopup — Reveal Trap transition", () => {
-  const optionsProps = {
-    anchorKey: "3,5",
-    isRevealed: false,
-    pieceType: "pit",
-    pieceLabel: "Pit Trap",
-    pieceImage: "Pit_Tile.png",
-    trapNote: "",
-    onRevealTrap: noop,
-    onDisarmTrap: noop,
-    onClose: noop,
-  };
-
-  it("clicking 'Reveal Trap' calls onRevealTrap(anchorKey)", () => {
-    const onRevealTrap = vi.fn();
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} onRevealTrap={onRevealTrap} />);
-    fireEvent.click(getByText("Reveal Trap"));
-    expect(onRevealTrap).toHaveBeenCalledWith("3,5");
+describe("TrapInteractionPopup — Reveal → post_reveal phase", () => {
+  it("clicking 'Reveal' does NOT call onSpringTrap, onDisarmTrap, or onClose", () => {
+    const onSpringTrap = vi.fn();
+    const onDisarmTrap = vi.fn();
+    const onClose = vi.fn();
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} onSpringTrap={onSpringTrap} onDisarmTrap={onDisarmTrap} onClose={onClose} />);
+    fireEvent.click(getByText("Reveal"));
+    expect(onSpringTrap).not.toHaveBeenCalled();
+    expect(onDisarmTrap).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("after clicking 'Reveal Trap', header changes to pieceLabel", () => {
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} />);
-    fireEvent.click(getByText("Reveal Trap"));
+  it("after 'Reveal', shows pieceLabel in info block", () => {
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
+    fireEvent.click(getByText("Reveal"));
     expect(getByText("Pit Trap")).toBeTruthy();
   });
 
-  it("after clicking 'Reveal Trap', 'Disarm' and 'Close' buttons appear", () => {
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} />);
-    fireEvent.click(getByText("Reveal Trap"));
+  it("after 'Reveal', shows img when pieceImage is set", () => {
+    const { container, getByText } = render(<TrapInteractionPopup {...baseProps} />);
+    fireEvent.click(getByText("Reveal"));
+    expect(container.querySelector("img")).toBeTruthy();
+  });
+
+  it("after 'Reveal', Spring / Disarm / Dismiss buttons still present", () => {
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
+    fireEvent.click(getByText("Reveal"));
+    expect(getByText("Spring")).toBeTruthy();
     expect(getByText("Disarm")).toBeTruthy();
-    expect(getByText("Close")).toBeTruthy();
+    expect(getByText("Dismiss")).toBeTruthy();
+  });
+
+  it("backdrop click in post_reveal calls onClose", () => {
+    const onClose = vi.fn();
+    const { getByText, container } = render(<TrapInteractionPopup {...baseProps} onClose={onClose} />);
+    fireEvent.click(getByText("Reveal"));
+    fireEvent.mouseDown(container.firstChild);
+    expect(onClose).toHaveBeenCalled();
   });
 });
 
-// ─── Task 7: confirming_disarm from options ───────────────────────────────────
+// ─── Disarm confirm from options ──────────────────────────────────────────────
 
-describe("TrapInteractionPopup — confirming_disarm from options", () => {
-  const optionsProps = {
-    anchorKey: "3,5",
-    isRevealed: false,
-    pieceType: "pit",
-    pieceLabel: "Pit Trap",
-    pieceImage: "Pit_Tile.png",
-    trapNote: "",
-    onRevealTrap: noop,
-    onDisarmTrap: noop,
-    onClose: noop,
-  };
-
-  it("clicking 'Disarm Trap' shows header 'Disarm Trap?'", () => {
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} />);
-    fireEvent.click(getByText("Disarm Trap"));
+describe("TrapInteractionPopup — Disarm confirm from options", () => {
+  it("clicking 'Disarm' shows 'Disarm Trap?' header", () => {
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
+    fireEvent.click(getByText("Disarm"));
     expect(getByText("Disarm Trap?")).toBeTruthy();
   });
 
-  it("shows body text containing 'permanently remove'", () => {
-    const { container } = render(<TrapInteractionPopup {...optionsProps} />);
-    fireEvent.click(container.querySelector("button"));
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} />);
-    fireEvent.click(getByText("Disarm Trap"));
-    expect(container.textContent || getByText(/permanently remove/i)).toBeTruthy();
+  it("shows text containing 'this session'", () => {
+    const { getByText, container } = render(<TrapInteractionPopup {...baseProps} />);
+    fireEvent.click(getByText("Disarm"));
+    expect(container.textContent).toMatch(/this session/i);
   });
 
-  it("shows 'Confirm' and 'Cancel' buttons after Disarm Trap", () => {
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} />);
-    fireEvent.click(getByText("Disarm Trap"));
-    expect(getByText("Confirm")).toBeTruthy();
-    expect(getByText("Cancel")).toBeTruthy();
-  });
-
-  it("'Cancel' returns to options phase ('Trap Spotted!' reappears)", () => {
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} />);
-    fireEvent.click(getByText("Disarm Trap"));
+  it("'Cancel' returns to options phase (Trap Spotted! heading reappears)", () => {
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
+    fireEvent.click(getByText("Disarm"));
     fireEvent.click(getByText("Cancel"));
     expect(getByText("Trap Spotted!")).toBeTruthy();
   });
-});
 
-// ─── Task 8: confirming_disarm from revealed ──────────────────────────────────
-
-describe("TrapInteractionPopup — confirming_disarm from revealed", () => {
-  const revealedProps = {
-    anchorKey: "3,5",
-    isRevealed: true,
-    pieceType: "pit",
-    pieceLabel: "Pit Trap",
-    pieceImage: "Pit_Tile.png",
-    trapNote: "",
-    onRevealTrap: noop,
-    onDisarmTrap: noop,
-    onClose: noop,
-  };
-
-  it("when starting in revealed phase, clicking 'Disarm' shows 'Disarm Trap?' header", () => {
-    const { getByText } = render(<TrapInteractionPopup {...revealedProps} />);
-    fireEvent.click(getByText("Disarm"));
-    expect(getByText("Disarm Trap?")).toBeTruthy();
-  });
-
-  it("'Cancel' in confirm state returns to revealed phase", () => {
-    const { getByText } = render(<TrapInteractionPopup {...revealedProps} />);
-    fireEvent.click(getByText("Disarm"));
-    fireEvent.click(getByText("Cancel"));
-    expect(getByText("Pit Trap")).toBeTruthy();
-  });
-});
-
-// ─── Task 9: disarmed state and confirm ──────────────────────────────────────
-
-describe("TrapInteractionPopup — disarmed state", () => {
-  const optionsProps = {
-    anchorKey: "3,5",
-    isRevealed: false,
-    pieceType: "pit",
-    pieceLabel: "Pit Trap",
-    pieceImage: "Pit_Tile.png",
-    trapNote: "",
-    onRevealTrap: noop,
-    onDisarmTrap: noop,
-    onClose: noop,
-  };
-
-  it("clicking 'Confirm' calls onDisarmTrap(anchorKey)", () => {
+  it("'Confirm' calls onDisarmTrap(anchorKey)", () => {
     const onDisarmTrap = vi.fn();
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} onDisarmTrap={onDisarmTrap} />);
-    fireEvent.click(getByText("Disarm Trap"));
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} onDisarmTrap={onDisarmTrap} />);
+    fireEvent.click(getByText("Disarm"));
     fireEvent.click(getByText("Confirm"));
     expect(onDisarmTrap).toHaveBeenCalledWith("3,5");
   });
 
-  it("after 'Confirm', renders 'Trap removed.' and a single 'Close' button", () => {
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} />);
-    fireEvent.click(getByText("Disarm Trap"));
-    fireEvent.click(getByText("Confirm"));
-    expect(getByText("Trap removed.")).toBeTruthy();
-    expect(getByText("Close")).toBeTruthy();
+  it("backdrop click in disarm_confirm does NOT call onClose (returns to previous phase)", () => {
+    const onClose = vi.fn();
+    const { getByText, container } = render(<TrapInteractionPopup {...baseProps} onClose={onClose} />);
+    fireEvent.click(getByText("Disarm"));
+    fireEvent.mouseDown(container.firstChild);
+    expect(onClose).not.toHaveBeenCalled();
+    // should return to options
+    expect(getByText("Trap Spotted!")).toBeTruthy();
+  });
+});
+
+// ─── Disarm confirm from post_reveal ─────────────────────────────────────────
+
+describe("TrapInteractionPopup — Disarm confirm from post_reveal", () => {
+  it("after Reveal then Disarm, Cancel returns to post_reveal phase (pieceLabel heading)", () => {
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
+    fireEvent.click(getByText("Reveal"));
+    fireEvent.click(getByText("Disarm"));
+    fireEvent.click(getByText("Cancel"));
+    expect(getByText("Pit Trap")).toBeTruthy();
+  });
+});
+
+// ─── already_sprung phase ─────────────────────────────────────────────────────
+
+describe("TrapInteractionPopup — already_sprung phase", () => {
+  const sprungProps = {
+    ...baseProps,
+    alreadySprung: true,
+    springMessage: "Loses 1 BP",
+    pieceLabel: "Pit Trap",
+  };
+
+  it("when alreadySprung=true, renders 'Trap — Already Sprung' title", () => {
+    const { getByText } = render(<TrapInteractionPopup {...sprungProps} />);
+    expect(getByText("Trap — Already Sprung")).toBeTruthy();
   });
 
-  it("'Close' in disarmed state calls onClose", () => {
+  it("shows pieceLabel", () => {
+    const { getByText } = render(<TrapInteractionPopup {...sprungProps} />);
+    expect(getByText("Pit Trap")).toBeTruthy();
+  });
+
+  it("shows spring message", () => {
+    const { container } = render(<TrapInteractionPopup {...sprungProps} />);
+    expect(container.textContent).toMatch(/Loses 1 BP/);
+  });
+
+  it("shows single 'Close' button", () => {
+    const { getByText, queryByText } = render(<TrapInteractionPopup {...sprungProps} />);
+    expect(getByText("Close")).toBeTruthy();
+    expect(queryByText("Spring")).toBeNull();
+    expect(queryByText("Reveal")).toBeNull();
+    expect(queryByText("Disarm")).toBeNull();
+  });
+
+  it("backdrop click calls onClose", () => {
     const onClose = vi.fn();
-    const { getByText } = render(<TrapInteractionPopup {...optionsProps} onClose={onClose} />);
-    fireEvent.click(getByText("Disarm Trap"));
-    fireEvent.click(getByText("Confirm"));
-    fireEvent.click(getByText("Close"));
+    const { container } = render(<TrapInteractionPopup {...sprungProps} onClose={onClose} />);
+    fireEvent.mouseDown(container.firstChild);
     expect(onClose).toHaveBeenCalled();
   });
 });

@@ -44,6 +44,7 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
   onEditSearchNote, onViewSearchNote, onRemoveSearchMarker,
   secretDoorMarkers, revealedSecretDoors, onEditSecretDoorConfig, onSearchSecretDoor,
   revealedTraps, onTrapInteraction, onConfigureTrap,
+  disarmedTraps, springedTraps,
   openedChests, onOpenChest, onConfigureChest,
   zoom, onZoomIn, onZoomOut }) {
   return (
@@ -122,6 +123,8 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
               revealedTraps={revealedTraps}
               onTrapInteraction={onTrapInteraction}
               onConfigureTrap={onConfigureTrap}
+              disarmedTraps={disarmedTraps}
+              springedTraps={springedTraps}
               openedChests={openedChests}
               onOpenChest={onOpenChest}
               onConfigureChest={onConfigureChest}
@@ -204,7 +207,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     if (gameState.mode === "play" && m === "edit" &&
         isSessionDirty(gameState.fog, gameState.openedChests,
                        gameState.revealedTraps, gameState.revealedSecretDoors,
-                       gameState.searchedCounts)) {
+                       gameState.searchedCounts, gameState.springedTraps, gameState.disarmedTraps)) {
       setPendingModeSwitch(true);
       return;
     }
@@ -276,6 +279,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         revealedTraps={gameState.revealedTraps}
         onTrapInteraction={gameState.openTrapInteraction}
         onConfigureTrap={gameState.openTrapConfig}
+        disarmedTraps={gameState.disarmedTraps}
+        springedTraps={gameState.springedTraps}
         openedChests={gameState.openedChests}
         onOpenChest={gameState.openChest}
         onConfigureChest={gameState.openChestConfig}
@@ -419,21 +424,23 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         );
       })()}
 
-<<<<<<< HEAD
       {/* Trap — play mode interaction popup */}
       {gameState.pendingTrapInteraction && (() => {
-        const { anchorKey, isRevealed } = gameState.pendingTrapInteraction;
+        const { anchorKey } = gameState.pendingTrapInteraction;
         const piece = gameState.placed[anchorKey];
         const pieceDef = piece ? PIECES[piece.type] : null;
+        const alreadySprung = gameState.springedTraps.has(anchorKey) && piece?.removeAfterSpring === false;
+        const resolvedSpringMessage = piece?.springMessage || pieceDef?.trapRules || "The trap activates — consult the DM.";
         return (
           <TrapInteractionPopup
             anchorKey={anchorKey}
-            isRevealed={isRevealed}
             pieceType={piece?.type}
             pieceLabel={pieceDef?.label}
             pieceImage={pieceDef?.image}
-            trapNote={piece?.trapNote}
-            onRevealTrap={gameState.revealTrap}
+            springMessage={resolvedSpringMessage}
+            removeAfterSpring={piece?.removeAfterSpring ?? true}
+            alreadySprung={alreadySprung}
+            onSpringTrap={gameState.springTrap}
             onDisarmTrap={gameState.disarmTrap}
             onClose={gameState.closeTrapInteraction}
           />
@@ -441,13 +448,20 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       })()}
 
       {/* Trap — edit mode config dialog */}
-      {gameState.pendingTrapConfig && (
-        <TrapConfigDialog
-          initialTrapNote={gameState.placed[gameState.pendingTrapConfig.anchorKey]?.trapNote ?? ""}
-          onSave={(trapNote) => gameState.saveTrapConfig(gameState.pendingTrapConfig.anchorKey, trapNote)}
-          onCancel={gameState.closeTrapConfig}
-        />
-=======
+      {gameState.pendingTrapConfig && (() => {
+        const anchorKey = gameState.pendingTrapConfig.anchorKey;
+        const piece = gameState.placed[anchorKey];
+        const pieceDef = piece ? PIECES[piece.type] : null;
+        return (
+          <TrapConfigDialog
+            initialSpringMessage={piece?.springMessage ?? pieceDef?.trapRules ?? ""}
+            initialRemoveAfterSpring={piece?.removeAfterSpring ?? true}
+            onSave={({ springMessage, removeAfterSpring }) => gameState.saveTrapConfig(anchorKey, { springMessage, removeAfterSpring })}
+            onCancel={gameState.closeTrapConfig}
+          />
+        );
+      })()}
+
       {/* Warning #2 — navigating back to library with unsaved edit changes */}
       {pendingBackToLibrary && (
         <div
@@ -508,7 +522,6 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
             </div>
           </div>
         </div>
->>>>>>> feat/FEAT-018
       )}
 
     </div>
