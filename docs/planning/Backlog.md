@@ -216,7 +216,7 @@ Description: The cancel action in `SecretDoorConfigDialog` re-saves the existing
 ### [ISSUE-011] Wrong black shield rule text in trap popup
 Priority: high
 Impact: high — wrong game rules shown to players
-Status: not_started
+Status: committed
 Complexity: low
 Description: The jump-over rule text in `TrapInteractionPopup` is inverted. The correct rule is: rolling a black shield **fails** the jump and springs the trap. The current text may say the opposite. Fix: correct the rule text so it reads "Roll a combat die — a black shield result fails the jump and springs the trap."
 
@@ -230,7 +230,7 @@ Description: The trap interaction popup is currently centered on the full viewpo
 ### [ISSUE-013] Trap popup flow redesign: Spring / Reveal / Disarm / Dismiss
 Priority: high
 Impact: high — affects core play mode gameplay
-Status: not_started
+Status: committed
 Complexity: medium
 Description: The current trap popup flow (Reveal Trap → confirmed reveal → Disarm) does not match the intended game flow. The redesigned popup must have four actions:
 
@@ -244,20 +244,20 @@ Each button must also show a brief one-line explanation of what it does (e.g. "R
 ### [ISSUE-014] Reset Fog of War should reset all trap session state
 Priority: high
 Impact: high — session state inconsistency after fog reset
-Status: not_started
+Status: committed
 Complexity: low
 Description: When the DM resets the Fog of War in play mode, all trap session state should also be reset: `revealedTraps`, `springedTraps` (once added in FEAT-020), and `disarmedTraps` (once added in ISSUE-015). Currently `resetFog` may not clear all of these, leaving traps in a stale revealed/disarmed state after the fog is reset. All trap warning markers should reappear as fresh after a fog reset.
 
 ### [ISSUE-015] Traps disarmed in play mode must not modify edit-mode placed data
 Priority: high
 Impact: high — data corruption between play and edit modes
-Status: not_started
+Status: committed
 Complexity: medium
 Description: The current `disarmTrap` implementation deletes the trap from `placed`, which is the shared edit-mode data structure. This means disarming a trap in play mode permanently removes it from the quest in edit mode too — the DM loses their placed trap data. Fix: introduce a session-only `disarmedTraps: Set<string>` state (alongside the existing `revealedTraps`). In play mode, `disarmTrap` adds to `disarmedTraps` instead of mutating `placed`. `TokenOverlay` hides any piece whose anchor key is in `disarmedTraps`. On fog reset, `disarmedTraps` is cleared. Edit mode always ignores `disarmedTraps` and shows the real `placed` data.
 
 ### [FEAT-020] Spring trap: configure behavior per trap type in edit mode
 Priority: high
-Status: not_started
+Status: committed
 Complexity: medium
 Description: In edit mode, each placed trap should have two additional configurable fields (in `TrapConfigDialog`):
 
