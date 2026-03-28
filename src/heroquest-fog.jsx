@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { T } from "./theme.js";
 import { COLS, ROWS, CELL } from "./map.js";
 import { persistQuest, loadCalibration, saveCalibration } from "./questStorage.js";
+import { isSessionDirty, hasUnsavedChanges, stableStringify } from "./navigationGuards.js";
 import QuestLibrary from "./QuestLibrary.jsx";
 import MapCalibrator from "./components/MapCalibrator.jsx";
 import { PIECE_CATEGORIES, PIECES } from "./pieces.js";
@@ -148,6 +149,16 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     initialDescription: quest?.description ?? "",
     initialPlacementMessage: quest?.placementMessage ?? "",
   });
+  const savedStateRef = useRef(stableStringify({
+    placed: quest?.placed ?? {},
+    doors: quest?.doors ?? {},
+    searchMarkers: quest?.searchMarkers ?? {},
+    searchNotes: quest?.searchNotes ?? {},
+    secretDoorMarkers: quest?.secretDoorMarkers ?? {},
+  }));
+  const [pendingModeSwitch, setPendingModeSwitch] = useState(false);
+  const [pendingBackToLibrary, setPendingBackToLibrary] = useState(false);
+
   const [bgImage, setBgImage]       = useState("board2");
   const [savedFlash, setSavedFlash] = useState(false);
   const [hoverTooltip, setHoverTooltip] = useState(null); // {x,y,content}|null
@@ -174,9 +185,42 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       secretDoorMarkers: gameState.secretDoorMarkers,
     };
     persistQuest(updated);
+    savedStateRef.current = stableStringify({
+      placed: gameState.placed,
+      doors: gameState.doors,
+      searchMarkers: gameState.searchMarkers,
+      searchNotes: gameState.searchNotes,
+      secretDoorMarkers: gameState.secretDoorMarkers,
+    });
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 1500);
     onQuestSaved?.(updated);
+  }
+
+  function guardedSetMode(m) {
+    if (gameState.mode === "play" && m === "edit" &&
+        isSessionDirty(gameState.fog, gameState.openedChests,
+                       gameState.revealedTraps, gameState.revealedSecretDoors,
+                       gameState.searchedCounts)) {
+      setPendingModeSwitch(true);
+      return;
+    }
+    gameState.setMode(m);
+  }
+
+  function guardedBack() {
+    if (gameState.mode === "edit" &&
+        hasUnsavedChanges(savedStateRef.current, {
+          placed: gameState.placed,
+          doors: gameState.doors,
+          searchMarkers: gameState.searchMarkers,
+          searchNotes: gameState.searchNotes,
+          secretDoorMarkers: gameState.secretDoorMarkers,
+        })) {
+      setPendingBackToLibrary(true);
+      return;
+    }
+    onBack();
   }
 
   const { pendingNoteEdit, saveNoteMarkerEdit, deleteNoteMarker, setPendingNoteEdit } = gameState;
@@ -238,10 +282,10 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       />
       <Sidebar
         mode={gameState.mode} tool={gameState.tool}
-        setMode={gameState.setMode} setTool={gameState.setTool}
+        setMode={guardedSetMode} setTool={gameState.setTool}
         onReset={gameState.resetFog}
         bgImage={bgImage} setBgImage={setBgImage}
-        onBack={onBack}
+        onBack={guardedBack}
         onSave={handleSave}
         savedFlash={savedFlash}
         saveError={gameState.saveError}
@@ -370,6 +414,68 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           />
         );
       })()}
+
+      {/* Warning #2 — navigating back to library with unsaved edit changes */}
+      {pendingBackToLibrary && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "#0008", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
+        >
+          <div
+            style={{ background: T.sidebarBg, border: `2px solid ${T.sidebarBorder}`, borderRadius: 8, padding: 20, minWidth: 260, maxWidth: 340, boxShadow: "0 8px 32px #0006" }}
+            onMouseDown={e => e.stopPropagation()}
+          >
+            <div style={{ fontWeight: "bold", fontSize: 15, color: T.accent, marginBottom: 10 }}>
+              Unsaved Changes
+            </div>
+            <p style={{ fontSize: 13, color: T.text, margin: "0 0 16px", lineHeight: 1.6 }}>
+              Unsaved changes will be lost — go back anyway?
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setPendingBackToLibrary(false)}
+                style={{ background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`, borderRadius: 4, padding: "8px 16px", cursor: "pointer", fontSize: 13 }}
+              >
+                Stay Here
+              </button>
+              <button
+                onClick={() => { onBack(); setPendingBackToLibrary(false); }}
+                style={{ background: T.btnActiveBg, color: T.btnActiveText, border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: "bold" }}
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Warning #1 — switching from play to edit with dirty session */}
+      {pendingModeSwitch && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "#0008", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
+          onMouseDown={() => { gameState.setMode("edit"); setPendingModeSwitch(false); }}
+        >
+          <div
+            style={{ background: T.sidebarBg, border: `2px solid ${T.sidebarBorder}`, borderRadius: 8, padding: 20, minWidth: 260, maxWidth: 340, boxShadow: "0 8px 32px #0006" }}
+            onMouseDown={e => e.stopPropagation()}
+          >
+            <div style={{ fontWeight: "bold", fontSize: 15, color: T.accentGold, marginBottom: 10 }}>
+              Session State Carries Over
+            </div>
+            <p style={{ fontSize: 13, color: T.text, margin: "0 0 16px", lineHeight: 1.6 }}>
+              Your current session state — opened chests, revealed traps, search counts, and fog —
+              will NOT be reset when switching to Edit mode.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => { gameState.setMode("edit"); setPendingModeSwitch(false); }}
+                style={{ background: T.btnActiveBg, color: T.btnActiveText, border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: "bold" }}
+              >
+                Continue to Edit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
