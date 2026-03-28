@@ -46,19 +46,35 @@ Rules:
 - Piece rotation never normalizes to `[0,0]` — negative offsets are intentional
 - `key={quest.id}` on GameScreen forces full remount on quest switch — intentional
 
+## Permissions
+
+**On a feature branch** (`feat/*` or `fix/*`): proceed autonomously — read, write, edit, and run any
+files within this project directory without asking for confirmation. Do not prompt the user for
+permission on file edits, file writes, or test runs.
+
+**On `main`**: follow the default permission behaviour — ask before modifying any file.
+
 ## Workflow
 
 When asked to work on the next item:
-1. Read `docs/planning/FEATURES.md` and `docs/planning/ISSUES.md`
-2. Pick the highest-priority `not_started` item across both files — 
+1. Read `docs/planning/Backlog.md`
+2. Pick the highest-priority `not_started` item across features and issues —
    for issues, consider both priority and impact
 3. Update its status to `in_progress`
-4. If the item is a feature with `complexity: high`, invoke the `architect` 
+4. Create a git branch for the item: `git checkout -b feat/FEAT-XXX` for features
+   or `git checkout -b fix/ISSUE-XXX` for issues, where XXX is the item ID number.
+   Branch off `main` (`git checkout main && git pull` first if needed).
+5. If the item is a feature with `complexity: high`, invoke the `architect` 
    subagent first — review the recommendation and confirm the approach
-5. If the item is a new feature (not a bug fix), invoke the `ux` subagent — 
+6. If the item is a new feature (not a bug fix), invoke the `ux` subagent —
    review the UX proposal before continuing
-6. Invoke the `planner` subagent with the feature description plus any 
+7. Invoke the `planner` subagent with the feature description plus any
    architect and UX outputs
-7. Review the plan before proceeding
-8. Invoke the `swe` subagent with the approved plan
-9. Update the item status to `done` when complete
+8. Review the plan before proceeding
+9. Invoke the `swe` subagent with the approved plan
+10. If all tests pass (`npm test`), commit all changes on the feature branch with
+    the item ID and title as the commit message (e.g. `[FEAT-013] Manage traps in Chests`)
+11. Update the item status to `committed` — **never mark items as `done`**
+12. **Never merge the feature branch into `main`** — the user merges manually
+13. Switch back to `main` (`git checkout main`) and loop back to step 1 to pick
+    the next highest-priority `not_started` item — **only `not_started` items are eligible, never `committed` or `in_progress`**
