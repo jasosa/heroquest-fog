@@ -1,5 +1,18 @@
 import { CELL } from "../../map.js";
 import { PIECES, PIECE_CATEGORY_ID, resolveScale, isTrapPiece } from "../../pieces.js";
+import { T } from "../../theme.js";
+
+// Pure helper: returns true when a chest should show an amber-gold glow.
+// Only glows in play mode, when the cell is in fog, and the chest has not been opened.
+export function shouldShowChestGlow(type, isEditMode, isFogRevealed, isOpened) {
+  return type === "chest" && !isEditMode && isFogRevealed && !isOpened;
+}
+
+// Pure helper: determines whether clicking a chest cell should intercept
+// the normal fog reveal — only when the chest is visible and not yet opened.
+function shouldInterceptChestClick(type, isFogRevealed, isOpened) {
+  return type === "chest" && isFogRevealed && !isOpened;
+}
 
 // Pure helper: returns true when a Hero Start marker should be hidden (play mode only).
 export function shouldHideHeroStart(type, isEditMode) {
@@ -53,6 +66,8 @@ export function TokenOverlay({
   revealedSecretDoors,
   // Trap reveal
   revealedTraps, onRevealTrap,
+  // Chest
+  hasTrap, openedChests, onOpenChest, onConfigureChest,
   // Shared tooltip callbacks (fixed-position, avoids overflow:hidden clipping)
   onShowTooltip, onHideTooltip,
 }) {
@@ -179,6 +194,14 @@ export function TokenOverlay({
       ? "drop-shadow(0 0 4px #9c27b0) drop-shadow(0 0 8px #ce93d8)"
       : undefined;
 
+    // Chest: compute glow and clickability state.
+    const isChest = type === "chest";
+    const isChestInFog = fog.has(anchorKey) || coveredCells?.some(k => fog.has(k));
+    const isOpened = openedChests?.has(anchorKey);
+    const showGlow = shouldShowChestGlow(type, isEditMode, isChestInFog, isOpened);
+    const chestGlowFilter = "drop-shadow(0 0 4px #b8860b) drop-shadow(0 0 8px #ffd700aa)";
+    const isChestClickable = shouldInterceptChestClick(type, isChestInFog, isOpened) && !isEditMode;
+
     // Hover callbacks for special monster note in play mode.
     const monsterHoverProps = (!isEditMode && isMonster && isSpecial && specialNote)
       ? {
@@ -193,7 +216,10 @@ export function TokenOverlay({
         <img
           src={`/tiles/${tileSet}/${p.image}`}
           alt={p.label}
-          {...monsterHoverProps}
+          {...(!isChestClickable ? monsterHoverProps : {})}
+          onClick={isChestClickable ? (e => { e.stopPropagation(); onOpenChest?.(anchorKey); }) : undefined}
+          onMouseEnter={isChestClickable ? (e => onShowTooltip?.(e.clientX, e.clientY, "Chests can hide traps. Click to search.")) : (monsterHoverProps.onMouseEnter)}
+          onMouseLeave={isChestClickable ? (() => onHideTooltip?.()) : (monsterHoverProps.onMouseLeave)}
           style={{
             position: "absolute",
             left: cx - w / 2,
@@ -202,10 +228,10 @@ export function TokenOverlay({
             height: h,
             transform: `rotate(${(rotation ?? 0) * 90}deg)`,
             zIndex: isMonster ? 12 : 5,
-            pointerEvents: isMonster && !isEditMode ? "auto" : "none",
+            pointerEvents: (isChest && !isEditMode && !isOpened && isChestInFog) || (isMonster && !isEditMode) ? "auto" : "none",
             objectFit: "fill",
-            filter: specialFilter,
-            ...(monsterHoverProps.style ?? {}),
+            filter: showGlow ? chestGlowFilter : (specialFilter || undefined),
+            cursor: isChestClickable ? "pointer" : (monsterHoverProps.style?.cursor),
           }}
         />
 
@@ -228,6 +254,28 @@ export function TokenOverlay({
             }}
             title="Mark as special monster"
           >★</button>
+        )}
+
+        {/* Chest: ⚠ configure trap button in edit mode */}
+        {isEditMode && isChest && (
+          <div
+            onMouseDown={e => { e.stopPropagation(); onConfigureChest?.(anchorKey); }}
+            style={{
+              position: "absolute",
+              left: cx - CELL * 0.18,
+              top: cy - CELL * 0.48,
+              width: CELL * 0.4,
+              height: CELL * 0.4,
+              background: hasTrap ? T.accentGold : "#333a",
+              color: "#fff",
+              borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: CELL * 0.28,
+              cursor: "pointer",
+              zIndex: 20,
+            }}
+            title="Configure chest trap"
+          >⚠</div>
         )}
 
         {overlayMarker && !(overlayMarker === "start" && !isEditMode) && (

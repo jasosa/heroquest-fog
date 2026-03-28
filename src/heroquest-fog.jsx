@@ -15,6 +15,8 @@ import { SearchNotePopup } from "./features/board/SearchNotePopup.jsx";
 import { SecretDoorConfigDialog } from "./features/board/SecretDoorConfigDialog.jsx";
 import { SecretDoorResultPopup } from "./features/board/SecretDoorResultPopup.jsx";
 import { HeroPlacementPopup } from "./features/board/HeroPlacementPopup.jsx";
+import { ChestResultPopup } from "./features/board/ChestResultPopup.jsx";
+import { ChestConfigDialog } from "./features/board/ChestConfigDialog.jsx";
 
 const BOARD_W = COLS * CELL;
 const BOARD_H = ROWS * CELL;
@@ -39,6 +41,7 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
   onEditSearchNote, onViewSearchNote, onRemoveSearchMarker,
   secretDoorMarkers, revealedSecretDoors, onEditSecretDoorConfig, onSearchSecretDoor,
   revealedTraps, onRevealTrap,
+  openedChests, onOpenChest, onConfigureChest,
   zoom, onZoomIn, onZoomOut }) {
   return (
     <div style={{
@@ -115,6 +118,9 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
               onSearchSecretDoor={onSearchSecretDoor}
               revealedTraps={revealedTraps}
               onRevealTrap={onRevealTrap}
+              openedChests={openedChests}
+              onOpenChest={onOpenChest}
+              onConfigureChest={onConfigureChest}
             />
           </div>
         </div>
@@ -222,6 +228,9 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         }}
         revealedTraps={gameState.revealedTraps}
         onRevealTrap={gameState.revealTrap}
+        openedChests={gameState.openedChests}
+        onOpenChest={gameState.openChest}
+        onConfigureChest={gameState.openChestConfig}
         pendingPlacementPopup={gameState.pendingPlacementPopup}
         placementMessage={gameState.questPlacementMessage}
         onDismissPlacementPopup={gameState.dismissPlacementPopup}
@@ -339,6 +348,28 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           onClose={gameState.closeSecretDoorResult}
         />
       )}
+
+      {/* Chest — play mode result popup */}
+      {gameState.pendingChestResult && (
+        <ChestResultPopup
+          hasTrap={gameState.pendingChestResult.hasTrap}
+          message={gameState.pendingChestResult.message}
+          onClose={gameState.closeChestResult}
+        />
+      )}
+
+      {/* Chest — edit mode config dialog */}
+      {gameState.pendingChestConfig && (() => {
+        const piece = gameState.placed[gameState.pendingChestConfig.anchorKey];
+        return (
+          <ChestConfigDialog
+            initialHasTrap={piece?.hasTrap ?? false}
+            initialTrapNote={piece?.trapNote ?? ""}
+            onSave={(hasTrap, trapNote) => gameState.saveChestConfig(gameState.pendingChestConfig.anchorKey, hasTrap, trapNote)}
+            onCancel={() => gameState.setPendingChestConfig(null)}
+          />
+        );
+      })()}
 
     </div>
   );

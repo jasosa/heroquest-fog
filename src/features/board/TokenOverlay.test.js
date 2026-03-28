@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getTrapRenderMode, shouldHideHeroStart } from "./TokenOverlay.jsx";
+import { getTrapRenderMode, shouldHideHeroStart, shouldShowChestGlow } from "./TokenOverlay.jsx";
 
 describe("getTrapRenderMode", () => {
   const fog = new Set(["3,5"]);
@@ -73,6 +73,19 @@ describe("shouldHideHeroStart", () => {
   it("returns false for type='goblin' in play mode (isEditMode=false)", () => {
     expect(shouldHideHeroStart("goblin", false)).toBe(false);
   });
+});
+
+describe("shouldShowChestGlow", () => {
+  it("returns true for un-opened chest in fog in play mode", () =>
+    expect(shouldShowChestGlow("chest", false, true, false)).toBe(true))
+  it("returns false when already opened", () =>
+    expect(shouldShowChestGlow("chest", false, true, true)).toBe(false))
+  it("returns false when not in fog", () =>
+    expect(shouldShowChestGlow("chest", false, false, false)).toBe(false))
+  it("returns false in edit mode", () =>
+    expect(shouldShowChestGlow("chest", true, true, false)).toBe(false))
+  it("returns false for non-chest types", () =>
+    expect(shouldShowChestGlow("goblin", false, true, false)).toBe(false))
 });
 
 describe("shouldHideHeroStart — overlayMarker guard", () => {

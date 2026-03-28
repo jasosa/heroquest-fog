@@ -50,10 +50,15 @@ Rules:
 
 When asked to work on the next item:
 1. Read `docs/planning/FEATURES.md` and `docs/planning/ISSUES.md`
-2. Pick the highest-priority `not_started` item across both files — issues take priority over features at the same priority level
+2. Pick the highest-priority `not_started` item across both files — 
+   for issues, consider both priority and impact
 3. Update its status to `in_progress`
-4. If the item is a feature with `complexity: high` or `complexity: impossible`, invoke the `architect` subagent first — review the recommendation and confirm the approach before continuing
-5. Invoke the `planner` subagent with the item description (and architect output if applicable) and wether is a feature or a fix
-6. Review the plan before proceeding
-7. Invoke the `swe` subagent with the approved plan
-8. Update the item status to `done` when complete
+4. If the item is a feature with `complexity: high`, invoke the `architect` 
+   subagent first — review the recommendation and confirm the approach
+5. If the item is a new feature (not a bug fix), invoke the `ux` subagent — 
+   review the UX proposal before continuing
+6. Invoke the `planner` subagent with the feature description plus any 
+   architect and UX outputs
+7. Review the plan before proceeding
+8. Invoke the `swe` subagent with the approved plan
+9. Update the item status to `done` when complete

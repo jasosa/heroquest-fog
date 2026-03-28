@@ -7,6 +7,7 @@ import {
   placeNoteMarker,
   updateNoteMarker,
   setMonsterSpecial,
+  setChestTrap,
 } from "./placementState.js";
 
 // ─── Piece definitions used across tests ──────────────────────────────────────
@@ -267,6 +268,30 @@ describe("updateNoteMarker", () => {
     const placed = { "3,4": { type: "goblin" } };
     const result = updateNoteMarker(placed, "3,4", "note");
     expect(result).toEqual(placed);
+  });
+});
+
+// ─── setChestTrap ─────────────────────────────────────────────────────────────
+
+describe("setChestTrap", () => {
+  it("setChestTrap adds hasTrap and trapNote to placed piece", () => {
+    const placed = { "3,5": { type: "chest", blocks: false } }
+    const result = setChestTrap(placed, "3,5", true, "rusty spike")
+    expect(result["3,5"].hasTrap).toBe(true)
+    expect(result["3,5"].trapNote).toBe("rusty spike")
+    expect(result["3,5"].type).toBe("chest") // other fields preserved
+  });
+
+  it("setChestTrap is a no-op when anchorKey not in placed", () => {
+    const placed = {}
+    expect(setChestTrap(placed, "3,5", true, "x")).toBe(placed)
+  });
+
+  it("setChestTrap can set hasTrap to false", () => {
+    const placed = { "3,5": { type: "chest", hasTrap: true, trapNote: "x" } }
+    const result = setChestTrap(placed, "3,5", false, "")
+    expect(result["3,5"].hasTrap).toBe(false)
+    expect(result["3,5"].trapNote).toBe("")
   });
 });
 

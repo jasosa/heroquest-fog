@@ -3,7 +3,7 @@ import { BOARD, ROWS, COLS } from "../../map.js";
 import { makeComputeReveal, hasVisibleDoorForRoom, DOOR_NEIGHBOR_OFFSETS } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
-import { placeNoteMarker, updateNoteMarker, setMonsterSpecial } from "../../placementState.js";
+import { placeNoteMarker, updateNoteMarker, setMonsterSpecial, setChestTrap } from "../../placementState.js";
 import { isTrapPiece } from "../../pieces.js";
 import { moveSearchMarker, setSearchNoteAt, normalizeSearchNotes, removeSearchMarker } from "../../searchMarkers.js";
 import { placeSecretDoorMarker, removeSecretDoorMarker, linkSecretDoor, setSecretDoorMessage, resolveSecretDoorSearch } from "../../secretDoorMarkers.js";
@@ -37,6 +37,19 @@ export function shouldInterceptTrapClick(pieceAtCell, isFogRevealed, isAlreadyRe
     && isTrapPiece(pieceAtCell.type)
     && isFogRevealed
     && !isAlreadyRevealedTrap;
+}
+
+// Pure helper: resolves chest search result into { hasTrap, message }.
+export function resolveChestResult(hasTrap, trapNote) {
+  if (!hasTrap) return { hasTrap: false, message: "The chest is safe." };
+  const message = trapNote ? trapNote : "A trap is triggered!";
+  return { hasTrap: true, message };
+}
+
+// Pure helper: determines whether a click on a chest cell should intercept
+// fog reveal — only when the chest is visible and has not yet been opened.
+export function shouldInterceptChestClick(type, isFogRevealed, isOpened) {
+  return type === "chest" && isFogRevealed && !isOpened;
 }
 
 export function isCellBlocked(cellKey, placed) {
@@ -125,6 +138,11 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const [searchedCounts, setSearchedCounts] = useState(() => ({})); // session-only: Record<regionId, number>
   const [pendingSearchEdit, setPendingSearchEdit]   = useState(null); // {regionId}|null
   const [pendingSearchView, setPendingSearchView]   = useState(null); // {regionId,notes,count}|null
+
+  // Chest state: session-only set of opened chest anchor keys, pending result popup, pending config dialog
+  const [openedChests, setOpenedChests] = useState(() => new Set());
+  const [pendingChestResult, setPendingChestResult] = useState(null);
+  const [pendingChestConfig, setPendingChestConfig] = useState(null);
 
   // Secret door markers: cell-keyed, persisted
   const [secretDoorMarkers, setSecretDoorMarkers] = useState(() => initialSecretDoorMarkers ?? {});
@@ -374,6 +392,7 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     setSearchedCounts({});
     setRevealedSecretDoors(new Set());
     setRevealedTraps(new Set());
+    setOpenedChests(new Set());
   }, []);
 
   // Note markers: save edits from the dialog.
@@ -399,6 +418,26 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const saveMonsterAnnotation = useCallback((anchorKey, isSpecial, specialNote) => {
     setPlaced(prev => setMonsterSpecial(prev, anchorKey, isSpecial, specialNote));
     setPendingMonsterAnnotation(null);
+  }, []);
+
+  // Chest: open a chest in play mode — resolve result and mark as opened.
+  const openChest = useCallback((anchorKey) => {
+    const piece = placedRef.current[anchorKey];
+    if (!piece) return;
+    const result = resolveChestResult(piece.hasTrap ?? false, piece.trapNote ?? "");
+    setOpenedChests(prev => new Set([...prev, anchorKey]));
+    setPendingChestResult(result);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const closeChestResult = useCallback(() => setPendingChestResult(null), []);
+
+  const openChestConfig = useCallback((anchorKey) => {
+    setPendingChestConfig({ anchorKey });
+  }, []);
+
+  const saveChestConfig = useCallback((anchorKey, hasTrap, trapNote) => {
+    setPlaced(prev => setChestTrap(prev, anchorKey, hasTrap, trapNote));
+    setPendingChestConfig(null);
   }, []);
 
   // Search marker notes (edit mode).
@@ -498,6 +537,9 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     pendingSecretDoorResult, closeSecretDoorResult,
     // Trap reveal
     revealedTraps, revealTrap,
+    // Chest
+    openedChests, openChest, closeChestResult, pendingChestResult,
+    openChestConfig, saveChestConfig, pendingChestConfig, setPendingChestConfig,
     // Hero placement popup
     questPlacementMessage, setQuestPlacementMessage,
     pendingPlacementPopup, dismissPlacementPopup,

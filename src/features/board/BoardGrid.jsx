@@ -14,7 +14,8 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
   onShowTooltip, onHideTooltip, onAnnotateMonster, onEditNote,
   onEditSearchNote, onViewSearchNote, onRemoveSearchMarker,
   secretDoorMarkers, revealedSecretDoors, onEditSecretDoorConfig, onSearchSecretDoor,
-  revealedTraps, onRevealTrap }) {
+  revealedTraps, onRevealTrap,
+  openedChests, onOpenChest, onConfigureChest }) {
   const isEditMode = mode === "edit";
 
   // Load natural image dimensions so calibrated pixel coords can be scaled
@@ -139,6 +140,7 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
           isSpecial={piece.isSpecial} specialNote={piece.specialNote}
           revealedSecretDoors={revealedSecretDoors}
           revealedTraps={revealedTraps} onRevealTrap={onRevealTrap}
+          hasTrap={piece.hasTrap} openedChests={openedChests} onOpenChest={onOpenChest} onConfigureChest={onConfigureChest}
           onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
           onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip} />
       ))}

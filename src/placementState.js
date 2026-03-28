@@ -151,3 +151,12 @@ export function setMonsterSpecial(placed, anchorKey, isSpecial, specialNote) {
   if (!placed[anchorKey]) return placed;
   return { ...placed, [anchorKey]: { ...placed[anchorKey], isSpecial, specialNote: specialNote ?? "" } };
 }
+
+/**
+ * Set or clear the trap configuration on a placed chest piece.
+ * No-op if no piece at anchorKey.
+ */
+export function setChestTrap(placed, anchorKey, hasTrap, trapNote) {
+  if (!placed[anchorKey]) return placed;
+  return { ...placed, [anchorKey]: { ...placed[anchorKey], hasTrap, trapNote: trapNote ?? "" } };
+}

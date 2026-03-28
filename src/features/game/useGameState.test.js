@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { hasHeroStart, incrementSearchCount, resetSearchCounts, addRevealedTrap, shouldInterceptTrapClick, computeHeroStartFog, isCorridorConnected, isCellBlocked, shouldShowPlacementPopup, useGameState } from "./useGameState.js";
+import { hasHeroStart, incrementSearchCount, resetSearchCounts, addRevealedTrap, shouldInterceptTrapClick, computeHeroStartFog, isCorridorConnected, isCellBlocked, shouldShowPlacementPopup, resolveChestResult, shouldInterceptChestClick, useGameState } from "./useGameState.js";
 
 describe("hasHeroStart", () => {
   it("returns false for empty placed", () => {
@@ -341,6 +341,47 @@ describe("computeHeroStartFog", () => {
     expect(result.has("5,4")).toBe(true);
     expect(result.has("9,7")).toBe(true);
     expect(result.has("9,8")).toBe(true);
+  });
+});
+
+describe("resolveChestResult", () => {
+  it("returns trap result with custom message", () =>
+    expect(resolveChestResult(true, "A rusty spike!")).toEqual({ hasTrap: true, message: "A rusty spike!" }))
+  it("uses default trap message when trapNote is empty", () =>
+    expect(resolveChestResult(true, "")).toEqual({ hasTrap: true, message: "A trap is triggered!" }))
+  it("uses default trap message when trapNote is null", () =>
+    expect(resolveChestResult(true, null)).toEqual({ hasTrap: true, message: "A trap is triggered!" }))
+  it("returns safe result regardless of trapNote", () =>
+    expect(resolveChestResult(false, "irrelevant")).toEqual({ hasTrap: false, message: "The chest is safe." }))
+});
+
+describe("shouldInterceptChestClick", () => {
+  it("returns true for un-opened chest in fog", () =>
+    expect(shouldInterceptChestClick("chest", true, false)).toBe(true))
+  it("returns false when not in fog", () =>
+    expect(shouldInterceptChestClick("chest", false, false)).toBe(false))
+  it("returns false when already opened", () =>
+    expect(shouldInterceptChestClick("chest", true, true)).toBe(false))
+  it("returns false for non-chest", () =>
+    expect(shouldInterceptChestClick("goblin", true, false)).toBe(false))
+});
+
+describe("openedChests state", () => {
+  it("openedChests starts empty", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }))
+    expect(result.current.openedChests.size).toBe(0)
+  });
+
+  it("resetFog clears openedChests", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }))
+    act(() => result.current.resetFog())
+    expect(result.current.openedChests.size).toBe(0)
+  });
+
+  it("closeChestResult sets pendingChestResult to null", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }))
+    act(() => result.current.closeChestResult())
+    expect(result.current.pendingChestResult).toBeNull()
   });
 });
 

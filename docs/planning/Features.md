@@ -85,7 +85,7 @@ Description: In Edit mode adding a search for secret door marker shouldn´t add 
 
 ### [FEAT-013] Manage traps in Chests
 Priority: medium
-Status: not_started
+Status: done
 Complexity: medium
 Description: In play mode chests should behave similar to traps but without a tile hiding them. They should red glow border to indicate that can be interacted with. On hover a tooltip should say something like "Chests can have traps. Click to reveal". After clicking a popup will shown if there is a trap or not. In Edit mode a note can be added a chest to indicate if there is a trap and the message to shown in case there is any and is revealed. By default no message and no trap. Should work similar to other markers.
 
