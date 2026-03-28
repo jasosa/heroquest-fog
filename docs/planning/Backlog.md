@@ -124,7 +124,7 @@ Description: After a hero uses a search for secret doors marker in play mode, it
 
 ### [FEAT-015] Trap interaction overhaul
 Priority: high
-Status: committed
+Status: committed — follow-up issues ISSUE-011 through ISSUE-015 and FEAT-020/FEAT-021 correct and extend this
 Complexity: high
 Description: In play mode, clicking a trap warning marker opens an interaction popup instead of immediately revealing the trap.
 
@@ -212,3 +212,62 @@ Impact: low — unexpected behavior
 Status: not_started
 Complexity: low
 Description: The cancel action in `SecretDoorConfigDialog` re-saves the existing values rather than discarding unsaved changes. This is opaque to the DM and inconsistent with every other cancel in the app. Fix: cancel should discard uncommitted state without writing to the placed piece.
+
+### [ISSUE-011] Wrong black shield rule text in trap popup
+Priority: high
+Impact: high — wrong game rules shown to players
+Status: not_started
+Complexity: low
+Description: The jump-over rule text in `TrapInteractionPopup` is inverted. The correct rule is: rolling a black shield **fails** the jump and springs the trap. The current text may say the opposite. Fix: correct the rule text so it reads "Roll a combat die — a black shield result fails the jump and springs the trap."
+
+### [ISSUE-012] Trap interaction popup should be centered on the board image
+Priority: medium
+Impact: medium — visual UX
+Status: not_started
+Complexity: low
+Description: The trap interaction popup is currently centered on the full viewport (`position: fixed, inset: 0`). It should be centered relative to the board image area, not the entire screen (which includes the sidebar). Fix: change the overlay to be `position: absolute` on the board scroll container, or use a different centering approach that keeps the popup over the board.
+
+### [ISSUE-013] Trap popup flow redesign: Spring / Reveal / Disarm / Dismiss
+Priority: high
+Impact: high — affects core play mode gameplay
+Status: not_started
+Complexity: medium
+Description: The current trap popup flow (Reveal Trap → confirmed reveal → Disarm) does not match the intended game flow. The redesigned popup must have four actions:
+
+1. **Spring** — The player triggers the trap intentionally (or it was triggered after a failed jump/disarm). Shows a message with the trap effect (configured in edit mode via FEAT-020). Whether the trap is then removed from the board or kept depends on edit-mode configuration. Does NOT close automatically — shows result then Close.
+2. **Reveal** — Informational only. Shows the trap type and its effect text. **Does not change any state** — the warning marker remains visible on the board. Players can still disarm or spring it after revealing. Just a peek.
+3. **Disarm** — Removes the trap from the play session (see ISSUE-015 — must not mutate edit-mode data). Requires the confirmation step before executing.
+4. **Dismiss** — Closes the popup without any action.
+
+Each button must also show a brief one-line explanation of what it does (e.g. "Reveal: See the trap type without changing anything.") so players understand the consequences before tapping. Depends on FEAT-020 for Spring configuration and ISSUE-015 for correct disarm behavior.
+
+### [ISSUE-014] Reset Fog of War should reset all trap session state
+Priority: high
+Impact: high — session state inconsistency after fog reset
+Status: not_started
+Complexity: low
+Description: When the DM resets the Fog of War in play mode, all trap session state should also be reset: `revealedTraps`, `springedTraps` (once added in FEAT-020), and `disarmedTraps` (once added in ISSUE-015). Currently `resetFog` may not clear all of these, leaving traps in a stale revealed/disarmed state after the fog is reset. All trap warning markers should reappear as fresh after a fog reset.
+
+### [ISSUE-015] Traps disarmed in play mode must not modify edit-mode placed data
+Priority: high
+Impact: high — data corruption between play and edit modes
+Status: not_started
+Complexity: medium
+Description: The current `disarmTrap` implementation deletes the trap from `placed`, which is the shared edit-mode data structure. This means disarming a trap in play mode permanently removes it from the quest in edit mode too — the DM loses their placed trap data. Fix: introduce a session-only `disarmedTraps: Set<string>` state (alongside the existing `revealedTraps`). In play mode, `disarmTrap` adds to `disarmedTraps` instead of mutating `placed`. `TokenOverlay` hides any piece whose anchor key is in `disarmedTraps`. On fog reset, `disarmedTraps` is cleared. Edit mode always ignores `disarmedTraps` and shows the real `placed` data.
+
+### [FEAT-020] Spring trap: configure behavior per trap type in edit mode
+Priority: high
+Status: not_started
+Complexity: medium
+Description: In edit mode, each placed trap should have two additional configurable fields (in `TrapConfigDialog`):
+
+1. **Spring effect message** — The text shown to players when the trap is sprung (e.g. "You fall into a pit and lose 1 Body Point."). Pre-filled with a sensible default per trap type. The DM can edit it. This replaces the current `trapNote` which was used as the reveal message.
+2. **Remove from board after spring** — A checkbox/toggle. If checked, the trap piece is removed from the play session after being sprung (hidden, like a disarmed trap). If unchecked, the trap stays visible on the board (e.g. a pit trap that remains dangerous). Default: checked for most traps.
+
+When a player clicks "Spring" in the trap popup (ISSUE-013), the spring effect message is shown and the remove/keep decision is applied based on this config. Stored on `PlacedPiece` as `springMessage: string` and `removeOnSpring: boolean`.
+
+### [FEAT-021] Default trap rules text should be editable per trap type in edit mode
+Priority: medium
+Status: not_started
+Complexity: low
+Description: The default trap rules text shown in the trap popup is currently hardcoded in `TrapInteractionPopup.jsx` as a `TRAP_RULES` constant. The DM should be able to edit the default rules text per trap type globally (not per placed instance). This could be a global settings panel or per-piece default in `pieces.js` that is surfaced as editable in a trap-type settings area. Alternatively, if the per-placed `trapNote` field (from FEAT-020) is pre-filled with the default text, the DM editing the placed piece effectively customises the default. Clarify the exact UX before planning.
