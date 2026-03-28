@@ -366,6 +366,27 @@ describe("shouldInterceptChestClick", () => {
     expect(shouldInterceptChestClick("goblin", true, false)).toBe(false))
 });
 
+describe("resetFog clears springedTraps and disarmedTraps", () => {
+  it("resetFog clears springedTraps", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    act(() => result.current.springTrap("3,5", true));
+    expect(result.current.springedTraps.has("3,5")).toBe(true);
+    act(() => result.current.resetFog());
+    expect(result.current.springedTraps.size).toBe(0);
+  });
+
+  it("resetFog clears disarmedTraps", () => {
+    const { result } = renderHook(() => useGameState({
+      initialMode: "play",
+      initialPlaced: { "3,5": { type: "pit", blocks: false, coveredCells: ["3,5"] } },
+    }));
+    act(() => result.current.disarmTrap("3,5"));
+    expect(result.current.disarmedTraps.has("3,5")).toBe(true);
+    act(() => result.current.resetFog());
+    expect(result.current.disarmedTraps.size).toBe(0);
+  });
+});
+
 describe("openedChests state", () => {
   it("openedChests starts empty", () => {
     const { result } = renderHook(() => useGameState({ initialMode: "play" }))
@@ -382,6 +403,22 @@ describe("openedChests state", () => {
     const { result } = renderHook(() => useGameState({ initialMode: "play" }))
     act(() => result.current.closeChestResult())
     expect(result.current.pendingChestResult).toBeNull()
+  });
+});
+
+// ─── springedTraps / disarmedTraps initial state ─────────────────────────────
+
+describe("useGameState — springedTraps and disarmedTraps", () => {
+  it("springedTraps starts as empty Set", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    expect(result.current.springedTraps).toBeInstanceOf(Set);
+    expect(result.current.springedTraps.size).toBe(0);
+  });
+
+  it("disarmedTraps starts as empty Set", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    expect(result.current.disarmedTraps).toBeInstanceOf(Set);
+    expect(result.current.disarmedTraps.size).toBe(0);
   });
 });
 
@@ -407,13 +444,22 @@ describe("useGameState — trap interaction", () => {
     expect(result.current.pendingTrapInteraction).toBeNull();
   });
 
-  it("disarmTrap(anchorKey) removes the piece from placed", () => {
+  it("disarmTrap(anchorKey) does NOT delete the piece from placed", () => {
     const { result } = renderHook(() => useGameState({
       initialMode: "play",
       initialPlaced: { "3,5": { type: "pit", blocks: false, coveredCells: ["3,5"] } },
     }));
     act(() => result.current.disarmTrap("3,5"));
-    expect(result.current.placed["3,5"]).toBeUndefined();
+    expect(result.current.placed["3,5"]).toBeDefined();
+  });
+
+  it("disarmTrap(anchorKey) adds anchorKey to disarmedTraps", () => {
+    const { result } = renderHook(() => useGameState({
+      initialMode: "play",
+      initialPlaced: { "3,5": { type: "pit", blocks: false, coveredCells: ["3,5"] } },
+    }));
+    act(() => result.current.disarmTrap("3,5"));
+    expect(result.current.disarmedTraps.has("3,5")).toBe(true);
   });
 
   it("disarmTrap(anchorKey) removes the key from revealedTraps", () => {
@@ -426,13 +472,38 @@ describe("useGameState — trap interaction", () => {
     expect(result.current.revealedTraps.has("3,5")).toBe(false);
   });
 
-  it("disarmTrap(anchorKey) sets pendingTrapInteraction to null", () => {
+  it("disarmTrap(anchorKey) does NOT set pendingTrapInteraction to null", () => {
     const { result } = renderHook(() => useGameState({
       initialMode: "play",
       initialPlaced: { "3,5": { type: "pit", blocks: false, coveredCells: ["3,5"] } },
     }));
     act(() => result.current.openTrapInteraction("3,5", false));
     act(() => result.current.disarmTrap("3,5"));
+    expect(result.current.pendingTrapInteraction).not.toBeNull();
+  });
+});
+
+// ─── springTrap ───────────────────────────────────────────────────────────────
+
+describe("useGameState — springTrap", () => {
+  it("springTrap(anchorKey, true) adds to revealedTraps AND springedTraps", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    act(() => result.current.springTrap("3,5", true));
+    expect(result.current.revealedTraps.has("3,5")).toBe(true);
+    expect(result.current.springedTraps.has("3,5")).toBe(true);
+  });
+
+  it("springTrap(anchorKey, false) adds to BOTH revealedTraps AND springedTraps", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    act(() => result.current.springTrap("3,5", false));
+    expect(result.current.revealedTraps.has("3,5")).toBe(true);
+    expect(result.current.springedTraps.has("3,5")).toBe(true);
+  });
+
+  it("springTrap sets pendingTrapInteraction to null", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    act(() => result.current.openTrapInteraction("3,5", false));
+    act(() => result.current.springTrap("3,5", false));
     expect(result.current.pendingTrapInteraction).toBeNull();
   });
 });
@@ -446,14 +517,15 @@ describe("useGameState — trap config", () => {
     expect(result.current.pendingTrapConfig).toEqual({ anchorKey: "3,5" });
   });
 
-  it("saveTrapConfig(anchorKey, trapNote) updates placed[anchorKey].trapNote and sets pendingTrapConfig to null", () => {
+  it("saveTrapConfig(anchorKey, { springMessage, removeAfterSpring }) updates placed and sets pendingTrapConfig to null", () => {
     const { result } = renderHook(() => useGameState({
       initialMode: "edit",
       initialPlaced: { "3,5": { type: "pit", blocks: false, coveredCells: ["3,5"] } },
     }));
     act(() => result.current.openTrapConfig("3,5"));
-    act(() => result.current.saveTrapConfig("3,5", "Loses 1 BP"));
-    expect(result.current.placed["3,5"].trapNote).toBe("Loses 1 BP");
+    act(() => result.current.saveTrapConfig("3,5", { springMessage: "Loses 1 BP", removeAfterSpring: true }));
+    expect(result.current.placed["3,5"].springMessage).toBe("Loses 1 BP");
+    expect(result.current.placed["3,5"].removeAfterSpring).toBe(true);
     expect(result.current.pendingTrapConfig).toBeNull();
   });
 });
@@ -486,7 +558,21 @@ describe("useGameState — handleCell trap intercepts in play mode", () => {
     expect(result.current.revealedTraps.has("9,9")).toBe(false);
   });
 
-  it("handleCell in play mode: clicking a cell with an ALREADY revealed trap sets pendingTrapInteraction with isRevealed: true", () => {
+  it("handleCell in play mode: clicking a sprung trap with removeAfterSpring=false sets pendingTrapInteraction (already-sprung popup)", () => {
+    const initialPlaced = {
+      "9,8": { type: "start", blocks: false, coveredCells: ["9,8"] },
+      "9,9": { type: "pit", blocks: false, coveredCells: ["9,9"], removeAfterSpring: false },
+    };
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
+    // Spring the trap (removeAfterSpring=false so it stays on board)
+    act(() => result.current.springTrap("9,9", false));
+    expect(result.current.springedTraps.has("9,9")).toBe(true); // always tracked in springedTraps regardless of removeAfterSpring
+    // Now clicking the trap should open the already-sprung popup (via revealedTraps intercept)
+    act(() => result.current.handleCell(9, 9));
+    expect(result.current.pendingTrapInteraction).not.toBeNull();
+  });
+
+  it("handleCell in play mode: clicking an ALREADY revealed trap sets pendingTrapInteraction with isRevealed: true", () => {
     const initialPlaced = {
       "9,8": { type: "start", blocks: false, coveredCells: ["9,8"] },
       "9,9": { type: "pit", blocks: false, coveredCells: ["9,9"] },

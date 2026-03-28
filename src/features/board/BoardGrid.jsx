@@ -15,6 +15,7 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
   onEditSearchNote, onViewSearchNote, onRemoveSearchMarker,
   secretDoorMarkers, revealedSecretDoors, onEditSecretDoorConfig, onSearchSecretDoor,
   revealedTraps, onTrapInteraction, onConfigureTrap,
+  disarmedTraps, springedTraps,
   openedChests, onOpenChest, onConfigureChest }) {
   const isEditMode = mode === "edit";
 
@@ -141,6 +142,8 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
           revealedSecretDoors={revealedSecretDoors}
           revealedTraps={revealedTraps} onTrapInteraction={onTrapInteraction}
           onConfigureTrap={onConfigureTrap}
+          disarmedTraps={disarmedTraps} springedTraps={springedTraps}
+          removeAfterSpring={piece.removeAfterSpring}
           hasTrap={piece.hasTrap} openedChests={openedChests} onOpenChest={onOpenChest} onConfigureChest={onConfigureChest}
           onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
           onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip} />

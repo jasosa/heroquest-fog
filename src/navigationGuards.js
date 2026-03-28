@@ -1,9 +1,11 @@
-export function isSessionDirty(fog, openedChests, revealedTraps, revealedSecretDoors, searchedCounts) {
+export function isSessionDirty(fog, openedChests, revealedTraps, revealedSecretDoors, searchedCounts, springedTraps = new Set(), disarmedTraps = new Set()) {
   return fog.size > 0
     || openedChests.size > 0
     || revealedTraps.size > 0
     || revealedSecretDoors.size > 0
-    || Object.keys(searchedCounts).length > 0;
+    || Object.keys(searchedCounts).length > 0
+    || springedTraps.size > 0
+    || disarmedTraps.size > 0;
 }
 
 export function stableStringify(obj) {

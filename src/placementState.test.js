@@ -8,7 +8,7 @@ import {
   updateNoteMarker,
   setMonsterSpecial,
   setChestTrap,
-  setTrapNote,
+  setTrapSpringConfig,
 } from "./placementState.js";
 
 // ─── Piece definitions used across tests ──────────────────────────────────────
@@ -296,32 +296,33 @@ describe("setChestTrap", () => {
   });
 });
 
-// ─── setTrapNote ──────────────────────────────────────────────────────────────
+// ─── setTrapSpringConfig ──────────────────────────────────────────────────────
 
-describe("setTrapNote", () => {
-  it("returns the same placed object when anchorKey does not exist", () => {
+describe("setTrapSpringConfig", () => {
+  it("returns same object when anchorKey not in placed", () => {
     const placed = {};
-    expect(setTrapNote(placed, "3,5", "a note")).toBe(placed);
+    expect(setTrapSpringConfig(placed, "3,5", { springMessage: "x", removeAfterSpring: true })).toBe(placed);
   });
 
-  it("sets trapNote on the piece at anchorKey", () => {
+  it("sets springMessage and removeAfterSpring on the piece at anchorKey; preserves type", () => {
     const placed = { "3,5": { type: "pit", blocks: false } };
-    const result = setTrapNote(placed, "3,5", "Pit trap — lose 1 BP");
-    expect(result["3,5"].trapNote).toBe("Pit trap — lose 1 BP");
+    const result = setTrapSpringConfig(placed, "3,5", { springMessage: "Loses 1 BP", removeAfterSpring: true });
+    expect(result["3,5"].springMessage).toBe("Loses 1 BP");
+    expect(result["3,5"].removeAfterSpring).toBe(true);
     expect(result["3,5"].type).toBe("pit");
   });
 
-  it("with empty string sets trapNote to empty string", () => {
-    const placed = { "3,5": { type: "pit", blocks: false, trapNote: "old" } };
-    const result = setTrapNote(placed, "3,5", "");
-    expect(result["3,5"].trapNote).toBe("");
+  it("returns new object, does not mutate input", () => {
+    const placed = { "3,5": { type: "pit", blocks: false } };
+    const result = setTrapSpringConfig(placed, "3,5", { springMessage: "x", removeAfterSpring: false });
+    expect(result).not.toBe(placed);
+    expect(placed["3,5"].springMessage).toBeUndefined();
   });
 
-  it("result is a new object (does not mutate input)", () => {
-    const placed = { "3,5": { type: "pit", blocks: false } };
-    const result = setTrapNote(placed, "3,5", "note");
-    expect(result).not.toBe(placed);
-    expect(placed["3,5"].trapNote).toBeUndefined();
+  it("sets springMessage to empty string when passed empty string", () => {
+    const placed = { "3,5": { type: "pit", blocks: false, springMessage: "old" } };
+    const result = setTrapSpringConfig(placed, "3,5", { springMessage: "", removeAfterSpring: true });
+    expect(result["3,5"].springMessage).toBe("");
   });
 });
 

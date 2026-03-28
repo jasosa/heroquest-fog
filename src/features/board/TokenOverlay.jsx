@@ -23,10 +23,14 @@ export function shouldHideHeroStart(type, isEditMode) {
 // "hidden"  — piece is not visible (not in fog)
 // "warning" — trap in play mode, not yet revealed → show generic warning marker
 // "real"    — show actual piece image/token
-export function getTrapRenderMode(type, isEditMode, fog, revealedTraps, anchorKey, coveredCells) {
+export function getTrapRenderMode(type, isEditMode, fog, revealedTraps, anchorKey, coveredCells, disarmedTraps, springedTraps, removeAfterSpring) {
   const isVisible = isEditMode || fog.has(anchorKey) ||
     (coveredCells && coveredCells.some(k => fog.has(k)));
   if (!isVisible) return "hidden";
+  if (!isEditMode && isTrapPiece(type)) {
+    if (disarmedTraps?.has(anchorKey)) return "hidden";
+    if (springedTraps?.has(anchorKey) && removeAfterSpring) return "hidden";
+  }
   if (isTrapPiece(type) && !isEditMode && !revealedTraps?.has(anchorKey)) return "warning";
   return "real";
 }
@@ -68,6 +72,8 @@ export function TokenOverlay({
   revealedTraps, onTrapInteraction,
   // Trap config
   onConfigureTrap,
+  // Trap disarm/spring tracking
+  disarmedTraps, springedTraps, removeAfterSpring,
   // Chest
   hasTrap, openedChests, onOpenChest, onConfigureChest,
   // Shared tooltip callbacks (fixed-position, avoids overflow:hidden clipping)
@@ -76,7 +82,7 @@ export function TokenOverlay({
   const p = PIECES[type];
 
   // Use getTrapRenderMode to determine visibility and warning state.
-  const trapMode = getTrapRenderMode(type, isEditMode, fog, revealedTraps, anchorKey, coveredCells);
+  const trapMode = getTrapRenderMode(type, isEditMode, fog, revealedTraps, anchorKey, coveredCells, disarmedTraps, springedTraps, removeAfterSpring);
   if (trapMode === "hidden") return null;
 
   // Secret doors are hidden in play mode until explicitly revealed via search.

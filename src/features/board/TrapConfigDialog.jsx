@@ -19,29 +19,49 @@ const dialogStyle = {
   display: "flex", flexDirection: "column", gap: 14,
 };
 
-export function TrapConfigDialog({ initialTrapNote, onSave, onCancel }) {
-  const [trapNote, setTrapNote] = useState(initialTrapNote ?? "");
+export function TrapConfigDialog({ initialSpringMessage, initialRemoveAfterSpring, onSave, onCancel }) {
+  const [springMessage, setSpringMessage] = useState(initialSpringMessage ?? "");
+  const [removeAfterSpring, setRemoveAfterSpring] = useState(initialRemoveAfterSpring ?? true);
+
+  const msgId = "trap-spring-msg";
+  const chkId = "trap-remove-after";
 
   return (
     <div style={overlayStyle} onMouseDown={onCancel}>
       <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
         <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>
-          Trap — Note Configuration
+          Trap — Configuration
         </div>
 
-        <textarea
-          rows={3}
-          value={trapNote}
-          onChange={e => setTrapNote(e.target.value)}
-          placeholder="Optional DM note for this trap"
-          style={{
-            width: "100%", boxSizing: "border-box",
-            background: T.btnBg, color: T.text,
-            border: `1px solid ${T.btnBorder}`, borderRadius: 4,
-            padding: "6px 8px", fontSize: 13,
-            fontFamily: "inherit", resize: "vertical",
-          }}
-        />
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <label htmlFor={msgId} style={{ fontSize: 12, color: T.textMuted }}>Spring effect message</label>
+          <textarea
+            id={msgId}
+            rows={3}
+            value={springMessage}
+            onChange={e => setSpringMessage(e.target.value)}
+            placeholder="Optional message shown when trap springs"
+            style={{
+              width: "100%", boxSizing: "border-box",
+              background: T.btnBg, color: T.text,
+              border: `1px solid ${T.btnBorder}`, borderRadius: 4,
+              padding: "6px 8px", fontSize: 13,
+              fontFamily: "inherit", resize: "vertical",
+            }}
+          />
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            id={chkId}
+            type="checkbox"
+            checked={removeAfterSpring}
+            onChange={e => setRemoveAfterSpring(e.target.checked)}
+          />
+          <label htmlFor={chkId} style={{ fontSize: 13, color: T.text, cursor: "pointer" }}>
+            Remove from board after spring
+          </label>
+        </div>
 
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <button
@@ -53,10 +73,10 @@ export function TrapConfigDialog({ initialTrapNote, onSave, onCancel }) {
             }}
           >Cancel</button>
           <button
-            onClick={() => onSave(trapNote)}
+            onClick={() => onSave({ springMessage, removeAfterSpring })}
             style={{
-              background: "#b8860b", color: "#fff",
-              border: "1px solid #8b6508", borderRadius: 4,
+              background: T.btnActiveBg, color: T.btnActiveText,
+              border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4,
               padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold",
             }}
           >Save</button>
