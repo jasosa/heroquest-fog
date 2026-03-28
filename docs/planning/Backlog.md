@@ -124,11 +124,7 @@ Description: After a hero uses a search for secret doors marker in play mode, it
 
 ### [FEAT-015] Trap interaction overhaul
 Priority: high
-<<<<<<< HEAD
 Status: committed — follow-up issues ISSUE-011 through ISSUE-015 and FEAT-020/FEAT-021 correct and extend this
-=======
-Status: committed
->>>>>>> feat/FEAT-018
 Complexity: high
 Description: In play mode, clicking a trap warning marker opens an interaction popup instead of immediately revealing the trap.
 
@@ -158,11 +154,7 @@ Description: When the DM resets fog during a play session, reset `hasShownPlacem
 
 ### [FEAT-018] Navigation and mode-switch warnings
 Priority: medium
-<<<<<<< HEAD
-Status: not_started
-=======
 Status: committed
->>>>>>> feat/FEAT-018
 Complexity: low
 Description: Two safeguard warnings:
 1. **Play → Edit mode switch mid-session**: Show a notice that opened chests, revealed traps, and search counts will carry over to the next play session (they are not reset).
@@ -220,7 +212,6 @@ Impact: low — unexpected behavior
 Status: not_started
 Complexity: low
 Description: The cancel action in `SecretDoorConfigDialog` re-saves the existing values rather than discarding unsaved changes. This is opaque to the DM and inconsistent with every other cancel in the app. Fix: cancel should discard uncommitted state without writing to the placed piece.
-<<<<<<< HEAD
 
 ### [ISSUE-011] Wrong black shield rule text in trap popup
 Priority: high
@@ -280,5 +271,3 @@ Priority: medium
 Status: not_started
 Complexity: low
 Description: The default trap rules text shown in the trap popup is currently hardcoded in `TrapInteractionPopup.jsx` as a `TRAP_RULES` constant. The DM should be able to edit the default rules text per trap type globally (not per placed instance). This could be a global settings panel or per-piece default in `pieces.js` that is surfaced as editable in a trap-type settings area. Alternatively, if the per-placed `trapNote` field (from FEAT-020) is pre-filled with the default text, the DM editing the placed piece effectively customises the default. Clarify the exact UX before planning.
-=======
->>>>>>> feat/FEAT-018
