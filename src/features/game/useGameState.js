@@ -3,7 +3,7 @@ import { BOARD, ROWS, COLS } from "../../map.js";
 import { makeComputeReveal, hasVisibleDoorForRoom, DOOR_NEIGHBOR_OFFSETS } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
-import { placeNoteMarker, updateNoteMarker, setMonsterSpecial, setChestTrap } from "../../placementState.js";
+import { placeNoteMarker, updateNoteMarker, setMonsterSpecial, setChestTrap, setTrapNote } from "../../placementState.js";
 import { isTrapPiece } from "../../pieces.js";
 import { moveSearchMarker, setSearchNoteAt, normalizeSearchNotes, removeSearchMarker } from "../../searchMarkers.js";
 import { placeSecretDoorMarker, removeSecretDoorMarker, linkSecretDoor, setSecretDoorMessage, resolveSecretDoorSearch } from "../../secretDoorMarkers.js";
@@ -143,6 +143,10 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const [openedChests, setOpenedChests] = useState(() => new Set());
   const [pendingChestResult, setPendingChestResult] = useState(null);
   const [pendingChestConfig, setPendingChestConfig] = useState(null);
+
+  // Trap interaction state
+  const [pendingTrapInteraction, setPendingTrapInteraction] = useState(null); // {anchorKey, isRevealed}|null
+  const [pendingTrapConfig, setPendingTrapConfig] = useState(null); // {anchorKey}|null
 
   // Secret door markers: cell-keyed, persisted
   const [secretDoorMarkers, setSecretDoorMarkers] = useState(() => initialSecretDoorMarkers ?? {});
@@ -312,7 +316,13 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
       // Play mode: clicking a trap warning intercepts fog reveal until revealed.
       const pieceAtCell = placedRef.current[k];
       if (shouldInterceptTrapClick(pieceAtCell, fogRef.current.has(k), revealedTrapsRef.current.has(k))) {
-        setRevealedTraps(prev => addRevealedTrap(prev, k));
+        setPendingTrapInteraction({ anchorKey: k, isRevealed: false });
+        return;
+      }
+
+      // Play mode: clicking an already-revealed trap opens the interaction popup.
+      if (isTrapPiece(pieceAtCell?.type) && revealedTrapsRef.current.has(k) && fogRef.current.has(k)) {
+        setPendingTrapInteraction({ anchorKey: k, isRevealed: true });
         return;
       }
 
@@ -496,6 +506,42 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     setRevealedTraps(prev => addRevealedTrap(prev, key));
   }, []);
 
+  const openTrapInteraction = useCallback((anchorKey, isRevealed) => {
+    setPendingTrapInteraction({ anchorKey, isRevealed });
+  }, []);
+
+  const closeTrapInteraction = useCallback(() => {
+    setPendingTrapInteraction(null);
+  }, []);
+
+  const disarmTrap = useCallback((anchorKey) => {
+    // NOTE: intentional — this is the only place play mode mutates placed
+    setPlaced(prev => {
+      const next = { ...prev };
+      delete next[anchorKey];
+      return next;
+    });
+    setRevealedTraps(prev => {
+      const next = new Set(prev);
+      next.delete(anchorKey);
+      return next;
+    });
+    setPendingTrapInteraction(null);
+  }, []);
+
+  const openTrapConfig = useCallback((anchorKey) => {
+    setPendingTrapConfig({ anchorKey });
+  }, []);
+
+  const saveTrapConfig = useCallback((anchorKey, trapNoteValue) => {
+    setPlaced(prev => setTrapNote(prev, anchorKey, trapNoteValue));
+    setPendingTrapConfig(null);
+  }, []);
+
+  const closeTrapConfig = useCallback(() => {
+    setPendingTrapConfig(null);
+  }, []);
+
   const confirmPendingReveal = useCallback(() => {
     const p = pendingRoomRevealRef.current;
     if (!p) return;
@@ -537,6 +583,10 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     pendingSecretDoorResult, closeSecretDoorResult,
     // Trap reveal
     revealedTraps, revealTrap,
+    // Trap interaction
+    pendingTrapInteraction, openTrapInteraction, closeTrapInteraction, disarmTrap,
+    // Trap config
+    pendingTrapConfig, setPendingTrapConfig, openTrapConfig, saveTrapConfig, closeTrapConfig,
     // Chest
     openedChests, openChest, closeChestResult, pendingChestResult,
     openChestConfig, saveChestConfig, pendingChestConfig, setPendingChestConfig,

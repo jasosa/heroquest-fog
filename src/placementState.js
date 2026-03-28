@@ -160,3 +160,12 @@ export function setChestTrap(placed, anchorKey, hasTrap, trapNote) {
   if (!placed[anchorKey]) return placed;
   return { ...placed, [anchorKey]: { ...placed[anchorKey], hasTrap, trapNote: trapNote ?? "" } };
 }
+
+/**
+ * Set the trapNote on a placed trap piece.
+ * No-op if no piece at anchorKey.
+ */
+export function setTrapNote(placed, anchorKey, trapNote) {
+  if (!placed[anchorKey]) return placed;
+  return { ...placed, [anchorKey]: { ...placed[anchorKey], trapNote } };
+}

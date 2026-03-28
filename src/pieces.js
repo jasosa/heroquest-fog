@@ -20,10 +20,10 @@ export const PIECE_CATEGORIES = [
   {
     id: "traps", label: "Traps",
     pieces: [
-      { id: "trap",         label: "Trap",            icon: "T",  color: "#ef5350", shape: "circle",  blocks: false },
-      { id: "pit",          label: "Pit Trap",        icon: "Pt", color: "#d32f2f", shape: "circle",  blocks: false, image: "Pit_Tile.png",     imageScale:  {board: 1, board2: 1, board3: 1 }},
-      { id: "spear",        label: "Spear Trap",      icon: "Sp", color: "#e64a19", shape: "circle",  blocks: false, image: "Spear.png",        imageScale:  {board: 1, board2: 1, board3: 1 }},
-      { id: "falling",      label: "Falling Block",   icon: "Fb", color: "#bf360c", shape: "square",  blocks: false, image: "Falling_Rocks.png", imageScale: {board: 1, board2: 1, board3: 1 }},
+      { id: "trap",         label: "Trap",            icon: "T",  color: "#ef5350", shape: "circle",  blocks: false, trapRules: "A hidden trap. The trap activates — the DM will tell you the effect." },
+      { id: "pit",          label: "Pit Trap",        icon: "Pt", color: "#d32f2f", shape: "circle",  blocks: false, image: "Pit_Tile.png",     imageScale:  {board: 1, board2: 1, board3: 1 }, trapRules: "Pit Trap — Fall in and lose 1 Body Point. An adjacent hero may attempt to help you climb out." },
+      { id: "spear",        label: "Spear Trap",      icon: "Sp", color: "#e64a19", shape: "circle",  blocks: false, image: "Spear.png",        imageScale:  {board: 1, board2: 1, board3: 1 }, trapRules: "Spear Trap — A spear shoots from the wall. Lose 2 Body Points." },
+      { id: "falling",      label: "Falling Block",   icon: "Fb", color: "#bf360c", shape: "square",  blocks: false, image: "Falling_Rocks.png", imageScale: {board: 1, board2: 1, board3: 1 }, trapRules: "Falling Block Trap — A stone block falls. Lose 3 Body Points." },
     ],
   },
   {

@@ -88,6 +88,23 @@ describe("shouldShowChestGlow", () => {
     expect(shouldShowChestGlow("goblin", false, true, false)).toBe(false))
 });
 
+describe("TokenOverlay — onTrapInteraction and warning glow", () => {
+  // We test the pure exported helpers only (component rendering not tested here).
+  // The warning image glow and onTrapInteraction prop are tested via integration.
+  // These tests verify the pure helper functions that drive those behaviors.
+
+  it("getTrapRenderMode returns 'warning' for unrevealed pit in play mode", () => {
+    const fog = new Set(["5,5"]);
+    expect(getTrapRenderMode("pit", false, fog, new Set(), "5,5", ["5,5"])).toBe("warning");
+  });
+
+  it("getTrapRenderMode returns 'real' for revealed pit in play mode", () => {
+    const fog = new Set(["5,5"]);
+    const revealed = new Set(["5,5"]);
+    expect(getTrapRenderMode("pit", false, fog, revealed, "5,5", ["5,5"])).toBe("real");
+  });
+});
+
 describe("shouldHideHeroStart — overlayMarker guard", () => {
   // The overlayMarker path uses the same helper to decide whether to render.
   it("returns true for overlayMarker='start' in play mode", () => {
