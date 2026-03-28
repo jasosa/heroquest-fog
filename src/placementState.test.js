@@ -8,6 +8,7 @@ import {
   updateNoteMarker,
   setMonsterSpecial,
   setChestTrap,
+  setTrapNote,
 } from "./placementState.js";
 
 // ─── Piece definitions used across tests ──────────────────────────────────────
@@ -292,6 +293,35 @@ describe("setChestTrap", () => {
     const result = setChestTrap(placed, "3,5", false, "")
     expect(result["3,5"].hasTrap).toBe(false)
     expect(result["3,5"].trapNote).toBe("")
+  });
+});
+
+// ─── setTrapNote ──────────────────────────────────────────────────────────────
+
+describe("setTrapNote", () => {
+  it("returns the same placed object when anchorKey does not exist", () => {
+    const placed = {};
+    expect(setTrapNote(placed, "3,5", "a note")).toBe(placed);
+  });
+
+  it("sets trapNote on the piece at anchorKey", () => {
+    const placed = { "3,5": { type: "pit", blocks: false } };
+    const result = setTrapNote(placed, "3,5", "Pit trap — lose 1 BP");
+    expect(result["3,5"].trapNote).toBe("Pit trap — lose 1 BP");
+    expect(result["3,5"].type).toBe("pit");
+  });
+
+  it("with empty string sets trapNote to empty string", () => {
+    const placed = { "3,5": { type: "pit", blocks: false, trapNote: "old" } };
+    const result = setTrapNote(placed, "3,5", "");
+    expect(result["3,5"].trapNote).toBe("");
+  });
+
+  it("result is a new object (does not mutate input)", () => {
+    const placed = { "3,5": { type: "pit", blocks: false } };
+    const result = setTrapNote(placed, "3,5", "note");
+    expect(result).not.toBe(placed);
+    expect(placed["3,5"].trapNote).toBeUndefined();
   });
 });
 

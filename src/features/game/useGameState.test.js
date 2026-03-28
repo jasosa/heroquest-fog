@@ -385,6 +385,121 @@ describe("openedChests state", () => {
   });
 });
 
+// ─── Trap interaction state ───────────────────────────────────────────────────
+
+describe("useGameState — trap interaction", () => {
+  it("openTrapInteraction(anchorKey, false) sets pendingTrapInteraction to { anchorKey, isRevealed: false }", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    act(() => result.current.openTrapInteraction("3,5", false));
+    expect(result.current.pendingTrapInteraction).toEqual({ anchorKey: "3,5", isRevealed: false });
+  });
+
+  it("openTrapInteraction(anchorKey, true) sets pendingTrapInteraction to { anchorKey, isRevealed: true }", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    act(() => result.current.openTrapInteraction("3,5", true));
+    expect(result.current.pendingTrapInteraction).toEqual({ anchorKey: "3,5", isRevealed: true });
+  });
+
+  it("closeTrapInteraction() sets pendingTrapInteraction to null", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    act(() => result.current.openTrapInteraction("3,5", false));
+    act(() => result.current.closeTrapInteraction());
+    expect(result.current.pendingTrapInteraction).toBeNull();
+  });
+
+  it("disarmTrap(anchorKey) removes the piece from placed", () => {
+    const { result } = renderHook(() => useGameState({
+      initialMode: "play",
+      initialPlaced: { "3,5": { type: "pit", blocks: false, coveredCells: ["3,5"] } },
+    }));
+    act(() => result.current.disarmTrap("3,5"));
+    expect(result.current.placed["3,5"]).toBeUndefined();
+  });
+
+  it("disarmTrap(anchorKey) removes the key from revealedTraps", () => {
+    const { result } = renderHook(() => useGameState({
+      initialMode: "play",
+      initialPlaced: { "3,5": { type: "pit", blocks: false, coveredCells: ["3,5"] } },
+    }));
+    act(() => result.current.revealTrap("3,5"));
+    act(() => result.current.disarmTrap("3,5"));
+    expect(result.current.revealedTraps.has("3,5")).toBe(false);
+  });
+
+  it("disarmTrap(anchorKey) sets pendingTrapInteraction to null", () => {
+    const { result } = renderHook(() => useGameState({
+      initialMode: "play",
+      initialPlaced: { "3,5": { type: "pit", blocks: false, coveredCells: ["3,5"] } },
+    }));
+    act(() => result.current.openTrapInteraction("3,5", false));
+    act(() => result.current.disarmTrap("3,5"));
+    expect(result.current.pendingTrapInteraction).toBeNull();
+  });
+});
+
+// ─── Trap config state ────────────────────────────────────────────────────────
+
+describe("useGameState — trap config", () => {
+  it("openTrapConfig(anchorKey) sets pendingTrapConfig to { anchorKey }", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit" }));
+    act(() => result.current.openTrapConfig("3,5"));
+    expect(result.current.pendingTrapConfig).toEqual({ anchorKey: "3,5" });
+  });
+
+  it("saveTrapConfig(anchorKey, trapNote) updates placed[anchorKey].trapNote and sets pendingTrapConfig to null", () => {
+    const { result } = renderHook(() => useGameState({
+      initialMode: "edit",
+      initialPlaced: { "3,5": { type: "pit", blocks: false, coveredCells: ["3,5"] } },
+    }));
+    act(() => result.current.openTrapConfig("3,5"));
+    act(() => result.current.saveTrapConfig("3,5", "Loses 1 BP"));
+    expect(result.current.placed["3,5"].trapNote).toBe("Loses 1 BP");
+    expect(result.current.pendingTrapConfig).toBeNull();
+  });
+});
+
+// ─── handleCell intercepts for trap interaction ───────────────────────────────
+
+describe("useGameState — handleCell trap intercepts in play mode", () => {
+  // BOARD[9][9] is "C". BOARD[9][10] is "C" (adjacent corridor).
+  // We place a trap at 9,9 and auto-reveal the cell via an adjacent start marker at 9,10.
+  // Actually we can't easily seed fog, so we test the pure shouldInterceptTrapClick behavior
+  // by checking that clicking a fog-revealed trap cell triggers the interaction popup.
+  // The simplest approach: place trap at a cell, reveal it manually via revealTrap (no,
+  // that's revealedTraps). Instead use handleCell on an adjacent cell to reveal fog.
+
+  it("handleCell in play mode: clicking a cell with a visible unrevealed trap sets pendingTrapInteraction", () => {
+    // Place a trap at 9,9 and a start marker at 9,8 (corridor) to seed fog.
+    // 9,8 is a corridor cell adjacent to 9,9 (also corridor) so auto-reveal will include 9,9.
+    const initialPlaced = {
+      "9,8": { type: "start", blocks: false, coveredCells: ["9,8"] },
+      "9,9": { type: "pit", blocks: false, coveredCells: ["9,9"] },
+    };
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
+    // Fog should include 9,9 from the start marker auto-reveal
+    expect(result.current.fog.has("9,9")).toBe(true);
+    // revealedTraps should NOT contain 9,9
+    expect(result.current.revealedTraps.has("9,9")).toBe(false);
+    // Clicking the trap cell should set pendingTrapInteraction (not auto-reveal the trap)
+    act(() => result.current.handleCell(9, 9));
+    expect(result.current.pendingTrapInteraction).toEqual({ anchorKey: "9,9", isRevealed: false });
+    expect(result.current.revealedTraps.has("9,9")).toBe(false);
+  });
+
+  it("handleCell in play mode: clicking a cell with an ALREADY revealed trap sets pendingTrapInteraction with isRevealed: true", () => {
+    const initialPlaced = {
+      "9,8": { type: "start", blocks: false, coveredCells: ["9,8"] },
+      "9,9": { type: "pit", blocks: false, coveredCells: ["9,9"] },
+    };
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
+    // First reveal the trap
+    act(() => result.current.revealTrap("9,9"));
+    // Now clicking the trap should set pendingTrapInteraction with isRevealed: true
+    act(() => result.current.handleCell(9, 9));
+    expect(result.current.pendingTrapInteraction).toEqual({ anchorKey: "9,9", isRevealed: true });
+  });
+});
+
 // BOARD[9][9] === "C" (corridor) — valid cell for searchsecret placement tests.
 describe("searchsecret tool in edit mode — no auto-popup", () => {
   it("placing a searchsecret marker does not open the config dialog", () => {

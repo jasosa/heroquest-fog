@@ -65,7 +65,9 @@ export function TokenOverlay({
   // Secret doors
   revealedSecretDoors,
   // Trap reveal
-  revealedTraps, onRevealTrap,
+  revealedTraps, onTrapInteraction,
+  // Trap config
+  onConfigureTrap,
   // Chest
   hasTrap, openedChests, onOpenChest, onConfigureChest,
   // Shared tooltip callbacks (fixed-position, avoids overflow:hidden clipping)
@@ -91,7 +93,7 @@ export function TokenOverlay({
       <img
         src="/tiles/Trap_Warning.png"
         alt="Trap"
-        onClick={e => { e.stopPropagation(); onRevealTrap?.(anchorKey); }}
+        onClick={e => { e.stopPropagation(); onTrapInteraction?.(anchorKey); }}
         onMouseEnter={e => onShowTooltip?.(e.clientX, e.clientY, "Trap!")}
         onMouseLeave={() => onHideTooltip?.()}
         style={{
@@ -103,6 +105,7 @@ export function TokenOverlay({
           zIndex: 10,
           pointerEvents: "auto",
           cursor: "pointer",
+          filter: "drop-shadow(0 0 4px #c0392b) drop-shadow(0 0 8px #e74c3caa)",
         }}
       />
     );
@@ -202,6 +205,9 @@ export function TokenOverlay({
     const chestGlowFilter = "drop-shadow(0 0 4px #b8860b) drop-shadow(0 0 8px #ffd700aa)";
     const isChestClickable = shouldInterceptChestClick(type, isChestInFog, isOpened) && !isEditMode;
 
+    // Trap image: clickable in play mode when revealed
+    const isTrapImage = isTrapPiece(type) && !isEditMode;
+
     // Hover callbacks for special monster note in play mode.
     const monsterHoverProps = (!isEditMode && isMonster && isSpecial && specialNote)
       ? {
@@ -211,13 +217,20 @@ export function TokenOverlay({
         }
       : {};
 
+    let imgOnClick;
+    if (isChestClickable) {
+      imgOnClick = e => { e.stopPropagation(); onOpenChest?.(anchorKey); };
+    } else if (isTrapImage) {
+      imgOnClick = e => { e.stopPropagation(); onTrapInteraction?.(anchorKey, true); };
+    }
+
     return (
       <>
         <img
           src={`/tiles/${tileSet}/${p.image}`}
           alt={p.label}
-          {...(!isChestClickable ? monsterHoverProps : {})}
-          onClick={isChestClickable ? (e => { e.stopPropagation(); onOpenChest?.(anchorKey); }) : undefined}
+          {...(!isChestClickable && !isTrapImage ? monsterHoverProps : {})}
+          onClick={imgOnClick}
           onMouseEnter={isChestClickable ? (e => onShowTooltip?.(e.clientX, e.clientY, "Chests can hide traps. Click to search.")) : (monsterHoverProps.onMouseEnter)}
           onMouseLeave={isChestClickable ? (() => onHideTooltip?.()) : (monsterHoverProps.onMouseLeave)}
           style={{
@@ -228,10 +241,10 @@ export function TokenOverlay({
             height: h,
             transform: `rotate(${(rotation ?? 0) * 90}deg)`,
             zIndex: isMonster ? 12 : 5,
-            pointerEvents: (isChest && !isEditMode && !isOpened && isChestInFog) || (isMonster && !isEditMode) ? "auto" : "none",
+            pointerEvents: (isChest && !isEditMode && !isOpened && isChestInFog) || (isMonster && !isEditMode) || isTrapImage ? "auto" : "none",
             objectFit: "fill",
             filter: showGlow ? chestGlowFilter : (specialFilter || undefined),
-            cursor: isChestClickable ? "pointer" : (monsterHoverProps.style?.cursor),
+            cursor: isChestClickable ? "pointer" : (isTrapImage ? "pointer" : (monsterHoverProps.style?.cursor)),
           }}
         />
 
@@ -278,6 +291,30 @@ export function TokenOverlay({
           >⚠</div>
         )}
 
+        {/* Trap image: configure button in edit mode */}
+        {isEditMode && isTrapPiece(type) && (
+          <button
+            onMouseDown={e => { e.stopPropagation(); onConfigureTrap?.(anchorKey); }}
+            style={{
+              position: "absolute",
+              left: cx - CELL * 0.18,
+              top: cy - CELL * 0.48,
+              width: CELL * 0.4,
+              height: CELL * 0.4,
+              background: "#333a",
+              color: "#fff",
+              border: "none",
+              borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: CELL * 0.28,
+              cursor: "pointer",
+              zIndex: 20,
+              padding: 0,
+            }}
+            title="Configure trap note"
+          >✎</button>
+        )}
+
         {overlayMarker && !(overlayMarker === "start" && !isEditMode) && (
           <div style={{
             position: "absolute",
@@ -303,6 +340,26 @@ export function TokenOverlay({
       zIndex: isHeroStart ? 8 : isMonster ? 12 : 5, pointerEvents: "none",
     }}>
       <Token type={type} />
+      {/* Trap config button in edit mode for plain trap token */}
+      {isEditMode && isTrapPiece(type) && (
+        <button
+          onMouseDown={e => { e.stopPropagation(); onConfigureTrap?.(anchorKey); }}
+          style={{
+            position: "absolute",
+            top: -8, right: -8,
+            width: 16, height: 16,
+            background: "#333a",
+            color: "#fff",
+            border: "none", borderRadius: "50%",
+            fontSize: 9, lineHeight: "16px", textAlign: "center",
+            cursor: "pointer",
+            zIndex: 20,
+            padding: 0,
+            pointerEvents: "auto",
+          }}
+          title="Configure trap note"
+        >✎</button>
+      )}
     </div>
   );
 }
