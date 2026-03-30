@@ -3,7 +3,7 @@ import { BOARD, ROWS, COLS } from "../../map.js";
 import { makeComputeReveal, hasVisibleDoorForRoom, DOOR_NEIGHBOR_OFFSETS } from "../../reveal.js";
 import { getCoveredCellKeys } from "../../pieceGeometry.js";
 import { PIECES } from "../../pieces.js";
-import { placeNoteMarker, updateNoteMarker, setMonsterSpecial, setChestTrap, setTrapSpringConfig } from "../../placementState.js";
+import { placeNoteMarker, updateNoteMarker, setMonsterSpecial, setChestTrap, setTrapSpringConfig, setTrapSpringConfigForAll } from "../../placementState.js";
 import { isTrapPiece } from "../../pieces.js";
 import { moveSearchMarker, setSearchNoteAt, normalizeSearchNotes, removeSearchMarker } from "../../searchMarkers.js";
 import { placeSecretDoorMarker, removeSecretDoorMarker, linkSecretDoor, setSecretDoorMessage, resolveSecretDoorSearch } from "../../secretDoorMarkers.js";
@@ -545,8 +545,14 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     setPendingTrapConfig({ anchorKey });
   }, []);
 
-  const saveTrapConfig = useCallback((anchorKey, { springMessage, removeAfterSpring }) => {
-    setPlaced(prev => setTrapSpringConfig(prev, anchorKey, { springMessage, removeAfterSpring }));
+  const saveTrapConfig = useCallback((anchorKey, { springMessage, removeAfterSpring, applyToAll }) => {
+    setPlaced(prev => {
+      const trapType = prev[anchorKey]?.type;
+      if (applyToAll && trapType) {
+        return setTrapSpringConfigForAll(prev, trapType, { springMessage, removeAfterSpring });
+      }
+      return setTrapSpringConfig(prev, anchorKey, { springMessage, removeAfterSpring });
+    });
     setPendingTrapConfig(null);
   }, []);
 

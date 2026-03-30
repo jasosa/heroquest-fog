@@ -169,3 +169,17 @@ export function setTrapSpringConfig(placed, anchorKey, { springMessage, removeAf
   if (!placed[anchorKey]) return placed;
   return { ...placed, [anchorKey]: { ...placed[anchorKey], springMessage, removeAfterSpring } };
 }
+
+/**
+ * Set springMessage and removeAfterSpring on all placed pieces matching trapType.
+ * Returns the original reference if no entries matched.
+ */
+export function setTrapSpringConfigForAll(placed, trapType, { springMessage, removeAfterSpring }) {
+  const matchingKeys = Object.keys(placed).filter(k => placed[k].type === trapType);
+  if (matchingKeys.length === 0) return placed;
+  const next = { ...placed };
+  for (const k of matchingKeys) {
+    next[k] = { ...placed[k], springMessage, removeAfterSpring };
+  }
+  return next;
+}

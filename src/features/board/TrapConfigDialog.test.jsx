@@ -20,13 +20,13 @@ describe("TrapConfigDialog", () => {
     expect(getByLabelText(/remove from board after spring/i).checked).toBe(true);
   });
 
-  it("Save calls onSave({ springMessage, removeAfterSpring }) with current values", () => {
+  it("Save calls onSave({ springMessage, removeAfterSpring, applyToAll }) with current values", () => {
     const onSave = vi.fn();
     const { getByText } = render(
       <TrapConfigDialog initialSpringMessage="hit" initialRemoveAfterSpring={false} onSave={onSave} onCancel={() => {}} />
     );
     fireEvent.click(getByText("Save"));
-    expect(onSave).toHaveBeenCalledWith({ springMessage: "hit", removeAfterSpring: false });
+    expect(onSave).toHaveBeenCalledWith({ springMessage: "hit", removeAfterSpring: false, applyToAll: false });
   });
 
   it("editing textarea then Save sends updated springMessage", () => {
@@ -36,7 +36,7 @@ describe("TrapConfigDialog", () => {
     );
     fireEvent.change(getByLabelText(/spring effect message/i), { target: { value: "updated note" } });
     fireEvent.click(getByText("Save"));
-    expect(onSave).toHaveBeenCalledWith({ springMessage: "updated note", removeAfterSpring: true });
+    expect(onSave).toHaveBeenCalledWith({ springMessage: "updated note", removeAfterSpring: true, applyToAll: false });
   });
 
   it("toggling checkbox then Save sends updated removeAfterSpring", () => {
@@ -46,7 +46,40 @@ describe("TrapConfigDialog", () => {
     );
     fireEvent.click(getByLabelText(/remove from board after spring/i));
     fireEvent.click(getByText("Save"));
-    expect(onSave).toHaveBeenCalledWith({ springMessage: "", removeAfterSpring: false });
+    expect(onSave).toHaveBeenCalledWith({ springMessage: "", removeAfterSpring: false, applyToAll: false });
+  });
+
+  it("when trapTypeLabel='Pit Trap', checkbox 'Apply to all Pit Trap traps in this quest' renders unchecked by default", () => {
+    const { getByLabelText } = render(
+      <TrapConfigDialog initialSpringMessage="" initialRemoveAfterSpring={true} trapTypeLabel="Pit Trap" onSave={() => {}} onCancel={() => {}} />
+    );
+    expect(getByLabelText(/apply to all pit trap traps in this quest/i).checked).toBe(false);
+  });
+
+  it("when trapTypeLabel is undefined, apply-to-all checkbox does not render", () => {
+    const { queryByLabelText } = render(
+      <TrapConfigDialog initialSpringMessage="" initialRemoveAfterSpring={true} onSave={() => {}} onCancel={() => {}} />
+    );
+    expect(queryByLabelText(/apply to all/i)).toBeNull();
+  });
+
+  it("checking apply-to-all checkbox then clicking Save calls onSave with applyToAll: true", () => {
+    const onSave = vi.fn();
+    const { getByLabelText, getByText } = render(
+      <TrapConfigDialog initialSpringMessage="" initialRemoveAfterSpring={true} trapTypeLabel="Pit Trap" onSave={onSave} onCancel={() => {}} />
+    );
+    fireEvent.click(getByLabelText(/apply to all pit trap traps in this quest/i));
+    fireEvent.click(getByText("Save"));
+    expect(onSave).toHaveBeenCalledWith({ springMessage: "", removeAfterSpring: true, applyToAll: true });
+  });
+
+  it("leaving apply-to-all unchecked → applyToAll: false in onSave payload", () => {
+    const onSave = vi.fn();
+    const { getByText } = render(
+      <TrapConfigDialog initialSpringMessage="" initialRemoveAfterSpring={true} trapTypeLabel="Pit Trap" onSave={onSave} onCancel={() => {}} />
+    );
+    fireEvent.click(getByText("Save"));
+    expect(onSave).toHaveBeenCalledWith({ springMessage: "", removeAfterSpring: true, applyToAll: false });
   });
 
   it("Cancel calls onCancel, does NOT call onSave", () => {
