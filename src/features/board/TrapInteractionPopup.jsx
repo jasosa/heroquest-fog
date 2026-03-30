@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { T } from "../../theme.js";
 
 const overlayStyle = {
@@ -21,17 +21,28 @@ const dialogStyle = {
   display: "flex", flexDirection: "column", gap: 14,
 };
 
-function SubLabel({ text }) {
-  return <div style={{ fontSize: 11, color: T.textFaint, marginTop: 2 }}>{text}</div>;
-}
+const btnClose = {
+  background: T.btnActiveBg, color: T.btnActiveText,
+  border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4,
+  padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: "bold",
+};
 
 export function TrapInteractionPopup({
-  anchorKey, pieceType, pieceLabel, pieceImage, springMessage, removeAfterSpring,
+  anchorKey, pieceLabel, pieceImage, springMessage, removeAfterSpring,
   alreadySprung, onSpringTrap, onDisarmTrap, onClose,
 }) {
   const initialPhase = alreadySprung ? "already_sprung" : "options";
   const [phase, setPhase] = useState(initialPhase);
-  const prevPhaseRef = useRef(initialPhase);
+
+  function doSpring() {
+    onSpringTrap?.(anchorKey, removeAfterSpring ?? true);
+    setPhase("spring_result");
+  }
+
+  function doDisarm() {
+    onDisarmTrap?.(anchorKey);
+    setPhase("disarm_result");
+  }
 
   // ── already_sprung ────────────────────────────────────────────────────────
   if (phase === "already_sprung") {
@@ -48,14 +59,7 @@ export function TrapInteractionPopup({
             <div style={{ fontSize: 13, color: T.text }}>{springMessage}</div>
           )}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button
-              onClick={onClose}
-              style={{
-                background: T.btnActiveBg, color: T.btnActiveText,
-                border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4,
-                padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold",
-              }}
-            >Close</button>
+            <button onClick={onClose} style={btnClose}>Close</button>
           </div>
         </div>
       </div>
@@ -68,58 +72,66 @@ export function TrapInteractionPopup({
       <div style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
           <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>Trap Sprung!</div>
+          {pieceLabel && (
+            <div style={{ fontSize: 13, color: T.text, fontWeight: "bold" }}>{pieceLabel}</div>
+          )}
           {springMessage && (
             <div style={{ fontSize: 13, color: T.text }}>{springMessage}</div>
           )}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button
-              onClick={onClose}
-              style={{
-                background: T.btnActiveBg, color: T.btnActiveText,
-                border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4,
-                padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold",
-              }}
-            >Close</button>
+            <button onClick={onClose} style={btnClose}>Close</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── disarm_confirm ────────────────────────────────────────────────────────
-  if (phase === "disarm_confirm") {
+  // ── disarm_result ─────────────────────────────────────────────────────────
+  if (phase === "disarm_result") {
     return (
-      <div style={overlayStyle} onMouseDown={() => setPhase(prevPhaseRef.current)}>
+      <div style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-          <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>Disarm Trap?</div>
+          <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>Trap Disarmed</div>
+          {pieceLabel && (
+            <div style={{ fontSize: 13, color: T.text, fontWeight: "bold" }}>{pieceLabel}</div>
+          )}
           <div style={{ fontSize: 13, color: T.text }}>
-            The trap will be marked as disarmed for this session.
+            The trap has been safely disarmed and removed for this session.
           </div>
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button
-              onClick={() => setPhase(prevPhaseRef.current)}
-              style={{
-                background: T.btnBg, color: T.btnText,
-                border: `1px solid ${T.btnBorder}`, borderRadius: 4,
-                padding: "6px 14px", cursor: "pointer", fontSize: 13,
-              }}
-            >Cancel</button>
-            <button
-              onClick={() => {
-                onDisarmTrap?.(anchorKey);
-                onClose?.();
-              }}
-              style={{
-                background: T.btnActiveBg, color: T.btnActiveText,
-                border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4,
-                padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold",
-              }}
-            >Confirm</button>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button onClick={onClose} style={btnClose}>Close</button>
           </div>
         </div>
       </div>
     );
   }
+
+  // ── shared action buttons (used in options and post_reveal) ───────────────
+  const actionButtons = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <button
+        onClick={doSpring}
+        style={{
+          background: "#c62828", color: "#fff", border: "none", borderRadius: 4,
+          padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold", textAlign: "left",
+        }}
+      >Spring Trap</button>
+      <button
+        onClick={doDisarm}
+        style={{
+          background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`, borderRadius: 4,
+          padding: "8px 14px", cursor: "pointer", fontSize: 13, textAlign: "left",
+        }}
+      >Disarm</button>
+      <button
+        onClick={onClose}
+        style={{
+          background: "transparent", color: T.textFaint, border: "none",
+          padding: "6px 0", cursor: "pointer", fontSize: 12, textAlign: "left",
+        }}
+      >Close</button>
+    </div>
+  );
 
   // ── post_reveal ───────────────────────────────────────────────────────────
   if (phase === "post_reveal") {
@@ -137,86 +149,56 @@ export function TrapInteractionPopup({
           {springMessage && (
             <div style={{ fontSize: 13, color: T.text }}>{springMessage}</div>
           )}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <button
-              onClick={() => {
-                onSpringTrap?.(anchorKey, removeAfterSpring ?? true);
-                setPhase("spring_result");
-              }}
-              style={{ background: "#c62828", color: "#fff", border: "none", borderRadius: 4, padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold", textAlign: "left" }}
-            >
-              Spring
-              <SubLabel text="Trigger the trap — effect applies immediately" />
-            </button>
-            <button
-              onClick={() => {
-                prevPhaseRef.current = "post_reveal";
-                setPhase("disarm_confirm");
-              }}
-              style={{ background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`, borderRadius: 4, padding: "6px 14px", cursor: "pointer", fontSize: 13, textAlign: "left" }}
-            >
-              Disarm
-              <SubLabel text="Remove trap for this session" />
-            </button>
-            <button
-              onClick={onClose}
-              style={{ background: "transparent", color: T.textFaint, border: "none", padding: "4px 0", cursor: "pointer", fontSize: 12, textAlign: "left" }}
-            >
-              Dismiss
-              <SubLabel text="Close without doing anything" />
-            </button>
-          </div>
+          {actionButtons}
         </div>
       </div>
     );
   }
 
-  // ── options ────────────────────────────────────────────────────────────────
+  // ── options ───────────────────────────────────────────────────────────────
   return (
     <div style={overlayStyle} onMouseDown={onClose}>
       <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
         <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>Trap Spotted!</div>
-        <div style={{ fontSize: 13, color: T.text }}>
-          A hero may attempt to jump over the trap — a black shield on a combat die springs the trap.
+        <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>
+          A hero can jump a trap. To jump a trap roll a Combat die when passing over it.
+          If you roll a black shield the trap is sprung (Click Spring Trap button) otherwise
+          you continue your movement.
+        </div>
+        <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>
+          An adjacent hero can disarm a trap. To disarm a trap follow regular HQ rules.
+          If you fail, the trap is sprung (Click Spring Trap button) otherwise click the Disarm button.
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <button
-            onClick={() => {
-              onSpringTrap?.(anchorKey, removeAfterSpring ?? true);
-              setPhase("spring_result");
+            onClick={doSpring}
+            style={{
+              background: "#c62828", color: "#fff", border: "none", borderRadius: 4,
+              padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold", textAlign: "left",
             }}
-            style={{ background: "#c62828", color: "#fff", border: "none", borderRadius: 4, padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold", textAlign: "left" }}
-          >
-            Spring
-            <SubLabel text="Trigger the trap — effect applies immediately" />
-          </button>
+          >Spring Trap</button>
           <button
-            onClick={() => {
-              prevPhaseRef.current = "options";
-              setPhase("post_reveal");
+            onClick={doDisarm}
+            style={{
+              background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`, borderRadius: 4,
+              padding: "8px 14px", cursor: "pointer", fontSize: 13, textAlign: "left",
             }}
-            style={{ background: T.btnActiveBg, color: T.btnActiveText, border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4, padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold", textAlign: "left" }}
-          >
-            Reveal
-            <SubLabel text="See trap type and effect — no action taken" />
-          </button>
+          >Disarm</button>
           <button
-            onClick={() => {
-              prevPhaseRef.current = "options";
-              setPhase("disarm_confirm");
+            onClick={() => setPhase("post_reveal")}
+            style={{
+              background: T.btnActiveBg, color: T.btnActiveText,
+              border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4,
+              padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold", textAlign: "left",
             }}
-            style={{ background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`, borderRadius: 4, padding: "6px 14px", cursor: "pointer", fontSize: 13, textAlign: "left" }}
-          >
-            Disarm
-            <SubLabel text="Remove trap for this session" />
-          </button>
+          >Reveal</button>
           <button
             onClick={onClose}
-            style={{ background: "transparent", color: T.textFaint, border: "none", padding: "4px 0", cursor: "pointer", fontSize: 12, textAlign: "left" }}
-          >
-            Dismiss
-            <SubLabel text="Close without doing anything" />
-          </button>
+            style={{
+              background: "transparent", color: T.textFaint, border: "none",
+              padding: "6px 0", cursor: "pointer", fontSize: 12, textAlign: "left",
+            }}
+          >Close</button>
         </div>
       </div>
     </div>
