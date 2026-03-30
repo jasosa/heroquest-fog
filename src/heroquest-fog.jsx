@@ -445,28 +445,6 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         );
       })()}
 
-      {/* Trap — play mode interaction popup */}
-      {gameState.pendingTrapInteraction && (() => {
-        const { anchorKey } = gameState.pendingTrapInteraction;
-        const piece = gameState.placed[anchorKey];
-        const pieceDef = piece ? PIECES[piece.type] : null;
-        const alreadySprung = gameState.springedTraps.has(anchorKey) && piece?.removeAfterSpring === false;
-        const resolvedSpringMessage = piece?.springMessage || pieceDef?.trapRules || "The trap activates — consult the DM.";
-        return (
-          <TrapInteractionPopup
-            anchorKey={anchorKey}
-            pieceType={piece?.type}
-            pieceLabel={pieceDef?.label}
-            pieceImage={pieceDef?.image}
-            springMessage={resolvedSpringMessage}
-            removeAfterSpring={piece?.removeAfterSpring ?? true}
-            alreadySprung={alreadySprung}
-            onSpringTrap={gameState.springTrap}
-            onDisarmTrap={gameState.disarmTrap}
-            onClose={gameState.closeTrapInteraction}
-          />
-        );
-      })()}
 
       {/* Trap — edit mode config dialog */}
       {gameState.pendingTrapConfig && (() => {
