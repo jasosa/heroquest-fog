@@ -153,3 +153,54 @@ describe("TokenOverlay — edit mode config button for traps", () => {
     expect(container.querySelector("button")).toBeTruthy();
   });
 });
+
+// ─── ISSUE-007: special monster tap shows note in play mode ───────────────────
+
+describe("TokenOverlay — special monster click shows note on mobile (play mode)", () => {
+  const baseMonsterProps = {
+    anchorKey: "5,5",
+    type: "goblin",
+    coveredCells: ["5,5"],
+    rotation: 0,
+    fog: new Set(["5,5"]),
+    isEditMode: false,
+    getTokenPos,
+    tileSet: "board2",
+    revealedTraps: new Set(),
+    isSpecial: true,
+    specialNote: "Boss goblin — immune to arrows",
+  };
+
+  it("clicking a special monster image in play mode calls onShowTooltip with the special note", () => {
+    const onShowTooltip = vi.fn();
+    const { container } = render(
+      <TokenOverlay {...baseMonsterProps} onShowTooltip={onShowTooltip} />
+    );
+    const img = container.querySelector("img");
+    fireEvent.click(img);
+    expect(onShowTooltip).toHaveBeenCalled();
+    const [,, content] = onShowTooltip.mock.calls[0];
+    expect(content).toBe("Boss goblin — immune to arrows");
+  });
+
+  it("clicking a non-special monster in play mode does NOT call onShowTooltip", () => {
+    const onShowTooltip = vi.fn();
+    const { container } = render(
+      <TokenOverlay {...baseMonsterProps} isSpecial={false} specialNote="" onShowTooltip={onShowTooltip} />
+    );
+    const img = container.querySelector("img");
+    fireEvent.click(img);
+    expect(onShowTooltip).not.toHaveBeenCalled();
+  });
+
+  it("clicking a special monster in edit mode does NOT call onShowTooltip", () => {
+    const onShowTooltip = vi.fn();
+    const { container } = render(
+      <TokenOverlay {...baseMonsterProps} isEditMode={true} onShowTooltip={onShowTooltip} />
+    );
+    const img = container.querySelector("img");
+    // In edit mode there's no img at the root level due to the edit button overlay; just check no tooltip call
+    fireEvent.click(img || container.firstChild);
+    expect(onShowTooltip).not.toHaveBeenCalled();
+  });
+});

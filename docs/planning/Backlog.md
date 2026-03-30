@@ -188,7 +188,7 @@ Description: If a tap lands on a chest cell but misses the image area (the image
 ### [ISSUE-007] Special monster notes inaccessible on mobile
 Priority: medium
 Impact: medium — affects gameplay on touch devices
-Status: not_started
+Status: committed
 Complexity: low
 Description: In play mode, special monster notes are only accessible via hover. On mobile/tablet they are completely inaccessible. Fix: in play mode, tapping a special monster (one with `isSpecial: true`) shows the note using the shared tooltip mechanism. A second tap or a tap elsewhere dismisses it — same pattern as note markers.
 
