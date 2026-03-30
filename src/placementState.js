@@ -162,10 +162,10 @@ export function setChestTrap(placed, anchorKey, hasTrap, trapNote) {
 }
 
 /**
- * Set the trapNote on a placed trap piece.
+ * Set springMessage and removeAfterSpring on a placed trap piece.
  * No-op if no piece at anchorKey.
  */
-export function setTrapNote(placed, anchorKey, trapNote) {
+export function setTrapSpringConfig(placed, anchorKey, { springMessage, removeAfterSpring }) {
   if (!placed[anchorKey]) return placed;
-  return { ...placed, [anchorKey]: { ...placed[anchorKey], trapNote } };
+  return { ...placed, [anchorKey]: { ...placed[anchorKey], springMessage, removeAfterSpring } };
 }

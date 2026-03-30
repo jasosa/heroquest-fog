@@ -37,6 +37,18 @@ describe("isSessionDirty", () => {
       isSessionDirty(new Set(), new Set(), new Set(), new Set(), { "R1": 1 })
     ).toBe(true);
   });
+
+  it("returns true when springedTraps is non-empty", () => {
+    expect(
+      isSessionDirty(new Set(), new Set(), new Set(), new Set(), {}, new Set(["k"]), new Set())
+    ).toBe(true);
+  });
+
+  it("returns true when disarmedTraps is non-empty", () => {
+    expect(
+      isSessionDirty(new Set(), new Set(), new Set(), new Set(), {}, new Set(), new Set(["k"]))
+    ).toBe(true);
+  });
 });
 
 describe("hasUnsavedChanges", () => {

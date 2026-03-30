@@ -58,6 +58,32 @@ describe("getTrapRenderMode", () => {
   });
 });
 
+describe("getTrapRenderMode — disarmedTraps and springedTraps", () => {
+  const fog = new Set(["3,5"]);
+  const emptyRevealedTraps = new Set();
+
+  it("returns 'hidden' when disarmedTraps contains the anchorKey in play mode", () => {
+    const disarmedTraps = new Set(["3,5"]);
+    expect(getTrapRenderMode("pit", false, fog, emptyRevealedTraps, "3,5", ["3,5"], disarmedTraps, new Set(), false)).toBe("hidden");
+  });
+
+  it("returns 'hidden' when springedTraps contains anchorKey and removeAfterSpring is true in play mode", () => {
+    const springedTraps = new Set(["3,5"]);
+    expect(getTrapRenderMode("pit", false, fog, emptyRevealedTraps, "3,5", ["3,5"], new Set(), springedTraps, true)).toBe("hidden");
+  });
+
+  it("returns 'real' when springedTraps contains anchorKey but removeAfterSpring is false", () => {
+    const springedTraps = new Set(["3,5"]);
+    const revealedTraps = new Set(["3,5"]);
+    expect(getTrapRenderMode("pit", false, fog, revealedTraps, "3,5", ["3,5"], new Set(), springedTraps, false)).toBe("real");
+  });
+
+  it("returns 'real' when piece in disarmedTraps but isEditMode is true", () => {
+    const disarmedTraps = new Set(["3,5"]);
+    expect(getTrapRenderMode("pit", true, fog, emptyRevealedTraps, "3,5", ["3,5"], disarmedTraps, new Set(), false)).toBe("real");
+  });
+});
+
 describe("shouldHideHeroStart", () => {
   // Hero Start in play mode → should be hidden
   it("returns true for type='start' in play mode (isEditMode=false)", () => {
