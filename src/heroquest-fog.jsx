@@ -419,7 +419,6 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         );
       })()}
 
-<<<<<<< HEAD
       {/* Trap — play mode interaction popup */}
       {gameState.pendingTrapInteraction && (() => {
         const { anchorKey, isRevealed } = gameState.pendingTrapInteraction;
@@ -447,7 +446,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           onSave={(trapNote) => gameState.saveTrapConfig(gameState.pendingTrapConfig.anchorKey, trapNote)}
           onCancel={gameState.closeTrapConfig}
         />
-=======
+      )}
+
       {/* Warning #2 — navigating back to library with unsaved edit changes */}
       {pendingBackToLibrary && (
         <div
@@ -508,7 +508,6 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
             </div>
           </div>
         </div>
->>>>>>> feat/FEAT-018
       )}
 
     </div>
