@@ -587,6 +587,47 @@ describe("useGameState — handleCell trap intercepts in play mode", () => {
   });
 });
 
+// ─── handleCell intercepts for chest interaction ──────────────────────────────
+
+describe("useGameState — handleCell chest intercept in play mode", () => {
+  // Place a chest at 9,9 with a start marker at 9,8 to seed fog.
+  const initialPlaced = {
+    "9,8": { type: "start", blocks: false, coveredCells: ["9,8"] },
+    "9,9": { type: "chest", blocks: false, coveredCells: ["9,9"] },
+  };
+
+  it("clicking a fog-revealed, un-opened chest cell opens the chest popup (not fog reveal)", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
+    // 9,9 should already be in fog via the start marker auto-reveal
+    expect(result.current.fog.has("9,9")).toBe(true);
+    expect(result.current.openedChests.has("9,9")).toBe(false);
+    const fogSizeBefore = result.current.fog.size;
+
+    act(() => result.current.handleCell(9, 9));
+
+    // pendingChestResult should be set (chest opened), not just fog expanded
+    expect(result.current.pendingChestResult).not.toBeNull();
+    // fog should NOT have grown (no fog reveal happened)
+    expect(result.current.fog.size).toBe(fogSizeBefore);
+  });
+
+  it("clicking an already-opened chest cell falls through to normal fog behaviour", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
+    // Open the chest first
+    act(() => result.current.openChest("9,9"));
+    act(() => result.current.closeChestResult());
+    expect(result.current.openedChests.has("9,9")).toBe(true);
+    const fogSizeBefore = result.current.fog.size;
+
+    act(() => result.current.handleCell(9, 9));
+
+    // chest is already open so no new popup should appear
+    expect(result.current.pendingChestResult).toBeNull();
+    // fog should have expanded (normal reveal happened)
+    expect(result.current.fog.size).toBeGreaterThan(fogSizeBefore);
+  });
+});
+
 // BOARD[9][9] === "C" (corridor) — valid cell for searchsecret placement tests.
 describe("searchsecret tool in edit mode — no auto-popup", () => {
   it("placing a searchsecret marker does not open the config dialog", () => {

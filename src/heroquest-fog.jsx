@@ -460,7 +460,6 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           />
         );
       })()}
-
       {/* Warning #2 — navigating back to library with unsaved edit changes */}
       {pendingBackToLibrary && (
         <div
