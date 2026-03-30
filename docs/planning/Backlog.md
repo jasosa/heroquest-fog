@@ -181,7 +181,7 @@ Description: Clicking outside the RoomConfirmDialog does nothing. All other dial
 ### [ISSUE-006] Chest click that misses image falls through to fog reveal
 Priority: medium
 Impact: medium — affects gameplay
-Status: not_started
+Status: committed
 Complexity: low
 Description: If a tap lands on a chest cell but misses the image area (the image is smaller than the cell at imageScale 0.85), `handleCell` runs the fog reveal path instead of opening the chest. Fix: add a chest intercept check in `handleCell` in `useGameState.js`, same pattern as the existing trap intercept (`shouldInterceptTrapClick`).
 

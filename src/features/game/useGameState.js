@@ -175,6 +175,7 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const secretDoorMarkersRef    = useLatest(secretDoorMarkers);
   const revealedSecretDoorsRef  = useLatest(revealedSecretDoors);
   const revealedTrapsRef        = useLatest(revealedTraps);
+  const openedChestsRef         = useLatest(openedChests);
   // Selecting a new tool always resets rotation to 0.
   const handleSetTool = useCallback((newTool) => {
     setTool(newTool);
@@ -323,6 +324,14 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
       // Play mode: clicking an already-revealed trap opens the interaction popup.
       if (isTrapPiece(pieceAtCell?.type) && revealedTrapsRef.current.has(k) && fogRef.current.has(k)) {
         setPendingTrapInteraction({ anchorKey: k, isRevealed: true });
+        return;
+      }
+
+      // Play mode: clicking a chest cell (even if click misses the image) intercepts fog reveal.
+      if (shouldInterceptChestClick(pieceAtCell?.type, fogRef.current.has(k), openedChestsRef.current.has(k))) {
+        setOpenedChests(prev => new Set([...prev, k]));
+        const piece = placedRef.current[k];
+        setPendingChestResult(resolveChestResult(piece?.hasTrap ?? false, piece?.trapNote ?? ""));
         return;
       }
 
