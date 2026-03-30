@@ -217,11 +217,15 @@ export function TokenOverlay({
         }
       : {};
 
+    const isSpecialMonsterInPlay = !isEditMode && isMonster && isSpecial && specialNote;
+
     let imgOnClick;
     if (isChestClickable) {
       imgOnClick = e => { e.stopPropagation(); onOpenChest?.(anchorKey); };
     } else if (isTrapImage) {
       imgOnClick = e => { e.stopPropagation(); onTrapInteraction?.(anchorKey, true); };
+    } else if (isSpecialMonsterInPlay) {
+      imgOnClick = e => { e.stopPropagation(); onShowTooltip?.(e.clientX, e.clientY, specialNote); };
     }
 
     return (
