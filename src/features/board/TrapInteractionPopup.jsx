@@ -33,16 +33,34 @@ export function TrapInteractionPopup({
 }) {
   const initialPhase = alreadySprung ? "already_sprung" : "options";
   const [phase, setPhase] = useState(initialPhase);
+  const [prevPhase, setPrevPhase] = useState(initialPhase);
 
   function doSpring() {
     onSpringTrap?.(anchorKey, removeAfterSpring ?? true);
     setPhase("spring_result");
   }
 
-  function doDisarm() {
+  function requestDisarm() {
+    setPrevPhase(phase);
+    setPhase("disarm_confirm");
+  }
+
+  function confirmDisarm() {
     onDisarmTrap?.(anchorKey);
     setPhase("disarm_result");
   }
+
+  function cancelDisarm() {
+    setPhase(prevPhase);
+  }
+
+  const trapImg = pieceImage && (
+    <img
+      src={`/tiles/board2/${pieceImage}`}
+      alt={pieceLabel}
+      style={{ width: 80, height: 80, objectFit: "contain", alignSelf: "center" }}
+    />
+  );
 
   // ── already_sprung ────────────────────────────────────────────────────────
   if (phase === "already_sprung") {
@@ -75,11 +93,39 @@ export function TrapInteractionPopup({
           {pieceLabel && (
             <div style={{ fontSize: 13, color: T.text, fontWeight: "bold" }}>{pieceLabel}</div>
           )}
+          {trapImg}
           {springMessage && (
             <div style={{ fontSize: 13, color: T.text }}>{springMessage}</div>
           )}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button onClick={onClose} style={btnClose}>Close</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── disarm_confirm ────────────────────────────────────────────────────────
+  if (phase === "disarm_confirm") {
+    return (
+      <div style={overlayStyle} onMouseDown={onClose}>
+        <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
+          <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>Disarm Trap?</div>
+          {pieceLabel && (
+            <div style={{ fontSize: 13, color: T.text, fontWeight: "bold" }}>{pieceLabel}</div>
+          )}
+          <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>
+            Are you sure you want to disarm this trap? It will be removed for this session.
+          </div>
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <button
+              onClick={cancelDisarm}
+              style={{
+                background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`,
+                borderRadius: 4, padding: "8px 16px", cursor: "pointer", fontSize: 13,
+              }}
+            >Cancel</button>
+            <button onClick={confirmDisarm} style={btnClose}>Confirm Disarm</button>
           </div>
         </div>
       </div>
@@ -117,7 +163,7 @@ export function TrapInteractionPopup({
         }}
       >Spring Trap</button>
       <button
-        onClick={doDisarm}
+        onClick={requestDisarm}
         style={{
           background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`, borderRadius: 4,
           padding: "8px 14px", cursor: "pointer", fontSize: 13, textAlign: "left",
@@ -139,13 +185,7 @@ export function TrapInteractionPopup({
       <div style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
           <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>{pieceLabel}</div>
-          {pieceImage && (
-            <img
-              src={`/tiles/board2/${pieceImage}`}
-              alt={pieceLabel}
-              style={{ width: 80, height: 80, objectFit: "contain", alignSelf: "center" }}
-            />
-          )}
+          {trapImg}
           {springMessage && (
             <div style={{ fontSize: 13, color: T.text }}>{springMessage}</div>
           )}
@@ -178,7 +218,7 @@ export function TrapInteractionPopup({
             }}
           >Spring Trap</button>
           <button
-            onClick={doDisarm}
+            onClick={requestDisarm}
             style={{
               background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`, borderRadius: 4,
               padding: "8px 14px", cursor: "pointer", fontSize: 13, textAlign: "left",
