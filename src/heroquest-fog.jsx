@@ -45,12 +45,13 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
   secretDoorMarkers, revealedSecretDoors, onEditSecretDoorConfig, onSearchSecretDoor,
   revealedTraps, onTrapInteraction, onConfigureTrap,
   openedChests, onOpenChest, onConfigureChest,
-  zoom, onZoomIn, onZoomOut }) {
+  zoom, onZoomIn, onZoomOut,
+  trapInteractionPopup }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
       alignItems: "center", gap: 10, padding: "16px 20px",
-      overflow: "hidden", minHeight: 0,
+      overflow: "hidden", minHeight: 0, position: "relative",
     }}>
       <h1 style={{
         margin: 0, fontSize: 20, letterSpacing: 8, flexShrink: 0,
@@ -133,6 +134,8 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
       <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1, flexShrink: 0 }}>
         HEROQUEST BOARD · 22 ROOMS · 26×19
       </div>
+
+      {trapInteractionPopup}
     </div>
   );
 }
@@ -283,6 +286,24 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         placementMessage={gameState.questPlacementMessage}
         onDismissPlacementPopup={gameState.dismissPlacementPopup}
         zoom={zoom} onZoomIn={zoomIn} onZoomOut={zoomOut}
+        trapInteractionPopup={gameState.pendingTrapInteraction && (() => {
+          const { anchorKey, isRevealed } = gameState.pendingTrapInteraction;
+          const piece = gameState.placed[anchorKey];
+          const pieceDef = piece ? PIECES[piece.type] : null;
+          return (
+            <TrapInteractionPopup
+              anchorKey={anchorKey}
+              isRevealed={isRevealed}
+              pieceType={piece?.type}
+              pieceLabel={pieceDef?.label}
+              pieceImage={pieceDef?.image}
+              trapNote={piece?.trapNote}
+              onRevealTrap={gameState.revealTrap}
+              onDisarmTrap={gameState.disarmTrap}
+              onClose={gameState.closeTrapInteraction}
+            />
+          );
+        })()}
       />
       <Sidebar
         mode={gameState.mode} tool={gameState.tool}
@@ -415,26 +436,6 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
             initialTrapNote={piece?.trapNote ?? ""}
             onSave={(hasTrap, trapNote) => gameState.saveChestConfig(gameState.pendingChestConfig.anchorKey, hasTrap, trapNote)}
             onCancel={() => gameState.setPendingChestConfig(null)}
-          />
-        );
-      })()}
-
-      {/* Trap — play mode interaction popup */}
-      {gameState.pendingTrapInteraction && (() => {
-        const { anchorKey, isRevealed } = gameState.pendingTrapInteraction;
-        const piece = gameState.placed[anchorKey];
-        const pieceDef = piece ? PIECES[piece.type] : null;
-        return (
-          <TrapInteractionPopup
-            anchorKey={anchorKey}
-            isRevealed={isRevealed}
-            pieceType={piece?.type}
-            pieceLabel={pieceDef?.label}
-            pieceImage={pieceDef?.image}
-            trapNote={piece?.trapNote}
-            onRevealTrap={gameState.revealTrap}
-            onDisarmTrap={gameState.disarmTrap}
-            onClose={gameState.closeTrapInteraction}
           />
         );
       })()}

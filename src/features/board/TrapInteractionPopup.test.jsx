@@ -7,6 +7,22 @@ afterEach(() => cleanup());
 
 const noop = () => {};
 
+// ─── overlay positioning ──────────────────────────────────────────────────────
+
+describe("TrapInteractionPopup — overlay positioning", () => {
+  const baseProps = {
+    anchorKey: "3,5", isRevealed: false, pieceType: "pit",
+    pieceLabel: "Pit Trap", pieceImage: "Pit_Tile.png", trapNote: "",
+    onRevealTrap: vi.fn(), onDisarmTrap: vi.fn(), onClose: vi.fn(),
+  };
+
+  it("overlay uses position absolute (not fixed) so it covers only the board panel", () => {
+    const { container } = render(<TrapInteractionPopup {...baseProps} />);
+    const overlay = container.firstChild;
+    expect(overlay.style.position).toBe("absolute");
+  });
+});
+
 // ─── Task 4: options phase (isRevealed=false) ─────────────────────────────────
 
 describe("TrapInteractionPopup — options phase", () => {
