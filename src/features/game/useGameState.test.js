@@ -500,11 +500,12 @@ describe("useGameState — springTrap", () => {
     expect(result.current.springedTraps.has("3,5")).toBe(true);
   });
 
-  it("springTrap sets pendingTrapInteraction to null", () => {
+  it("springTrap does NOT close the popup (pendingTrapInteraction stays open)", () => {
     const { result } = renderHook(() => useGameState({ initialMode: "play" }));
     act(() => result.current.openTrapInteraction("3,5", false));
     act(() => result.current.springTrap("3,5", false));
-    expect(result.current.pendingTrapInteraction).toBeNull();
+    expect(result.current.pendingTrapInteraction).not.toBeNull();
+    expect(result.current.pendingTrapInteraction.anchorKey).toBe("3,5");
   });
 });
 

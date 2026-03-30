@@ -530,7 +530,6 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const springTrap = useCallback((anchorKey, removeAfterSpring) => {
     setRevealedTraps(prev => addRevealedTrap(prev, anchorKey));
     setSpringedTraps(prev => new Set([...prev, anchorKey]));
-    setPendingTrapInteraction(null);
   }, []);
 
   const openTrapConfig = useCallback((anchorKey) => {
