@@ -20,6 +20,16 @@ const baseProps = {
   onClose: vi.fn(),
 };
 
+// ─── overlay positioning ──────────────────────────────────────────────────────
+
+describe("TrapInteractionPopup — overlay positioning", () => {
+  it("overlay uses position absolute (not fixed) so it covers only the board panel", () => {
+    const { container } = render(<TrapInteractionPopup {...baseProps} />);
+    const overlay = container.firstChild;
+    expect(overlay.style.position).toBe("absolute");
+  });
+});
+
 // ─── options phase ────────────────────────────────────────────────────────────
 
 describe("TrapInteractionPopup — options phase", () => {

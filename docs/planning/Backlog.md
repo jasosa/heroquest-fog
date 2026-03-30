@@ -223,7 +223,7 @@ Description: The jump-over rule text in `TrapInteractionPopup` is inverted. The 
 ### [ISSUE-012] Trap interaction popup should be centered on the board image
 Priority: medium
 Impact: medium — visual UX
-Status: not_started
+Status: committed
 Complexity: low
 Description: The trap interaction popup is currently centered on the full viewport (`position: fixed, inset: 0`). It should be centered relative to the board image area, not the entire screen (which includes the sidebar). Fix: change the overlay to be `position: absolute` on the board scroll container, or use a different centering approach that keeps the popup over the board.
 

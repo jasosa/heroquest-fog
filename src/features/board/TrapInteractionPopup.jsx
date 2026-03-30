@@ -2,7 +2,7 @@ import { useState } from "react";
 import { T } from "../../theme.js";
 
 const overlayStyle = {
-  position: "fixed", inset: 0,
+  position: "absolute", inset: 0,
   background: "#0008",
   display: "flex", alignItems: "center", justifyContent: "center",
   zIndex: 100,
