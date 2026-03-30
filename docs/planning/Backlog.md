@@ -162,7 +162,7 @@ Description: Two safeguard warnings:
 
 ### [FEAT-019] Trap warning visual indicator (glow)
 Priority: medium
-Status: not_started
+Status: committed
 Complexity: low
 Description: Spotted-but-unrevealed trap warnings should have a red/orange glow to signal interactivity, distinct from the amber/gold glow used on chests. Amber = treasure opportunity; red = physical danger — players must distinguish them instantly on a small screen without reading tooltips.
 
