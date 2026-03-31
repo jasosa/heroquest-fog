@@ -106,7 +106,7 @@ Description: When a user clicks on a room that is not connected to any door, a p
 
 ### [FEAT-009] Edit mode panel should be collapsable
 Priority: low
-Status: not_started
+Status: committed
 Complexity: low
 Description: Edit mode panel should be collapsable. By default it should be expanded. Should be closed with an icon and opened again with the same icon.
 
