@@ -455,7 +455,8 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           <TrapConfigDialog
             initialSpringMessage={piece?.springMessage ?? pieceDef?.trapRules ?? ""}
             initialRemoveAfterSpring={piece?.removeAfterSpring ?? true}
-            onSave={({ springMessage, removeAfterSpring }) => gameState.saveTrapConfig(anchorKey, { springMessage, removeAfterSpring })}
+            trapTypeLabel={pieceDef?.label}
+            onSave={({ springMessage, removeAfterSpring, applyToAll }) => gameState.saveTrapConfig(anchorKey, { springMessage, removeAfterSpring, applyToAll })}
             onCancel={gameState.closeTrapConfig}
           />
         );

@@ -19,12 +19,14 @@ const dialogStyle = {
   display: "flex", flexDirection: "column", gap: 14,
 };
 
-export function TrapConfigDialog({ initialSpringMessage, initialRemoveAfterSpring, onSave, onCancel }) {
+export function TrapConfigDialog({ initialSpringMessage, initialRemoveAfterSpring, trapTypeLabel, onSave, onCancel }) {
   const [springMessage, setSpringMessage] = useState(initialSpringMessage ?? "");
   const [removeAfterSpring, setRemoveAfterSpring] = useState(initialRemoveAfterSpring ?? true);
+  const [applyToAll, setApplyToAll] = useState(false);
 
   const msgId = "trap-spring-msg";
   const chkId = "trap-remove-after";
+  const allChkId = "trap-apply-to-all";
 
   return (
     <div style={overlayStyle} onMouseDown={onCancel}>
@@ -63,6 +65,20 @@ export function TrapConfigDialog({ initialSpringMessage, initialRemoveAfterSprin
           </label>
         </div>
 
+        {trapTypeLabel && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              id={allChkId}
+              type="checkbox"
+              checked={applyToAll}
+              onChange={e => setApplyToAll(e.target.checked)}
+            />
+            <label htmlFor={allChkId} style={{ fontSize: 13, color: T.text, cursor: "pointer" }}>
+              Apply to all {trapTypeLabel} traps in this quest
+            </label>
+          </div>
+        )}
+
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <button
             onClick={onCancel}
@@ -73,7 +89,7 @@ export function TrapConfigDialog({ initialSpringMessage, initialRemoveAfterSprin
             }}
           >Cancel</button>
           <button
-            onClick={() => onSave({ springMessage, removeAfterSpring })}
+            onClick={() => onSave({ springMessage, removeAfterSpring, applyToAll })}
             style={{
               background: T.btnActiveBg, color: T.btnActiveText,
               border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4,
