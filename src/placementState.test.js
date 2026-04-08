@@ -9,6 +9,7 @@ import {
   setMonsterSpecial,
   setChestTrap,
   setTrapSpringConfig,
+  setTrapSpringConfigForAll,
 } from "./placementState.js";
 
 // ─── Piece definitions used across tests ──────────────────────────────────────
@@ -323,6 +324,44 @@ describe("setTrapSpringConfig", () => {
     const placed = { "3,5": { type: "pit", blocks: false, springMessage: "old" } };
     const result = setTrapSpringConfig(placed, "3,5", { springMessage: "", removeAfterSpring: true });
     expect(result["3,5"].springMessage).toBe("");
+  });
+});
+
+// ─── setTrapSpringConfigForAll ────────────────────────────────────────────────
+
+describe("setTrapSpringConfigForAll", () => {
+  it("returns same object reference when no entries match trapType", () => {
+    const placed = { "3,5": { type: "spear", blocks: false } };
+    expect(setTrapSpringConfigForAll(placed, "pit", { springMessage: "x", removeAfterSpring: true })).toBe(placed);
+  });
+
+  it("updates only entries matching trapType (two pit + one spear → only pit entries updated)", () => {
+    const placed = {
+      "1,1": { type: "pit", blocks: false },
+      "2,2": { type: "pit", blocks: false },
+      "3,3": { type: "spear", blocks: false },
+    };
+    const result = setTrapSpringConfigForAll(placed, "pit", { springMessage: "Ouch", removeAfterSpring: true });
+    expect(result["1,1"].springMessage).toBe("Ouch");
+    expect(result["1,1"].removeAfterSpring).toBe(true);
+    expect(result["2,2"].springMessage).toBe("Ouch");
+    expect(result["2,2"].removeAfterSpring).toBe(true);
+    expect(result["3,3"].springMessage).toBeUndefined();
+    expect(result["3,3"].removeAfterSpring).toBeUndefined();
+  });
+
+  it("does not mutate input — returns a new object", () => {
+    const placed = { "1,1": { type: "pit", blocks: false } };
+    const result = setTrapSpringConfigForAll(placed, "pit", { springMessage: "x", removeAfterSpring: false });
+    expect(result).not.toBe(placed);
+    expect(placed["1,1"].springMessage).toBeUndefined();
+  });
+
+  it("one matching entry behaves same as setTrapSpringConfig for that entry", () => {
+    const placed = { "3,5": { type: "pit", blocks: false } };
+    const resultAll = setTrapSpringConfigForAll(placed, "pit", { springMessage: "Loses 1 BP", removeAfterSpring: true });
+    const resultSingle = setTrapSpringConfig(placed, "3,5", { springMessage: "Loses 1 BP", removeAfterSpring: true });
+    expect(resultAll["3,5"]).toEqual(resultSingle["3,5"]);
   });
 });
 

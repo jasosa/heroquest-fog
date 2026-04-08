@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { T } from "../../theme.js";
 import { EditPanel } from "../../components/EditPanel.jsx";
 import { PIECE_CATEGORIES } from "../../pieces.js";
@@ -100,138 +101,171 @@ export function Sidebar({
   questTitle, questDescription, setQuestTitle, setQuestDescription,
   placementMessage, setQuestPlacementMessage,
 }) {
+  const [isCollapsed, setIsCollapsed] = useState(
+    () => localStorage.getItem("hq_sidebar_collapsed") === "true"
+  );
+
+  function toggleCollapsed() {
+    const next = !isCollapsed;
+    setIsCollapsed(next);
+    localStorage.setItem("hq_sidebar_collapsed", String(next));
+  }
+
   return (
     <div style={{
-      width: 270,
+      width: isCollapsed ? 44 : 270,
+      transition: "width 180ms ease-out",
+      overflow: "hidden",
+      flexShrink: 0,
       background: T.sidebarBg,
       borderLeft: `1px solid ${T.sidebarBorder}`,
-      display: "flex", flexDirection: "column",
-      padding: "18px 14px",
-      gap: 8,
-      overflowY: "auto",
+      display: "flex",
+      flexDirection: "column",
     }}>
-      {/* Back to library */}
-      {onBack && (
-        <button
-          onClick={onBack}
-          style={{
-            alignSelf: "flex-start", padding: "4px 10px",
-            background: T.btnBg, color: T.btnText,
-            border: `1px solid ${T.btnBorder}`,
-            cursor: "pointer", fontFamily: "inherit", fontSize: 10,
-            letterSpacing: 1, marginBottom: 2,
-          }}
-        >
-          ← Library
-        </button>
-      )}
+      {/* Toggle button — always visible */}
+      <button
+        onClick={toggleCollapsed}
+        style={{
+          width: "100%", minHeight: 44,
+          background: T.btnBg, color: T.btnText,
+          border: `1px solid ${T.btnBorder}`,
+          borderLeft: "none",
+          cursor: "pointer", fontFamily: "inherit",
+        }}
+      >
+        {isCollapsed ? "‹" : "›"}
+      </button>
 
-      {/* Quest title */}
-      {setQuestTitle ? (
-        mode === "edit" ? (
-          <input
-            value={questTitle}
-            onChange={e => setQuestTitle(e.target.value)}
-            placeholder="Quest title"
-            style={inputStyle}
-          />
-        ) : (
-          <div style={{ fontSize: 13, color: T.title, fontWeight: "bold", letterSpacing: 1 }}>
-            {questTitle}
-          </div>
-        )
-      ) : null}
+      {/* Inner content wrapper */}
+      <div style={{
+        display: "flex", flexDirection: "column", flex: 1,
+        padding: "18px 14px",
+        gap: 8,
+        overflowY: "auto",
+      }}>
+        {/* Back to library */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            style={{
+              alignSelf: "flex-start", padding: "4px 10px",
+              background: T.btnBg, color: T.btnText,
+              border: `1px solid ${T.btnBorder}`,
+              cursor: "pointer", fontFamily: "inherit", fontSize: 10,
+              letterSpacing: 1, marginBottom: 2,
+            }}
+          >
+            ← Library
+          </button>
+        )}
 
-      {/* Quest description */}
-      {setQuestDescription ? (
-        mode === "edit" ? (
+        {/* Quest title */}
+        {setQuestTitle ? (
+          mode === "edit" ? (
+            <input
+              value={questTitle}
+              onChange={e => setQuestTitle(e.target.value)}
+              placeholder="Quest title"
+              style={inputStyle}
+            />
+          ) : (
+            <div style={{ fontSize: 13, color: T.title, fontWeight: "bold", letterSpacing: 1 }}>
+              {questTitle}
+            </div>
+          )
+        ) : null}
+
+        {/* Quest description */}
+        {setQuestDescription ? (
+          mode === "edit" ? (
+            <textarea
+              value={questDescription}
+              onChange={e => setQuestDescription(e.target.value)}
+              placeholder="Quest description"
+              rows={3}
+              style={{ ...inputStyle, resize: "vertical" }}
+            />
+          ) : questDescription ? (
+            <div style={{
+              fontSize: 10, color: T.textMuted, lineHeight: 1.5,
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+            }}>
+              {questDescription}
+            </div>
+          ) : null
+        ) : null}
+
+        {/* Placement message — edit mode only */}
+        {setQuestPlacementMessage && mode === "edit" && (
           <textarea
-            value={questDescription}
-            onChange={e => setQuestDescription(e.target.value)}
-            placeholder="Quest description"
+            value={placementMessage ?? ""}
+            onChange={e => setQuestPlacementMessage(e.target.value)}
+            placeholder="Hero placement message (shown at quest start)"
             rows={3}
             style={{ ...inputStyle, resize: "vertical" }}
           />
-        ) : questDescription ? (
-          <div style={{
-            fontSize: 10, color: T.textMuted, lineHeight: 1.5,
-            overflow: "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: "vertical",
-          }}>
-            {questDescription}
+        )}
+
+        {/* Divider */}
+        <div style={{ borderTop: `1px solid ${T.divider}`, marginTop: 2, marginBottom: 2 }} />
+
+        <div style={{
+          textAlign: "center", marginBottom: 4,
+          fontSize: 13, letterSpacing: 4, color: T.title,
+          textTransform: "uppercase", borderBottom: `1px solid ${T.divider}`,
+          paddingBottom: 12,
+        }}>
+          Quest Master
+        </div>
+
+        <ModeToggle mode={mode} onSetMode={setMode} />
+
+        {mode === "play"
+          ? <PlayPanel onReset={onReset} />
+          : (
+            <>
+              <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} saveError={saveError} tileSet={bgImage} />
+            </>
+          )
+        }
+
+        {/* Board background selector */}
+        <div style={{
+          marginTop: 8, padding: "10px 12px",
+          background: T.panelBg, border: `1px solid ${T.panelBorder}`,
+          fontSize: 10, color: T.textMuted,
+        }}>
+          <div style={{ marginBottom: 6, letterSpacing: 2, textTransform: "uppercase", fontWeight: "bold", color: T.text }}>
+            Board Style
           </div>
-        ) : null
-      ) : null}
-
-      {/* Placement message — edit mode only */}
-      {setQuestPlacementMessage && mode === "edit" && (
-        <textarea
-          value={placementMessage ?? ""}
-          onChange={e => setQuestPlacementMessage(e.target.value)}
-          placeholder="Hero placement message (shown at quest start)"
-          rows={3}
-          style={{ ...inputStyle, resize: "vertical" }}
-        />
-      )}
-
-      {/* Divider */}
-      <div style={{ borderTop: `1px solid ${T.divider}`, marginTop: 2, marginBottom: 2 }} />
-
-      <div style={{
-        textAlign: "center", marginBottom: 4,
-        fontSize: 13, letterSpacing: 4, color: T.title,
-        textTransform: "uppercase", borderBottom: `1px solid ${T.divider}`,
-        paddingBottom: 12,
-      }}>
-        Quest Master
-      </div>
-
-      <ModeToggle mode={mode} onSetMode={setMode} />
-
-      {mode === "play"
-        ? <PlayPanel onReset={onReset} />
-        : (
-          <>
-            <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} saveError={saveError} tileSet={bgImage} />
-          </>
-        )
-      }
-
-      {/* Board background selector */}
-      <div style={{
-        marginTop: 8, padding: "10px 12px",
-        background: T.panelBg, border: `1px solid ${T.panelBorder}`,
-        fontSize: 10, color: T.textMuted,
-      }}>
-        <div style={{ marginBottom: 6, letterSpacing: 2, textTransform: "uppercase", fontWeight: "bold", color: T.text }}>
-          Board Style
+          <div style={{ display: "flex", gap: 6 }}>
+            {[["board", "Board 1"], ["board2", "Board 2"], ["board3", "Board 3"]].map(([b, label]) => (
+              <button key={b} onClick={() => setBgImage(b)} style={{
+                flex: 1, padding: "5px 0", fontSize: 9, cursor: "pointer",
+                fontFamily: "inherit", letterSpacing: 1, textTransform: "uppercase",
+                background: bgImage === b ? T.btnActiveBg : T.btnBg,
+                color: bgImage === b ? T.btnActiveText : T.btnText,
+                border: `1px solid ${bgImage === b ? T.btnActiveBdr : T.btnBorder}`,
+                transition: "all 0.15s",
+              }}>
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
-          {[["board", "Board 1"], ["board2", "Board 2"], ["board3", "Board 3"]].map(([b, label]) => (
-            <button key={b} onClick={() => setBgImage(b)} style={{
-              flex: 1, padding: "5px 0", fontSize: 9, cursor: "pointer",
-              fontFamily: "inherit", letterSpacing: 1, textTransform: "uppercase",
-              background: bgImage === b ? T.btnActiveBg : T.btnBg,
-              color: bgImage === b ? T.btnActiveText : T.btnText,
-              border: `1px solid ${bgImage === b ? T.btnActiveBdr : T.btnBorder}`,
-              transition: "all 0.15s",
-            }}>
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      <div style={{
-        marginTop: "auto", paddingTop: 14,
-        borderTop: `1px solid ${T.divider}`,
-        fontSize: 9, color: T.textFaint, lineHeight: 1.8,
-        textAlign: "center",
-      }}>
-        v0.2 — Real HeroQuest board<br />
-        22 rooms · quest editor next
+        <div style={{
+          marginTop: "auto", paddingTop: 14,
+          borderTop: `1px solid ${T.divider}`,
+          fontSize: 9, color: T.textFaint, lineHeight: 1.8,
+          textAlign: "center",
+        }}>
+          v0.2 — Real HeroQuest board<br />
+          22 rooms · quest editor next
+        </div>
       </div>
     </div>
   );

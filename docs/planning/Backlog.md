@@ -106,7 +106,7 @@ Description: When a user clicks on a room that is not connected to any door, a p
 
 ### [FEAT-009] Edit mode panel should be collapsable
 Priority: low
-Status: not_started
+Status: committed
 Complexity: low
 Description: Edit mode panel should be collapsable. By default it should be expanded. Should be closed with an icon and opened again with the same icon.
 
@@ -209,7 +209,7 @@ Description: The edit affordance buttons on placed pieces (pencil for note/searc
 ### [ISSUE-010] SecretDoorConfigDialog cancel saves instead of discarding changes
 Priority: low
 Impact: low — unexpected behavior
-Status: not_started
+Status: in_progress
 Complexity: low
 Description: The cancel action in `SecretDoorConfigDialog` re-saves the existing values rather than discarding unsaved changes. This is opaque to the DM and inconsistent with every other cancel in the app. Fix: cancel should discard uncommitted state without writing to the placed piece.
 
@@ -268,6 +268,6 @@ When a player clicks "Spring" in the trap popup (ISSUE-013), the spring effect m
 
 ### [FEAT-021] Default trap rules text should be editable per trap type in edit mode
 Priority: medium
-Status: not_started
+Status: committed
 Complexity: low
-Description: The default trap rules text shown in the trap popup is currently hardcoded in `TrapInteractionPopup.jsx` as a `TRAP_RULES` constant. The DM should be able to edit the default rules text per trap type globally (not per placed instance). This could be a global settings panel or per-piece default in `pieces.js` that is surfaced as editable in a trap-type settings area. Alternatively, if the per-placed `trapNote` field (from FEAT-020) is pre-filled with the default text, the DM editing the placed piece effectively customises the default. Clarify the exact UX before planning.
+Description: The DM should be able to edit the default rules text per trap type globally (not per placed instance). This could be a global settings panel or per-piece default in `pieces.js` that is surfaced as editable in a trap-type settings area. Alternatively, if the per-placed `trapNote` field (from FEAT-020) is pre-filled with the default text, the DM editing the placed piece effectively customises the default. Clarify the exact UX before planning.
