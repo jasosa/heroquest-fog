@@ -209,7 +209,7 @@ Description: The edit affordance buttons on placed pieces (pencil for note/searc
 ### [ISSUE-010] SecretDoorConfigDialog cancel saves instead of discarding changes
 Priority: low
 Impact: low — unexpected behavior
-Status: in_progress
+Status: committed
 Complexity: low
 Description: The cancel action in `SecretDoorConfigDialog` re-saves the existing values rather than discarding unsaved changes. This is opaque to the DM and inconsistent with every other cancel in the app. Fix: cancel should discard uncommitted state without writing to the placed piece.
 

@@ -657,4 +657,17 @@ describe("searchsecret tool in edit mode — no auto-popup", () => {
     act(() => { result.current.openSecretDoorEdit("9,9"); });
     expect(result.current.pendingSecretDoorEdit).toEqual({ cellKey: "9,9" });
   });
+
+  it("cancelSecretDoorEdit closes the dialog without modifying secretDoorMarkers", () => {
+    const { result } = renderHook(() =>
+      useGameState({ initialMode: "edit" })
+    );
+    act(() => { result.current.setTool("searchsecret"); });
+    act(() => { result.current.handleCell(9, 9); });
+    act(() => { result.current.openSecretDoorEdit("9,9"); });
+    const markersBefore = result.current.secretDoorMarkers["9,9"];
+    act(() => { result.current.cancelSecretDoorEdit(); });
+    expect(result.current.pendingSecretDoorEdit).toBeNull();
+    expect(result.current.secretDoorMarkers["9,9"]).toEqual(markersBefore);
+  });
 });

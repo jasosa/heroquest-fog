@@ -497,6 +497,10 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     setPendingSecretDoorEdit({ cellKey });
   }, []);
 
+  const cancelSecretDoorEdit = useCallback(() => {
+    setPendingSecretDoorEdit(null);
+  }, []);
+
   const saveSecretDoorConfig = useCallback((cellKey, linkedDoorKey, message) => {
     setSecretDoorMarkers(prev => {
       let next = linkSecretDoor(prev, cellKey, linkedDoorKey);
@@ -597,7 +601,7 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     removeSearchMarker: handleRemoveSearchMarker,
     // Secret door markers
     secretDoorMarkers, revealedSecretDoors,
-    pendingSecretDoorEdit, openSecretDoorEdit, saveSecretDoorConfig, deleteSecretDoorMarker,
+    pendingSecretDoorEdit, openSecretDoorEdit, cancelSecretDoorEdit, saveSecretDoorConfig, deleteSecretDoorMarker,
     pendingSecretDoorResult, closeSecretDoorResult,
     // Trap reveal
     revealedTraps, revealTrap,

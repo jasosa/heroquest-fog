@@ -409,7 +409,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
             secretDoorOptions={secretDoorOptions}
             onSave={(linkedDoorKey, message) => gameState.saveSecretDoorConfig(cellKey, linkedDoorKey, message)}
             onDelete={() => gameState.deleteSecretDoorMarker(cellKey)}
-            onCancel={() => gameState.saveSecretDoorConfig(cellKey, entry.linkedDoorKey, entry.message)}
+            onCancel={gameState.cancelSecretDoorEdit}
           />
         );
       })()}
