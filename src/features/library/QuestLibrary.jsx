@@ -164,7 +164,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           textTransform: "uppercase", textAlign: "center",
           fontFamily: FONT_HEADING,
           borderBottom: `1px solid ${T.sidebarDivider}`, paddingBottom: 12, marginBottom: 4,
-          textShadow: "0 0 10px #c8921a55",
+          textShadow: `0 0 10px ${T.accentGold}55`,
         }}>
           Quest Books
         </div>
@@ -281,7 +281,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
         {/* Header */}
         <div className="mb-4">
           <h1 style={{
-            margin: 0, fontSize: 24, letterSpacing: 4, color: T.title,
+            margin: 0, fontSize: 24, letterSpacing: 4, color: T.sidebarTitle,
             textTransform: "uppercase", fontWeight: "normal",
             fontFamily: FONT_TITLE, textShadow: "0 2px 8px #c4a87066",
           }}>
@@ -366,7 +366,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
         {/* Quest cards */}
         {visibleQuests.length === 0 ? (
-          <div style={{ color: T.textFaint, fontSize: 14, letterSpacing: 2, textAlign: "center", marginTop: 60 }}>
+          <div style={{ color: T.sidebarTextFaint, fontSize: 14, letterSpacing: 2, textAlign: "center", marginTop: 60 }}>
             No quests yet. Create one to get started.
           </div>
         ) : (
@@ -374,7 +374,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             {visibleQuests.map(quest => {
               const bookName = books.find(b => b.id === quest.questBookId)?.title;
               return (
-                <div key={quest.id} className="card" style={{ boxShadow: "0 1px 4px #c4a87022" }}>
+                <div key={quest.id} className="card" style={{ boxShadow: "0 1px 4px #c4a87022", background: T.panelBg }}>
                   <div className="card-body d-flex flex-column gap-2 p-3">
                     <div style={{ fontSize: 14, fontWeight: "bold", color: T.sidebarTitle, letterSpacing: 1, fontFamily: FONT_HEADING }}>
                       {quest.title}

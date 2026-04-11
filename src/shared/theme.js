@@ -7,13 +7,13 @@ export const FONT_BODY     = "'IM Fell English', 'Palatino Linotype', serif";   
 
 export const T = {
   // ── Board / main parchment area ─────────────────────────────────────────
-  pageBg:        "#e2cfaa",   // warm parchment
+  pageBg:        "#12100e",   // near-black
   title:         "#6e1408",   // deep crimson — headings on parchment
   text:          "#2a1208",   // dark brown — body on parchment
   textMuted:     "#5a3010",
   textFaint:     "#8a6040",
   accent:        "#9b2a1a",   // danger / active red
-  accentGold:    "#c8921a",   // gold accent
+  accentGold:    "#f0c040",   // gold accent
 
   // Buttons — light context (dialogs, board area)
   btnBg:         "#d8c49a",
@@ -24,7 +24,7 @@ export const T = {
   btnActiveText: "#f8eedc",
 
   // Panels — dialogs, quest cards (on parchment)
-  panelBg:       "#e8dcc4",
+  panelBg:       "#1e1a12",
   panelBorder:   "#c4a870",
   divider:       "#c4a070",
 
@@ -32,23 +32,23 @@ export const T = {
   sidebarBg:     "#1a0e06",   // dark leather
   sidebarBorder: "#8a6420",   // burnished gold border
 
-  sidebarTitle:      "#c8921a",   // gold heading text
+  sidebarTitle:      "#f0d080",   // gold heading text
   sidebarText:       "#e0cca0",   // warm parchment text on dark
-  sidebarTextMuted:  "#907040",   // muted gold-brown
-  sidebarTextFaint:  "#5a4020",
+  sidebarTextMuted:  "#c8b888",   // muted gold-brown
+  sidebarTextFaint:  "#907040",
 
   sidebarBtnBg:        "#2a1608",   // dark wood
   sidebarBtnBorder:    "#6a4a18",   // tarnished gold
-  sidebarBtnText:      "#d8b870",   // light gold text
+  sidebarBtnText:      "#d8c888",   // light gold text
   sidebarBtnActiveBg:  "#7a1a0a",   // crimson active
-  sidebarBtnActiveBdr: "#c8921a",   // gold border on active
+  sidebarBtnActiveBdr: "#f0c040",   // gold border on active
   sidebarBtnActiveText:"#f8eedc",
 
   sidebarPanelBg:     "#120a04",   // darker inset panel
   sidebarPanelBorder: "#5a3e10",
 
   sidebarInputBg:     "#221208",
-  sidebarInputBorder: "#6a4a18",
+  sidebarInputBorder: "#9a7a30",
   sidebarInputText:   "#e0cca0",
   sidebarDivider:     "#4a3010",
 };

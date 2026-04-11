@@ -47,15 +47,15 @@ body {
 .btn-hq-dark {
   --bs-btn-bg:                 #2a1608;
   --bs-btn-border-color:       #6a4a18;
-  --bs-btn-color:              #d8b870;
+  --bs-btn-color:              #d8c888;
   --bs-btn-hover-bg:           #3a2010;
   --bs-btn-hover-border-color: #8a6420;
   --bs-btn-hover-color:        #e0cca0;
   --bs-btn-active-bg:          #7a1a0a;
   --bs-btn-active-color:       #f8eedc;
-  --bs-btn-active-border-color:#c8921a;
+  --bs-btn-active-border-color:#f0c040;
   --bs-btn-disabled-bg:        #1a0e06;
-  --bs-btn-disabled-color:     #5a4020;
+  --bs-btn-disabled-color:     #907040;
   --bs-btn-disabled-border-color: #4a3010;
   --bs-btn-border-radius:      2px;
   font-family: var(--bs-btn-font-family);
@@ -67,14 +67,14 @@ body {
 /* Dark input override (for sidebar / dark-context forms) */
 .hq-input-dark {
   background:   #221208;
-  border-color: #6a4a18;
-  color:        #e0cca0;
+  border-color: #9a7a30;
+  color:        #e8dfc8;
 }
 .hq-input-dark:focus {
   background:   #2a1608;
-  border-color: #c8921a;
-  color:        #e0cca0;
-  box-shadow:   0 0 0 0.2rem #c8921a33;
+  border-color: #f0c040;
+  color:        #e8dfc8;
+  box-shadow:   0 0 0 0.2rem #f0c04033;
 }
 
 /* Modal backdrop (React-controlled — no Bootstrap JS) */

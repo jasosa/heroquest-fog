@@ -150,7 +150,7 @@ export function Sidebar({
           fontSize: 11, letterSpacing: 4, color: T.sidebarTitle,
           textTransform: "uppercase", borderBottom: `1px solid ${T.sidebarDivider}`,
           paddingBottom: 12, fontFamily: FONT_HEADING,
-          textShadow: "0 0 12px #c8921a66",
+          textShadow: `0 0 12px ${T.accentGold}66`,
         }}>
           Quest Master
         </div>

@@ -56,7 +56,7 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
     }}>
       <h1 style={{
         margin: 0, fontSize: 20, letterSpacing: 6, flexShrink: 0,
-        color: T.title, textTransform: "uppercase",
+        color: T.sidebarTitle, textTransform: "uppercase",
         textShadow: "0 2px 8px #c4a87066",
         fontWeight: "normal",
         fontFamily: FONT_TITLE,
@@ -66,8 +66,8 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
 
       <div style={{
         fontSize: 9, letterSpacing: 3, textTransform: "uppercase", flexShrink: 0,
-        color: mode === "edit" ? T.accentGold : "#2a6a2a",
-        border: `1px solid ${mode === "edit" ? T.accentGold : "#2a6a2a"}`,
+        color: mode === "edit" ? T.accentGold : "#4caf50",
+        border: `1px solid ${mode === "edit" ? T.accentGold : "#4caf50"}`,
         padding: "3px 12px",
         fontFamily: FONT_HEADING,
       }}>
@@ -148,7 +148,7 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
 // ═══════════════════════════════════════════════
 //  GAME SCREEN
 // ═══════════════════════════════════════════════
-function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
+export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
   const gameState = useGameState({
     initialPlaced: quest?.placed ?? {},
     initialDoors: quest?.doors ?? {},

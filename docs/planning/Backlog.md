@@ -55,7 +55,7 @@ Description: When the DM resets fog during a play session, reset `hasShownPlacem
 
 ### [FEAT-022] Dark theme overhaul — JIME-inspired high-contrast palette
 Priority: high
-Status: not_started
+Status: committed
 Complexity: low
 Description: Replace the current colour tokens in `theme.js` with a JIME-inspired dark palette that passes WCAG AA contrast (4.5:1 minimum) everywhere. The core rule is: dark background → bright text, never same-tone combinations.
 
