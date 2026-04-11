@@ -32,6 +32,16 @@ function ModeToggle({ mode, onSetMode }) {
 }
 
 function PlayPanel({ onReset }) {
+  const [legendVisible, setLegendVisible] = useState(
+    () => localStorage.getItem("hq_legend_visible") !== "false"
+  );
+
+  function toggleLegend() {
+    const next = !legendVisible;
+    setLegendVisible(next);
+    localStorage.setItem("hq_legend_visible", String(next));
+  }
+
   return (
     <>
       <p style={{ fontSize: 11, color: T.sidebarTextMuted, lineHeight: 1.7, margin: 0, marginTop: 4, fontFamily: FONT_BODY }}>
@@ -53,22 +63,39 @@ function PlayPanel({ onReset }) {
       </button>
 
       <div style={{ marginTop: 8, fontSize: 9, color: T.sidebarTextMuted, lineHeight: 1.8, fontFamily: FONT_BODY }}>
-        <div style={{ color: T.sidebarTitle, marginBottom: 4, letterSpacing: 3, textTransform: "uppercase", fontFamily: FONT_HEADING, fontSize: 9 }}>Legend</div>
-        {[
-          { color: "#271809", label: "Corridor (revealed)" },
-          { color: "#060401", label: "Unexplored" },
-        ].map(({ color, label }) => (
-          <div key={label} className="d-flex align-items-center gap-2">
-            <div style={{ width: 10, height: 10, background: color, border: `1px solid ${T.sidebarBtnBorder}`, flexShrink: 0 }} />
-            {label}
+        <div className="d-flex align-items-center justify-content-between mb-1">
+          <div style={{ color: T.sidebarTitle, letterSpacing: 3, textTransform: "uppercase", fontFamily: FONT_HEADING, fontSize: 9 }}>
+            Legend
           </div>
-        ))}
-        {Object.entries(ROOM_COLORS).map(([id, { revealed }]) => (
-          <div key={id} className="d-flex align-items-center gap-2">
-            <div style={{ width: 10, height: 10, background: revealed, border: `1px solid ${T.sidebarBtnBorder}`, flexShrink: 0 }} />
-            {id} (revealed)
-          </div>
-        ))}
+          <button
+            onClick={toggleLegend}
+            className="btn btn-hq-dark"
+            style={{ padding: "1px 6px", fontSize: 9, letterSpacing: 1 }}
+            title={legendVisible ? "Hide legend" : "Show legend"}
+          >
+            {legendVisible ? "Hide" : "Show"}
+          </button>
+        </div>
+
+        {legendVisible && (
+          <>
+            {[
+              { color: "#271809", label: "Corridor (revealed)" },
+              { color: "#060401", label: "Unexplored" },
+            ].map(({ color, label }) => (
+              <div key={label} className="d-flex align-items-center gap-2">
+                <div style={{ width: 10, height: 10, background: color, border: `1px solid ${T.sidebarBtnBorder}`, flexShrink: 0 }} />
+                {label}
+              </div>
+            ))}
+            {Object.entries(ROOM_COLORS).map(([id, { revealed }]) => (
+              <div key={id} className="d-flex align-items-center gap-2">
+                <div style={{ width: 10, height: 10, background: revealed, border: `1px solid ${T.sidebarBtnBorder}`, flexShrink: 0 }} />
+                {id} (revealed)
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </>
   );
