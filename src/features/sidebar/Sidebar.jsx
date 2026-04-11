@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { T } from "../../theme.js";
-import { EditPanel } from "../../components/EditPanel.jsx";
-import { PIECE_CATEGORIES } from "../../pieces.js";
+import { T } from "../../shared/theme.js";
+import { EditPanel } from "./EditPanel.jsx";
+import { PIECE_CATEGORIES } from "../../shared/pieces.js";
 
 // Room colors used in the play-mode legend
 const ROOM_COLORS = {

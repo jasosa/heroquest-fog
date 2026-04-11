@@ -1,7 +1,7 @@
 import { memo } from "react";
-import { CELL } from "../../map.js";
-import { PIECES } from "../../pieces.js";
-import { T } from "../../theme.js";
+import { CELL } from "../../shared/map.js";
+import { PIECES } from "../../shared/pieces.js";
+import { T } from "../../shared/theme.js";
 
 // rerender-memo: cells only re-render when their own props change.
 // coverage — the placed entry whose footprint includes this cell (or undefined)

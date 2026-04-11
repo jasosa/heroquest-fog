@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { loadCalibration, saveCalibration } from "./questStorage.js";
-import { useMapTransform } from "./components/MapCalibrator.jsx";
+import { loadCalibration, saveCalibration } from "../../shared/questStorage.js";
+import { useMapTransform } from "./MapCalibrator.jsx";
 
 // ─── localStorage mock (not available in node test env) ───────────────────────
 let store = {};

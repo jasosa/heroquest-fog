@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { T } from "./theme.js";
+import { T } from "../../shared/theme.js";
 import {
   loadQuestBooks,
   loadQuests,
@@ -12,11 +12,11 @@ import {
   exportQuestAsJson,
   importQuestFromJson,
   migrateQuests,
-} from "./questStorage.js";
-import { sortQuests } from "./questSort.js";
-import { EditQuestBookDialog } from "./features/library/EditQuestBookDialog.jsx";
-import { AssignQuestBookDialog } from "./features/library/AssignQuestBookDialog.jsx";
-import { assignQuestToBook } from "./features/library/assignQuestBook.js";
+} from "../../shared/questStorage.js";
+import { sortQuests } from "../../shared/questSort.js";
+import { EditQuestBookDialog } from "./EditQuestBookDialog.jsx";
+import { AssignQuestBookDialog } from "./AssignQuestBookDialog.jsx";
+import { assignQuestToBook } from "./assignQuestBook.js";
 
 // ─── Small shared input style ─────────────────────────────────────────────────
 const inputStyle = {

@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { BOARD, ROWS, COLS } from "../../map.js";
-import { makeComputeReveal, hasVisibleDoorForRoom, DOOR_NEIGHBOR_OFFSETS } from "../../reveal.js";
-import { getCoveredCellKeys } from "../../pieceGeometry.js";
-import { PIECES } from "../../pieces.js";
-import { placeNoteMarker, updateNoteMarker, setMonsterSpecial, setChestTrap, setTrapSpringConfig, setTrapSpringConfigForAll } from "../../placementState.js";
-import { isTrapPiece } from "../../pieces.js";
-import { moveSearchMarker, setSearchNoteAt, normalizeSearchNotes, removeSearchMarker } from "../../searchMarkers.js";
-import { placeSecretDoorMarker, removeSecretDoorMarker, linkSecretDoor, setSecretDoorMessage, resolveSecretDoorSearch } from "../../secretDoorMarkers.js";
+import { BOARD, ROWS, COLS } from "../../shared/map.js";
+import { makeComputeReveal, hasVisibleDoorForRoom, DOOR_NEIGHBOR_OFFSETS } from "../../shared/reveal.js";
+import { getCoveredCellKeys } from "../../shared/pieceGeometry.js";
+import { PIECES } from "../../shared/pieces.js";
+import { placeNoteMarker, updateNoteMarker, setMonsterSpecial, setChestTrap, setTrapSpringConfig, setTrapSpringConfigForAll } from "./placementState.js";
+import { isTrapPiece } from "../../shared/pieces.js";
+import { moveSearchMarker, setSearchNoteAt, normalizeSearchNotes, removeSearchMarker } from "../board/searchMarkers.js";
+import { placeSecretDoorMarker, removeSecretDoorMarker, linkSecretDoor, setSecretDoorMessage, resolveSecretDoorSearch } from "../board/secretDoorMarkers.js";
 
 export const SEARCH_MAX = 4;
 

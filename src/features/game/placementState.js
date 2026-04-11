@@ -1,4 +1,4 @@
-import { getCoveredCellKeys } from "./pieceGeometry.js";
+import { getCoveredCellKeys } from "../../shared/pieceGeometry.js";
 
 // Find the anchor key of the piece whose footprint covers cell key `k`.
 function findAnchor(placed, k) {

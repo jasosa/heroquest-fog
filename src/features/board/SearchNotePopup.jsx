@@ -1,4 +1,4 @@
-import { T } from "../../theme.js";
+import { T } from "../../shared/theme.js";
 
 const SEARCH_DEFAULT_MESSAGE = "Draw a treasure card!";
 

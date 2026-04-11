@@ -10,7 +10,10 @@
       "Bash(node:*)",
       "Bash(curl:*)",
       "Bash(ls -la /tmp/*.png)",
-      "Bash(find /tmp -name *.png)"
+      "Bash(find /tmp -name *.png)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "WebSearch"
     ]
   }
 }

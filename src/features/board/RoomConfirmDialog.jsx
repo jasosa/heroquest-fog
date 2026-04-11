@@ -1,4 +1,4 @@
-import { T } from "../../theme.js";
+import { T } from "../../shared/theme.js";
 
 export function RoomConfirmDialog({ onConfirm, onCancel }) {
   return (

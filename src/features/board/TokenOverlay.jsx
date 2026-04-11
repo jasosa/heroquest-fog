@@ -1,6 +1,6 @@
-import { CELL } from "../../map.js";
-import { PIECES, PIECE_CATEGORY_ID, resolveScale, isTrapPiece } from "../../pieces.js";
-import { T } from "../../theme.js";
+import { CELL } from "../../shared/map.js";
+import { PIECES, PIECE_CATEGORY_ID, resolveScale, isTrapPiece } from "../../shared/pieces.js";
+import { T } from "../../shared/theme.js";
 
 // Pure helper: returns true when a chest should show an amber-gold glow.
 // Only glows in play mode, when the cell is in fog, and the chest has not been opened.

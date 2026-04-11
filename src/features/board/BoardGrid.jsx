@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import { BOARD, ROWS, COLS, CELL } from "../../map.js";
-import { loadCalibration } from "../../questStorage.js";
-import { useMapTransform } from "../../components/MapCalibrator.jsx";
+import { BOARD, ROWS, COLS, CELL } from "../../shared/map.js";
+import { loadCalibration } from "../../shared/questStorage.js";
+import { useMapTransform } from "../calibration/MapCalibrator.jsx";
 import BoardCell from "./BoardCell.jsx";
 import { TokenOverlay } from "./TokenOverlay.jsx";
 import { DoorOverlay } from "./DoorOverlay.jsx";

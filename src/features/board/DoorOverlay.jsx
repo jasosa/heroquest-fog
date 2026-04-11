@@ -1,6 +1,6 @@
-import { CELL } from "../../map.js";
-import { PIECES } from "../../pieces.js";
-import { resolveScale } from "../../pieces.js";
+import { CELL } from "../../shared/map.js";
+import { PIECES } from "../../shared/pieces.js";
+import { resolveScale } from "../../shared/pieces.js";
 
 const DOOR_COLOR     = "#9c6b2e";
 const DOOR_THICKNESS = 6;

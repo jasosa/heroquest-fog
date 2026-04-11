@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { T } from "../../theme.js";
+import { T } from "../../shared/theme.js";
 
 const inputStyle = {
   background: T.btnBg,

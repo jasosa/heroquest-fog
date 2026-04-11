@@ -1,4 +1,4 @@
-import { T } from "../../theme.js";
+import { T } from "../../shared/theme.js";
 
 const DEFAULT_MESSAGE = "Place your heroes in the stairway";
 

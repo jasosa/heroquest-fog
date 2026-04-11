@@ -2,8 +2,8 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
 import { PieceButton, EditPanel } from "./EditPanel.jsx";
-import { Sidebar } from "../features/sidebar/Sidebar.jsx";
-import { PIECE_CATEGORIES } from "../pieces.js";
+import { Sidebar } from "./Sidebar.jsx";
+import { PIECE_CATEGORIES } from "../../shared/pieces.js";
 
 afterEach(cleanup);
 

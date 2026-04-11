@@ -13,9 +13,9 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ROWS, COLS } from "../map.js";
-import { togglePlacedPiece, rotatePlacedPiece, toggleDoor, cycleDoorRotation } from "../placementState.js";
-import { EditPanel } from "./EditPanel.jsx";
+import { ROWS, COLS } from "../../shared/map.js";
+import { togglePlacedPiece, rotatePlacedPiece, toggleDoor, cycleDoorRotation } from "../game/placementState.js";
+import { EditPanel } from "../sidebar/EditPanel.jsx";
 
 // ---------------------------------------------------------------------------
 // Math helpers
