@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { T } from "../../shared/theme.js";
+import { T, FONT_HEADING, FONT_BODY } from "../../shared/theme.js";
 import { EditPanel } from "./EditPanel.jsx";
 import { PIECE_CATEGORIES } from "../../shared/pieces.js";
 
-// Room colors used in the play-mode legend
 const ROOM_COLORS = {
   R1:  { revealed: "#2a1e14" }, R2:  { revealed: "#14202a" }, R3:  { revealed: "#1a0e1e" },
   R4:  { revealed: "#1e150a" }, R5:  { revealed: "#0e1a10" }, R6:  { revealed: "#1a1a0a" },
@@ -17,17 +16,14 @@ const ROOM_COLORS = {
 
 function ModeToggle({ mode, onSetMode }) {
   return (
-    <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
+    <div className="btn-group w-100 mb-1" role="group" aria-label="Mode toggle">
       {["play", "edit"].map(m => (
-        <button key={m} onClick={() => onSetMode(m)} style={{
-          flex: 1, padding: "8px 0",
-          background: mode === m ? T.btnActiveBg : T.btnBg,
-          color: mode === m ? T.btnActiveText : T.btnText,
-          border: `1px solid ${mode === m ? T.btnActiveBdr : T.btnBorder}`,
-          cursor: "pointer", fontFamily: "inherit", fontSize: 11,
-          textTransform: "uppercase", letterSpacing: 1,
-          transition: "all 0.15s",
-        }}>
+        <button
+          key={m}
+          onClick={() => onSetMode(m)}
+          className={`btn btn-hq-dark${mode === m ? " active" : ""}`}
+          style={{ padding: "8px 0", fontSize: 10, letterSpacing: 2 }}
+        >
           {m === "play" ? "⚔ Play" : "✎ Edit"}
         </button>
       ))}
@@ -38,44 +34,38 @@ function ModeToggle({ mode, onSetMode }) {
 function PlayPanel({ onReset }) {
   return (
     <>
-      <p style={{ fontSize: 11, color: T.textMuted, lineHeight: 1.7, margin: 0, marginTop: 4 }}>
+      <p style={{ fontSize: 11, color: T.sidebarTextMuted, lineHeight: 1.7, margin: 0, marginTop: 4, fontFamily: FONT_BODY }}>
         Click any dungeon cell to reveal what a hero standing there would see.
       </p>
 
       <div style={{
-        background: T.panelBg, border: `1px solid ${T.panelBorder}`,
-        padding: "10px 12px", fontSize: 10, color: T.textMuted, lineHeight: 1.8,
-        marginTop: 2,
+        background: T.sidebarPanelBg, border: `1px solid ${T.sidebarPanelBorder}`,
+        padding: "10px 12px", fontSize: 10, color: T.sidebarTextMuted, lineHeight: 1.8,
+        marginTop: 2, fontFamily: FONT_BODY,
       }}>
-        <span style={{ color: T.accent }}>Room cell</span> → entire room revealed<br />
-        <span style={{ color: T.accent }}>Corridor cell</span> → straight line until wall or blocker<br />
-        <span style={{ color: T.accent }}>Start marker</span> → auto-revealed at game start
+        <span style={{ color: T.accentGold }}>Room cell</span> → entire room revealed<br />
+        <span style={{ color: T.accentGold }}>Corridor cell</span> → straight line until wall or blocker<br />
+        <span style={{ color: T.accentGold }}>Start marker</span> → auto-revealed at game start
       </div>
 
-      <button onClick={onReset} style={{
-        marginTop: 4, padding: "9px 0",
-        background: T.btnBg, color: T.accent,
-        border: `1px solid ${T.btnBorder}`, cursor: "pointer",
-        fontFamily: "inherit", fontSize: 11, letterSpacing: 1,
-        transition: "all 0.15s",
-      }}>
+      <button onClick={onReset} className="btn btn-hq-dark w-100 mt-1" style={{ color: T.accent, padding: "9px 0", letterSpacing: 2 }}>
         ↺ Reset Fog of War
       </button>
 
-      <div style={{ marginTop: 8, fontSize: 9, color: T.textMuted, lineHeight: 1.8 }}>
-        <div style={{ color: T.text, marginBottom: 4, letterSpacing: 2, textTransform: "uppercase", fontWeight: "bold" }}>Legend</div>
+      <div style={{ marginTop: 8, fontSize: 9, color: T.sidebarTextMuted, lineHeight: 1.8, fontFamily: FONT_BODY }}>
+        <div style={{ color: T.sidebarTitle, marginBottom: 4, letterSpacing: 3, textTransform: "uppercase", fontFamily: FONT_HEADING, fontSize: 9 }}>Legend</div>
         {[
           { color: "#271809", label: "Corridor (revealed)" },
           { color: "#060401", label: "Unexplored" },
         ].map(({ color, label }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 10, height: 10, background: color, border: `1px solid ${T.btnBorder}`, flexShrink: 0 }} />
+          <div key={label} className="d-flex align-items-center gap-2">
+            <div style={{ width: 10, height: 10, background: color, border: `1px solid ${T.sidebarBtnBorder}`, flexShrink: 0 }} />
             {label}
           </div>
         ))}
         {Object.entries(ROOM_COLORS).map(([id, { revealed }]) => (
-          <div key={id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 10, height: 10, background: revealed, border: `1px solid ${T.btnBorder}`, flexShrink: 0 }} />
+          <div key={id} className="d-flex align-items-center gap-2">
+            <div style={{ width: 10, height: 10, background: revealed, border: `1px solid ${T.sidebarBtnBorder}`, flexShrink: 0 }} />
             {id} (revealed)
           </div>
         ))}
@@ -83,17 +73,6 @@ function PlayPanel({ onReset }) {
     </>
   );
 }
-
-const inputStyle = {
-  background: "#e0cfae",
-  border: "1px solid #b09060",
-  color: "#2a1208",
-  fontFamily: "inherit",
-  padding: "6px 8px",
-  width: "100%",
-  boxSizing: "border-box",
-  fontSize: 12,
-};
 
 export function Sidebar({
   mode, tool, setMode, setTool, onReset, bgImage, setBgImage,
@@ -112,48 +91,32 @@ export function Sidebar({
   }
 
   return (
-    <div style={{
+    <aside className="hq-sidebar d-flex flex-column" style={{
       width: isCollapsed ? 44 : 270,
       transition: "width 180ms ease-out",
       overflow: "hidden",
       flexShrink: 0,
       background: T.sidebarBg,
       borderLeft: `1px solid ${T.sidebarBorder}`,
-      display: "flex",
-      flexDirection: "column",
     }}>
-      {/* Toggle button — always visible */}
+      {/* Toggle button */}
       <button
         onClick={toggleCollapsed}
-        style={{
-          width: "100%", minHeight: 44,
-          background: T.btnBg, color: T.btnText,
-          border: `1px solid ${T.btnBorder}`,
-          borderLeft: "none",
-          cursor: "pointer", fontFamily: "inherit",
-        }}
+        className="btn btn-hq-dark w-100 border-0 border-bottom"
+        style={{ minHeight: 44, fontSize: 16, color: T.sidebarTitle, borderBottomColor: `${T.sidebarBorder} !important` }}
       >
         {isCollapsed ? "‹" : "›"}
       </button>
 
-      {/* Inner content wrapper */}
-      <div style={{
-        display: "flex", flexDirection: "column", flex: 1,
-        padding: "18px 14px",
-        gap: 8,
-        overflowY: "auto",
-      }}>
+      {/* Inner content */}
+      <div className="d-flex flex-column flex-grow-1 overflow-y-auto gap-2 p-3">
+
         {/* Back to library */}
         {onBack && (
           <button
             onClick={onBack}
-            style={{
-              alignSelf: "flex-start", padding: "4px 10px",
-              background: T.btnBg, color: T.btnText,
-              border: `1px solid ${T.btnBorder}`,
-              cursor: "pointer", fontFamily: "inherit", fontSize: 10,
-              letterSpacing: 1, marginBottom: 2,
-            }}
+            className="btn btn-hq-dark btn-sm align-self-start mb-1"
+            style={{ fontSize: 9, letterSpacing: 2 }}
           >
             ← Library
           </button>
@@ -166,10 +129,10 @@ export function Sidebar({
               value={questTitle}
               onChange={e => setQuestTitle(e.target.value)}
               placeholder="Quest title"
-              style={inputStyle}
+              className="form-control form-control-sm hq-input-dark"
             />
           ) : (
-            <div style={{ fontSize: 13, color: T.title, fontWeight: "bold", letterSpacing: 1 }}>
+            <div style={{ fontSize: 13, color: T.sidebarTitle, fontWeight: "bold", letterSpacing: 1, fontFamily: FONT_HEADING }}>
               {questTitle}
             </div>
           )
@@ -183,15 +146,14 @@ export function Sidebar({
               onChange={e => setQuestDescription(e.target.value)}
               placeholder="Quest description"
               rows={3}
-              style={{ ...inputStyle, resize: "vertical" }}
+              className="form-control form-control-sm hq-input-dark"
+              style={{ resize: "vertical" }}
             />
           ) : questDescription ? (
             <div style={{
-              fontSize: 10, color: T.textMuted, lineHeight: 1.5,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
+              fontSize: 10, color: T.sidebarTextMuted, lineHeight: 1.5, fontFamily: FONT_BODY,
+              overflow: "hidden", display: "-webkit-box",
+              WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
             }}>
               {questDescription}
             </div>
@@ -205,18 +167,19 @@ export function Sidebar({
             onChange={e => setQuestPlacementMessage(e.target.value)}
             placeholder="Hero placement message (shown at quest start)"
             rows={3}
-            style={{ ...inputStyle, resize: "vertical" }}
+            className="form-control form-control-sm hq-input-dark"
+            style={{ resize: "vertical" }}
           />
         )}
 
-        {/* Divider */}
-        <div style={{ borderTop: `1px solid ${T.divider}`, marginTop: 2, marginBottom: 2 }} />
+        <hr style={{ borderColor: T.sidebarDivider, margin: "2px 0" }} />
 
         <div style={{
           textAlign: "center", marginBottom: 4,
-          fontSize: 13, letterSpacing: 4, color: T.title,
-          textTransform: "uppercase", borderBottom: `1px solid ${T.divider}`,
-          paddingBottom: 12,
+          fontSize: 11, letterSpacing: 4, color: T.sidebarTitle,
+          textTransform: "uppercase", borderBottom: `1px solid ${T.sidebarDivider}`,
+          paddingBottom: 12, fontFamily: FONT_HEADING,
+          textShadow: "0 0 12px #c8921a66",
         }}>
           Quest Master
         </div>
@@ -226,47 +189,46 @@ export function Sidebar({
         {mode === "play"
           ? <PlayPanel onReset={onReset} />
           : (
-            <>
-              <EditPanel pieceCategories={PIECE_CATEGORIES} tool={tool} onSelectTool={setTool} onSave={onSave} savedFlash={savedFlash} saveError={saveError} tileSet={bgImage} />
-            </>
+            <EditPanel
+              pieceCategories={PIECE_CATEGORIES}
+              tool={tool}
+              onSelectTool={setTool}
+              onSave={onSave}
+              savedFlash={savedFlash}
+              saveError={saveError}
+              tileSet={bgImage}
+            />
           )
         }
 
-        {/* Board background selector */}
-        <div style={{
-          marginTop: 8, padding: "10px 12px",
-          background: T.panelBg, border: `1px solid ${T.panelBorder}`,
-          fontSize: 10, color: T.textMuted,
-        }}>
-          <div style={{ marginBottom: 6, letterSpacing: 2, textTransform: "uppercase", fontWeight: "bold", color: T.text }}>
+        {/* Board style selector */}
+        <div className="p-2 mt-2" style={{ background: T.sidebarPanelBg, border: `1px solid ${T.sidebarPanelBorder}` }}>
+          <div className="mb-2" style={{ letterSpacing: 3, textTransform: "uppercase", fontFamily: FONT_HEADING, fontSize: 9, color: T.sidebarTitle }}>
             Board Style
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
+          <div className="btn-group w-100" role="group">
             {[["board", "Board 1"], ["board2", "Board 2"], ["board3", "Board 3"]].map(([b, label]) => (
-              <button key={b} onClick={() => setBgImage(b)} style={{
-                flex: 1, padding: "5px 0", fontSize: 9, cursor: "pointer",
-                fontFamily: "inherit", letterSpacing: 1, textTransform: "uppercase",
-                background: bgImage === b ? T.btnActiveBg : T.btnBg,
-                color: bgImage === b ? T.btnActiveText : T.btnText,
-                border: `1px solid ${bgImage === b ? T.btnActiveBdr : T.btnBorder}`,
-                transition: "all 0.15s",
-              }}>
+              <button
+                key={b}
+                onClick={() => setBgImage(b)}
+                className={`btn btn-hq-dark${bgImage === b ? " active" : ""}`}
+                style={{ flex: 1, padding: "5px 0", fontSize: 9, letterSpacing: 1 }}
+              >
                 {label}
               </button>
             ))}
           </div>
         </div>
 
-        <div style={{
-          marginTop: "auto", paddingTop: 14,
-          borderTop: `1px solid ${T.divider}`,
-          fontSize: 9, color: T.textFaint, lineHeight: 1.8,
-          textAlign: "center",
+        <div className="mt-auto pt-3" style={{
+          borderTop: `1px solid ${T.sidebarDivider}`,
+          fontSize: 9, color: T.sidebarTextFaint, lineHeight: 1.8,
+          textAlign: "center", fontFamily: FONT_BODY, fontStyle: "italic",
         }}>
           v0.2 — Real HeroQuest board<br />
           22 rooms · quest editor next
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

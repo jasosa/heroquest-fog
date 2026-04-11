@@ -1,29 +1,5 @@
 import { useState } from "react";
-import { T } from "../../shared/theme.js";
-
-const overlayStyle = {
-  position: "fixed", inset: 0,
-  background: "#0008",
-  display: "flex", alignItems: "center", justifyContent: "center",
-  zIndex: 100,
-};
-
-const dialogStyle = {
-  background: T.sidebarBg,
-  border: `2px solid ${T.sidebarBorder}`,
-  borderRadius: 8,
-  padding: 20,
-  minWidth: 300,
-  boxShadow: "0 8px 32px #0006",
-  display: "flex", flexDirection: "column", gap: 14,
-};
-
-const inputStyle = {
-  width: "100%", boxSizing: "border-box",
-  background: T.btnBg, color: T.text,
-  border: `1px solid ${T.btnBorder}`, borderRadius: 4,
-  padding: "5px 8px", fontSize: 12, fontFamily: "inherit",
-};
+import { T, FONT_HEADING } from "../../shared/theme.js";
 
 export function SearchNoteDialog({ regionId, initialNotes, onSave, onDelete, onCancel }) {
   const [notes, setNotes] = useState(() => {
@@ -37,57 +13,37 @@ export function SearchNoteDialog({ regionId, initialNotes, onSave, onDelete, onC
   }
 
   return (
-    <div style={overlayStyle} onMouseDown={onCancel}>
-      <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-        <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>
-          🔍 {regionId} — Search Notes
-        </div>
-
-        <div style={{ fontSize: 11, color: T.textMuted }}>
-          Leave empty to use the default message.
-        </div>
-
-        {notes.map((note, i) => (
-          <div key={i}>
-            <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 3 }}>Search {i + 1}</div>
-            <input
-              value={note}
-              onChange={e => setNote(i, e.target.value)}
-              placeholder="e.g. You find a hidden passage…"
-              autoFocus={i === 0}
-              style={inputStyle}
-            />
+    <div className="hq-modal-backdrop" onMouseDown={onCancel}>
+      <div className="modal-dialog modal-dialog-centered m-0" style={{ width: 380 }} onMouseDown={e => e.stopPropagation()}>
+        <div className="modal-content" style={{ background: T.sidebarBg, border: `2px solid ${T.sidebarBorder}` }}>
+          <div className="modal-header py-2 px-3" style={{ borderBottom: `1px solid ${T.sidebarBorder}` }}>
+            <h6 className="modal-title m-0" style={{ color: T.sidebarTitle, fontFamily: FONT_HEADING, fontSize: 14 }}>
+              🔍 {regionId} — Search Notes
+            </h6>
+            <button type="button" className="btn-close btn-close-white" onClick={onCancel} />
           </div>
-        ))}
-
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-          {onDelete && (
-            <button
-              onClick={onDelete}
-              style={{
-                marginRight: "auto",
-                background: "#c62828", color: "#fff",
-                border: "none", borderRadius: 4,
-                padding: "6px 14px", cursor: "pointer", fontSize: 13,
-              }}
-            >Delete</button>
-          )}
-          <button
-            onClick={onCancel}
-            style={{
-              background: T.btnBg, color: T.btnText,
-              border: `1px solid ${T.btnBorder}`, borderRadius: 4,
-              padding: "6px 14px", cursor: "pointer", fontSize: 13,
-            }}
-          >Cancel</button>
-          <button
-            onClick={() => onSave(notes)}
-            style={{
-              background: T.btnActiveBg, color: T.btnActiveText,
-              border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4,
-              padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold",
-            }}
-          >Save</button>
+          <div className="modal-body px-3 py-3 d-flex flex-column gap-2">
+            <div style={{ fontSize: 11, color: T.sidebarTextMuted }}>Leave empty to use the default message.</div>
+            {notes.map((note, i) => (
+              <div key={i}>
+                <label className="form-label mb-1" style={{ fontSize: 11, color: T.sidebarTextMuted }}>Search {i + 1}</label>
+                <input
+                  value={note}
+                  onChange={e => setNote(i, e.target.value)}
+                  placeholder="e.g. You find a hidden passage…"
+                  autoFocus={i === 0}
+                  className="form-control form-control-sm hq-input-dark"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="modal-footer py-2 px-3 gap-2" style={{ borderTop: `1px solid ${T.sidebarBorder}` }}>
+            {onDelete && (
+              <button onClick={onDelete} className="btn btn-danger btn-sm me-auto">Delete</button>
+            )}
+            <button onClick={onCancel} className="btn btn-hq-light" style={{ fontSize: 13 }}>Cancel</button>
+            <button onClick={() => onSave(notes)} className="btn btn-hq-light active" style={{ fontSize: 13 }}>Save</button>
+          </div>
         </div>
       </div>
     </div>

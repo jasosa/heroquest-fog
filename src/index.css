@@ -1,0 +1,97 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'IM Fell English', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #8a6420;
+  color: #f0dfc0;
+}
+
+/* Scrollbars — dark gold style */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: #130b05; }
+::-webkit-scrollbar-thumb { background: #7a5518; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #c8921a; }
+
+/* Sidebar dark panel scrollbar */
+.hq-sidebar ::-webkit-scrollbar-track { background: #0e0705; }
+
+/* ── Custom button variants ──────────────────────────────────────────────── */
+
+/* Parchment context (quest cards, dialogs, main board area) */
+.btn-hq-light {
+  --bs-btn-bg:                 #d8c49a;
+  --bs-btn-border-color:       #a88848;
+  --bs-btn-color:              #2a1208;
+  --bs-btn-hover-bg:           #c4a870;
+  --bs-btn-hover-border-color: #a88848;
+  --bs-btn-hover-color:        #2a1208;
+  --bs-btn-active-bg:          #7a1a0a;
+  --bs-btn-active-color:       #f8eedc;
+  --bs-btn-active-border-color:#c8921a;
+  --bs-btn-disabled-bg:        #d8c49a;
+  --bs-btn-disabled-color:     #8a6040;
+  --bs-btn-disabled-border-color: #c4a870;
+  --bs-btn-border-radius:      2px;
+  font-family: var(--bs-btn-font-family);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+
+/* Dark leather context (sidebar) */
+.btn-hq-dark {
+  --bs-btn-bg:                 #2a1608;
+  --bs-btn-border-color:       #6a4a18;
+  --bs-btn-color:              #d8b870;
+  --bs-btn-hover-bg:           #3a2010;
+  --bs-btn-hover-border-color: #8a6420;
+  --bs-btn-hover-color:        #e0cca0;
+  --bs-btn-active-bg:          #7a1a0a;
+  --bs-btn-active-color:       #f8eedc;
+  --bs-btn-active-border-color:#c8921a;
+  --bs-btn-disabled-bg:        #1a0e06;
+  --bs-btn-disabled-color:     #5a4020;
+  --bs-btn-disabled-border-color: #4a3010;
+  --bs-btn-border-radius:      2px;
+  font-family: var(--bs-btn-font-family);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+
+/* Dark input override (for sidebar / dark-context forms) */
+.hq-input-dark {
+  background:   #221208;
+  border-color: #6a4a18;
+  color:        #e0cca0;
+}
+.hq-input-dark:focus {
+  background:   #2a1608;
+  border-color: #c8921a;
+  color:        #e0cca0;
+  box-shadow:   0 0 0 0.2rem #c8921a33;
+}
+
+/* Modal backdrop (React-controlled — no Bootstrap JS) */
+.hq-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #0008;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+/* Quest card auto-fill grid */
+.hq-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  align-content: start;
+}

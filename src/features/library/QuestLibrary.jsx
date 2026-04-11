@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { T } from "../../shared/theme.js";
+import { T, FONT_TITLE, FONT_HEADING, FONT_BODY } from "../../shared/theme.js";
 import {
   loadQuestBooks,
   loadQuests,
@@ -18,54 +18,34 @@ import { EditQuestBookDialog } from "./EditQuestBookDialog.jsx";
 import { AssignQuestBookDialog } from "./AssignQuestBookDialog.jsx";
 import { assignQuestToBook } from "./assignQuestBook.js";
 
-// ─── Small shared input style ─────────────────────────────────────────────────
-const inputStyle = {
-  background: T.btnBg,
-  border: `1px solid ${T.btnBorder}`,
-  color: T.text,
-  fontFamily: "inherit",
-  padding: "6px 8px",
-  width: "100%",
-  boxSizing: "border-box",
-  fontSize: 12,
-};
-
-// ─── Helper to format a timestamp ────────────────────────────────────────────
 function fmtDate(ts) {
   if (!ts) return "";
   return new Date(ts).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-// ─── QuestLibrary ─────────────────────────────────────────────────────────────
 export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   const [books, setBooks]           = useState(() => loadQuestBooks());
   const [quests, setQuests]         = useState(() => loadQuests());
-  const [selectedBookId, setSelectedBookId] = useState(null); // null = "All"
+  const [selectedBookId, setSelectedBookId] = useState(null);
 
   useEffect(() => { migrateQuests(); }, []);
 
   const importInputRef = useRef(null);
   const [importError, setImportError] = useState("");
 
-  // Edit-book dialog
-  const [editingBook, setEditingBook] = useState(null); // null | book object
+  const [editingBook, setEditingBook]   = useState(null);
+  const [assigningQuest, setAssigningQuest] = useState(null);
 
-  // Assign-quest-book dialog
-  const [assigningQuest, setAssigningQuest] = useState(null); // null | quest object
-
-  // New-book form
   const [showNewBook, setShowNewBook]   = useState(false);
   const [newBookTitle, setNewBookTitle] = useState("");
   const [newBookDesc, setNewBookDesc]   = useState("");
 
-  // New-quest form
-  const [showNewQuest, setShowNewQuest]         = useState(false);
-  const [newQuestTitle, setNewQuestTitle]       = useState("");
-  const [newQuestDesc, setNewQuestDesc]         = useState("");
-  const [newQuestBookId, setNewQuestBookId]     = useState(null);
-  const [newQuestNumber, setNewQuestNumber]     = useState("");
+  const [showNewQuest, setShowNewQuest]     = useState(false);
+  const [newQuestTitle, setNewQuestTitle]   = useState("");
+  const [newQuestDesc, setNewQuestDesc]     = useState("");
+  const [newQuestBookId, setNewQuestBookId] = useState(null);
+  const [newQuestNumber, setNewQuestNumber] = useState("");
 
-  // ── Derived ──────────────────────────────────────────────────────────────
   const filteredQuests = selectedBookId === null
     ? quests
     : quests.filter(q => q.questBookId === selectedBookId);
@@ -75,14 +55,12 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     return quests.filter(q => q.questBookId === bookId).length;
   }
 
-  // ── Book actions ──────────────────────────────────────────────────────────
+  // ── Book actions ────────────────────────────────────────────────────────────
   function handleCreateBook() {
     if (!newBookTitle.trim()) return;
     const book = createQuestBook(newBookTitle.trim(), newBookDesc.trim());
     setBooks(prev => [...prev, book]);
-    setNewBookTitle("");
-    setNewBookDesc("");
-    setShowNewBook(false);
+    setNewBookTitle(""); setNewBookDesc(""); setShowNewBook(false);
   }
 
   function handleDeleteBook(id) {
@@ -106,7 +84,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     setAssigningQuest(null);
   }
 
-  // ── Quest actions ─────────────────────────────────────────────────────────
+  // ── Quest actions ───────────────────────────────────────────────────────────
   function handleCreateQuest() {
     if (!newQuestTitle.trim()) return;
     const quest = createQuest({
@@ -116,10 +94,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
       questNumber: newQuestNumber === "" ? null : Number(newQuestNumber),
     });
     setQuests(prev => [...prev, quest]);
-    setNewQuestTitle("");
-    setNewQuestDesc("");
-    setNewQuestBookId(null);
-    setNewQuestNumber("");
+    setNewQuestTitle(""); setNewQuestDesc(""); setNewQuestBookId(null); setNewQuestNumber("");
     setShowNewQuest(false);
     onEdit(quest);
   }
@@ -130,15 +105,13 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     setQuests(prev => prev.filter(q => q.id !== id));
   }
 
-  // ── Export / Import ───────────────────────────────────────────────────────
+  // ── Export / Import ─────────────────────────────────────────────────────────
   function handleExportQuest(quest) {
     const json = exportQuestAsJson(quest);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `${quest.title.replace(/\s+/g, "_")}.json`;
-    a.click();
+    a.href = url; a.download = `${quest.title.replace(/\s+/g, "_")}.json`; a.click();
     URL.revokeObjectURL(url);
   }
 
@@ -159,27 +132,8 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     e.target.value = "";
   }
 
-  // ── Shared button style ───────────────────────────────────────────────────
-  const btn = (active = false, extra = {}) => ({
-    background: active ? T.btnActiveBg : T.btnBg,
-    color: active ? T.btnActiveText : T.btnText,
-    border: `1px solid ${active ? T.btnActiveBdr : T.btnBorder}`,
-    cursor: "pointer",
-    fontFamily: "inherit",
-    padding: "7px 12px",
-    fontSize: 11,
-    letterSpacing: 1,
-    transition: "all 0.15s",
-    ...extra,
-  });
-
   return (
-    <div style={{
-      display: "flex", height: "100vh", overflow: "hidden",
-      background: T.pageBg,
-      fontFamily: "'Palatino Linotype', 'Palatino', 'Book Antiqua', Georgia, serif",
-      color: T.text,
-    }}>
+    <div className="d-flex vh-100 overflow-hidden" style={{ background: T.pageBg, fontFamily: FONT_BODY, color: T.text }}>
       {editingBook && (
         <EditQuestBookDialog
           initialTitle={editingBook.title}
@@ -197,33 +151,29 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
         />
       )}
 
-      {/* ── Left sidebar — Quest Books ───────────────────────────────────── */}
-      <div style={{
+      {/* ── Left sidebar — Quest Books ───────────────────────────────────────── */}
+      <nav className="hq-sidebar d-flex flex-column overflow-y-auto" style={{
         width: 220, flexShrink: 0,
         background: T.sidebarBg,
         borderRight: `1px solid ${T.sidebarBorder}`,
-        display: "flex", flexDirection: "column",
         padding: "18px 12px",
         gap: 6,
-        overflowY: "auto",
       }}>
         <div style={{
-          fontSize: 13, letterSpacing: 4, color: T.title,
+          fontSize: 11, letterSpacing: 4, color: T.sidebarTitle,
           textTransform: "uppercase", textAlign: "center",
-          borderBottom: `1px solid ${T.divider}`, paddingBottom: 12, marginBottom: 4,
+          fontFamily: FONT_HEADING,
+          borderBottom: `1px solid ${T.sidebarDivider}`, paddingBottom: 12, marginBottom: 4,
+          textShadow: "0 0 10px #c8921a55",
         }}>
           Quest Books
         </div>
 
-        {/* All Quests button */}
+        {/* All Quests */}
         <button
           onClick={() => setSelectedBookId(null)}
-          style={{
-            ...btn(selectedBookId === null),
-            width: "100%", textAlign: "left",
-            fontWeight: selectedBookId === null ? "bold" : "normal",
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-          }}
+          className={`btn btn-hq-dark w-100 text-start d-flex justify-content-between align-items-center${selectedBookId === null ? " active" : ""}`}
+          style={{ fontWeight: selectedBookId === null ? "bold" : "normal" }}
         >
           <span>All Quests</span>
           <span style={{ fontSize: 10, opacity: 0.7 }}>({quests.length})</span>
@@ -231,16 +181,11 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
         {/* Book list */}
         {books.map(book => (
-          <div key={book.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div key={book.id} className="d-flex align-items-center gap-1">
             <button
               onClick={() => setSelectedBookId(book.id)}
-              style={{
-                ...btn(selectedBookId === book.id),
-                flex: 1, textAlign: "left",
-                fontWeight: selectedBookId === book.id ? "bold" : "normal",
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-                overflow: "hidden",
-              }}
+              className={`btn btn-hq-dark flex-grow-1 text-start d-flex justify-content-between align-items-center${selectedBookId === book.id ? " active" : ""}`}
+              style={{ fontWeight: selectedBookId === book.id ? "bold" : "normal", overflow: "hidden" }}
             >
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {book.title}
@@ -252,97 +197,93 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             <button
               onClick={() => setEditingBook(book)}
               title="Edit book"
-              style={{ ...btn(false, { padding: "5px 7px", fontSize: 12, flexShrink: 0 }) }}
+              className="btn btn-hq-dark"
+              style={{ padding: "5px 7px", fontSize: 12, flexShrink: 0 }}
             >
               ✎
             </button>
             <button
               onClick={() => handleDeleteBook(book.id)}
               title="Delete book"
-              style={{
-                ...btn(false, { padding: "5px 7px", fontSize: 12, flexShrink: 0 }),
-                color: T.accent,
-              }}
+              className="btn btn-hq-dark"
+              style={{ padding: "5px 7px", fontSize: 12, flexShrink: 0, color: T.accent }}
             >
               ×
             </button>
           </div>
         ))}
 
-        {/* New book form / button */}
-        <div style={{ marginTop: "auto", paddingTop: 8, borderTop: `1px solid ${T.divider}` }}>
+        {/* Bottom actions */}
+        <div className="mt-auto pt-2" style={{ borderTop: `1px solid ${T.sidebarDivider}` }}>
           {onCalibrate && (
             <button
               onClick={onCalibrate}
               title="Open map calibration tool"
-              style={{
-                ...btn(false, { width: "100%", textAlign: "center", fontSize: 9, marginBottom: 6 }),
-                color: T.textFaint, letterSpacing: 1,
-              }}
+              className="btn btn-hq-dark w-100 mb-2"
+              style={{ fontSize: 9, color: T.sidebarTextFaint }}
             >
               ⚙ Calibrate Maps
             </button>
           )}
-          <input
-            type="file"
-            accept=".json"
-            ref={importInputRef}
-            style={{ display: "none" }}
-            onChange={handleImportFile}
-          />
+          <input type="file" accept=".json" ref={importInputRef} className="d-none" onChange={handleImportFile} />
           <button
             onClick={() => { setImportError(""); importInputRef.current.click(); }}
-            style={{ ...btn(false), width: "100%", textAlign: "center", marginBottom: 6 }}
+            className="btn btn-hq-dark w-100 mb-2"
           >
             ⬆ Import Quest
           </button>
           {importError && (
-            <div style={{ fontSize: 10, color: T.accent, marginBottom: 6, wordBreak: "break-word" }}>
+            <div className="alert alert-danger py-1 px-2 mb-2" style={{ fontSize: 10 }}>
               {importError}
             </div>
           )}
+
           {showNewBook ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div className="d-flex flex-column gap-2">
               <input
                 placeholder="Book title"
                 value={newBookTitle}
                 onChange={e => setNewBookTitle(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleCreateBook()}
-                style={inputStyle}
+                className="form-control form-control-sm hq-input-dark"
                 autoFocus
               />
               <input
                 placeholder="Description (optional)"
                 value={newBookDesc}
                 onChange={e => setNewBookDesc(e.target.value)}
-                style={inputStyle}
+                className="form-control form-control-sm hq-input-dark"
               />
-              <div style={{ display: "flex", gap: 4 }}>
-                <button onClick={handleCreateBook} style={{ ...btn(true), flex: 1, fontSize: 10 }}>
+              <div className="d-flex gap-1">
+                <button onClick={handleCreateBook} className="btn btn-hq-dark active flex-grow-1" style={{ fontSize: 10 }}>
                   Create
                 </button>
-                <button onClick={() => { setShowNewBook(false); setNewBookTitle(""); setNewBookDesc(""); }} style={{ ...btn(false), flex: 1, fontSize: 10 }}>
+                <button
+                  onClick={() => { setShowNewBook(false); setNewBookTitle(""); setNewBookDesc(""); }}
+                  className="btn btn-hq-dark flex-grow-1"
+                  style={{ fontSize: 10 }}
+                >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <button onClick={() => setShowNewBook(true)} style={{ ...btn(false), width: "100%", textAlign: "center" }}>
+            <button onClick={() => setShowNewBook(true)} className="btn btn-hq-dark w-100 text-center">
               ＋ New Book
             </button>
           )}
         </div>
-      </div>
+      </nav>
 
-      {/* ── Right main — Quest Cards ─────────────────────────────────────── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", padding: "24px 32px" }}>
+      {/* ── Right main — Quest Cards ─────────────────────────────────────────── */}
+      <main className="flex-grow-1 overflow-y-auto p-4">
 
         {/* Header */}
-        <div style={{ marginBottom: 20 }}>
+        <div className="mb-4">
           <h1 style={{
-            margin: 0, fontSize: 26, letterSpacing: 6, color: T.title,
+            margin: 0, fontSize: 24, letterSpacing: 4, color: T.title,
             textTransform: "uppercase", fontWeight: "normal",
-            textShadow: "0 2px 4px #c4a87044",
+            fontFamily: FONT_TITLE, textShadow: "0 2px 8px #c4a87066",
           }}>
             HeroQuest — Quest Library
           </h1>
@@ -354,59 +295,70 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
         </div>
 
         {/* New Quest button / form */}
-        <div style={{ marginBottom: 20 }}>
+        <div className="mb-4">
           {showNewQuest ? (
-            <div style={{
+            <div className="p-3" style={{
               background: T.panelBg, border: `1px solid ${T.panelBorder}`,
-              padding: "16px", display: "flex", flexDirection: "column", gap: 10,
               maxWidth: 480,
             }}>
-              <div style={{ fontSize: 12, fontWeight: "bold", color: T.title, letterSpacing: 2, textTransform: "uppercase" }}>
+              <div className="mb-2" style={{ fontSize: 12, fontWeight: "bold", color: T.title, letterSpacing: 2, textTransform: "uppercase" }}>
                 New Quest
               </div>
-              <input
-                placeholder="Quest title"
-                value={newQuestTitle}
-                onChange={e => setNewQuestTitle(e.target.value)}
-                style={inputStyle}
-                autoFocus
-              />
-              <textarea
-                placeholder="Description (optional)"
-                value={newQuestDesc}
-                onChange={e => setNewQuestDesc(e.target.value)}
-                rows={3}
-                style={{ ...inputStyle, resize: "vertical" }}
-              />
-              <select
-                value={newQuestBookId ?? ""}
-                onChange={e => setNewQuestBookId(e.target.value || null)}
-                style={{ ...inputStyle }}
-              >
-                <option value="">— No book —</option>
-                {books.map(b => (
-                  <option key={b.id} value={b.id}>{b.title}</option>
-                ))}
-              </select>
-              <input
-                type="number"
-                placeholder="Quest number (optional)"
-                value={newQuestNumber}
-                onChange={e => setNewQuestNumber(e.target.value)}
-                min={0}
-                style={inputStyle}
-              />
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={handleCreateQuest} style={{ ...btn(true), fontSize: 12 }}>
+              <div className="mb-2">
+                <input
+                  placeholder="Quest title"
+                  value={newQuestTitle}
+                  onChange={e => setNewQuestTitle(e.target.value)}
+                  className="form-control form-control-sm"
+                  autoFocus
+                />
+              </div>
+              <div className="mb-2">
+                <textarea
+                  placeholder="Description (optional)"
+                  value={newQuestDesc}
+                  onChange={e => setNewQuestDesc(e.target.value)}
+                  rows={3}
+                  className="form-control form-control-sm"
+                  style={{ resize: "vertical" }}
+                />
+              </div>
+              <div className="mb-2">
+                <select
+                  value={newQuestBookId ?? ""}
+                  onChange={e => setNewQuestBookId(e.target.value || null)}
+                  className="form-select form-select-sm"
+                >
+                  <option value="">— No book —</option>
+                  {books.map(b => (
+                    <option key={b.id} value={b.id}>{b.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-3">
+                <input
+                  type="number"
+                  placeholder="Quest number (optional)"
+                  value={newQuestNumber}
+                  onChange={e => setNewQuestNumber(e.target.value)}
+                  min={0}
+                  className="form-control form-control-sm"
+                />
+              </div>
+              <div className="d-flex gap-2">
+                <button onClick={handleCreateQuest} className="btn btn-hq-light active">
                   Create &amp; Edit
                 </button>
-                <button onClick={() => { setShowNewQuest(false); setNewQuestTitle(""); setNewQuestDesc(""); setNewQuestBookId(null); setNewQuestNumber(""); }} style={{ ...btn(false), fontSize: 12 }}>
+                <button
+                  onClick={() => { setShowNewQuest(false); setNewQuestTitle(""); setNewQuestDesc(""); setNewQuestBookId(null); setNewQuestNumber(""); }}
+                  className="btn btn-hq-light"
+                >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <button onClick={() => setShowNewQuest(true)} style={{ ...btn(true), fontSize: 12 }}>
+            <button onClick={() => setShowNewQuest(true)} className="btn btn-hq-light active">
               ＋ New Quest
             </button>
           )}
@@ -414,72 +366,64 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
         {/* Quest cards */}
         {visibleQuests.length === 0 ? (
-          <div style={{
-            color: T.textFaint, fontSize: 14, letterSpacing: 2,
-            textAlign: "center", marginTop: 60,
-          }}>
+          <div style={{ color: T.textFaint, fontSize: 14, letterSpacing: 2, textAlign: "center", marginTop: 60 }}>
             No quests yet. Create one to get started.
           </div>
         ) : (
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 16,
-            alignContent: "start",
-          }}>
+          <div className="hq-card-grid">
             {visibleQuests.map(quest => {
               const bookName = books.find(b => b.id === quest.questBookId)?.title;
               return (
-                <div key={quest.id} style={{
-                  background: T.sidebarBg,
-                  border: `1px solid ${T.panelBorder}`,
-                  padding: "14px 16px",
-                  display: "flex", flexDirection: "column", gap: 8,
-                  boxShadow: "0 1px 4px #c4a87022",
-                }}>
-                  <div style={{ fontSize: 14, fontWeight: "bold", color: T.title, letterSpacing: 1 }}>
-                    {quest.title}
-                  </div>
-                  {quest.description && (
-                    <div style={{
-                      fontSize: 11, color: T.textMuted, lineHeight: 1.5,
-                      overflow: "hidden",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                    }}>
-                      {quest.description}
+                <div key={quest.id} className="card" style={{ boxShadow: "0 1px 4px #c4a87022" }}>
+                  <div className="card-body d-flex flex-column gap-2 p-3">
+                    <div style={{ fontSize: 14, fontWeight: "bold", color: T.sidebarTitle, letterSpacing: 1, fontFamily: FONT_HEADING }}>
+                      {quest.title}
                     </div>
-                  )}
-                  <div style={{ fontSize: 10, color: T.textFaint, display: "flex", flexDirection: "column", gap: 2 }}>
-                    {bookName && <span>Book: {bookName}</span>}
-                    {quest.questNumber != null && <span>Quest #{quest.questNumber}</span>}
-                    <span>Updated: {fmtDate(quest.updatedAt)}</span>
+                    {quest.description && (
+                      <div style={{
+                        fontSize: 11, color: T.sidebarText, lineHeight: 1.5,
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        fontFamily: FONT_BODY,
+                      }}>
+                        {quest.description}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 10, color: T.sidebarTextMuted, display: "flex", flexDirection: "column", gap: 2 }}>
+                      {bookName && <span>Book: {bookName}</span>}
+                      {quest.questNumber != null && <span>Quest #{quest.questNumber}</span>}
+                      <span>Updated: {fmtDate(quest.updatedAt)}</span>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", gap: 6, marginTop: "auto" }}>
-                    <button onClick={() => onPlay(quest)} style={{ ...btn(false, { flex: 1, fontSize: 10 }) }}>
+                  <div className="card-footer d-flex gap-1 p-2" style={{ background: "transparent", borderTop: `1px solid ${T.sidebarPanelBorder}` }}>
+                    <button onClick={() => onPlay(quest)} className="btn btn-hq-dark flex-grow-1" style={{ fontSize: 10 }}>
                       ⚔ Play
                     </button>
-                    <button onClick={() => onEdit(quest)} style={{ ...btn(false, { flex: 1, fontSize: 10 }) }}>
+                    <button onClick={() => onEdit(quest)} className="btn btn-hq-dark flex-grow-1" style={{ fontSize: 10 }}>
                       ✎ Edit
                     </button>
                     <button
                       onClick={() => setAssigningQuest(quest)}
                       title="Assign to quest book"
-                      style={{ ...btn(false, { padding: "7px 10px", fontSize: 11 }) }}
+                      className="btn btn-hq-dark"
+                      style={{ padding: "7px 10px", fontSize: 11 }}
                     >
                       ☰
                     </button>
                     <button
                       onClick={() => handleExportQuest(quest)}
                       title="Export quest as JSON"
-                      style={{ ...btn(false, { padding: "7px 10px", fontSize: 11 }) }}
+                      className="btn btn-hq-dark"
+                      style={{ padding: "7px 10px", fontSize: 11 }}
                     >
                       ⬇
                     </button>
                     <button
                       onClick={() => handleDeleteQuest(quest.id)}
-                      style={{ ...btn(false, { padding: "7px 10px", fontSize: 11 }), color: T.accent }}
+                      className="btn btn-hq-dark"
+                      style={{ padding: "7px 10px", fontSize: 11, color: T.accent }}
                     >
                       ×
                     </button>
@@ -489,7 +433,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             })}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

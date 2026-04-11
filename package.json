@@ -19,6 +19,7 @@
     "test:qa:all": "node qa-test.mjs && node qa-calibration.cjs && node qa-pieces.cjs && node qa-fog.cjs && node qa-markers.cjs && node qa-library.cjs"
   },
   "dependencies": {
+    "bootstrap": "^5.3.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

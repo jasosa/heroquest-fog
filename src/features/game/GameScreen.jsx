@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { T } from "../../shared/theme.js";
+import { T, FONT_TITLE, FONT_HEADING, FONT_BODY } from "../../shared/theme.js";
 import { COLS, ROWS, CELL } from "../../shared/map.js";
 import { persistQuest, loadCalibration, saveCalibration } from "../../shared/questStorage.js";
 import { isSessionDirty, hasUnsavedChanges, stableStringify } from "./navigationGuards.js";
@@ -55,19 +55,21 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
       overflow: "hidden", minHeight: 0, position: "relative",
     }}>
       <h1 style={{
-        margin: 0, fontSize: 20, letterSpacing: 8, flexShrink: 0,
+        margin: 0, fontSize: 20, letterSpacing: 6, flexShrink: 0,
         color: T.title, textTransform: "uppercase",
-        textShadow: "0 2px 4px #c4a87044",
+        textShadow: "0 2px 8px #c4a87066",
         fontWeight: "normal",
+        fontFamily: FONT_TITLE,
       }}>
         HeroQuest — Fog of War
       </h1>
 
       <div style={{
-        fontSize: 10, letterSpacing: 3, textTransform: "uppercase", flexShrink: 0,
+        fontSize: 9, letterSpacing: 3, textTransform: "uppercase", flexShrink: 0,
         color: mode === "edit" ? T.accentGold : "#2a6a2a",
         border: `1px solid ${mode === "edit" ? T.accentGold : "#2a6a2a"}`,
         padding: "3px 12px",
+        fontFamily: FONT_HEADING,
       }}>
         {mode === "edit" ? "✎ Edit Mode — Click to place · Right-click to rotate" : "⚔ Play Mode — Click to reveal"}
       </div>
@@ -253,7 +255,7 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     <div style={{
       display: "flex", height: "100vh", overflow: "hidden",
       background: T.pageBg,
-      fontFamily: "'Palatino Linotype', 'Palatino', 'Book Antiqua', Georgia, serif",
+      fontFamily: FONT_BODY,
       color: T.text,
     }}>
       <BoardArea
@@ -463,32 +465,29 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       })()}
       {/* Warning #2 — navigating back to library with unsaved edit changes */}
       {pendingBackToLibrary && (
-        <div
-          style={{ position: "fixed", inset: 0, background: "#0008", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
-        >
-          <div
-            style={{ background: T.sidebarBg, border: `2px solid ${T.sidebarBorder}`, borderRadius: 8, padding: 20, minWidth: 260, maxWidth: 340, boxShadow: "0 8px 32px #0006" }}
-            onMouseDown={e => e.stopPropagation()}
-          >
-            <div style={{ fontWeight: "bold", fontSize: 15, color: T.accent, marginBottom: 10 }}>
-              Unsaved Changes
-            </div>
-            <p style={{ fontSize: 13, color: T.text, margin: "0 0 16px", lineHeight: 1.6 }}>
-              Unsaved changes will be lost — go back anyway?
-            </p>
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button
-                onClick={() => setPendingBackToLibrary(false)}
-                style={{ background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`, borderRadius: 4, padding: "8px 16px", cursor: "pointer", fontSize: 13 }}
-              >
-                Stay Here
-              </button>
-              <button
-                onClick={() => { onBack(); setPendingBackToLibrary(false); }}
-                style={{ background: T.btnActiveBg, color: T.btnActiveText, border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: "bold" }}
-              >
-                Go Back
-              </button>
+        <div className="hq-modal-backdrop">
+          <div className="modal-dialog modal-dialog-centered m-0" style={{ width: 340 }} onMouseDown={e => e.stopPropagation()}>
+            <div className="modal-content" style={{ background: T.sidebarBg, border: `2px solid ${T.sidebarBorder}` }}>
+              <div className="modal-header py-2 px-3" style={{ borderBottom: `1px solid ${T.sidebarBorder}` }}>
+                <h6 className="modal-title m-0" style={{ color: T.accent, fontSize: 15 }}>Unsaved Changes</h6>
+              </div>
+              <div className="modal-body px-3 py-3">
+                <p style={{ fontSize: 13, color: T.sidebarText, margin: 0, lineHeight: 1.6 }}>
+                  Unsaved changes will be lost — go back anyway?
+                </p>
+              </div>
+              <div className="modal-footer py-2 px-3 gap-2" style={{ borderTop: `1px solid ${T.sidebarBorder}` }}>
+                <button onClick={() => setPendingBackToLibrary(false)} className="btn btn-hq-light" style={{ fontSize: 13 }}>
+                  Stay Here
+                </button>
+                <button
+                  onClick={() => { onBack(); setPendingBackToLibrary(false); }}
+                  className="btn btn-hq-light active"
+                  style={{ fontSize: 13 }}
+                >
+                  Go Back
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -497,27 +496,29 @@ function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       {/* Warning #1 — switching from play to edit with dirty session */}
       {pendingModeSwitch && (
         <div
-          style={{ position: "fixed", inset: 0, background: "#0008", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
+          className="hq-modal-backdrop"
           onMouseDown={() => { gameState.setMode("edit"); setPendingModeSwitch(false); }}
         >
-          <div
-            style={{ background: T.sidebarBg, border: `2px solid ${T.sidebarBorder}`, borderRadius: 8, padding: 20, minWidth: 260, maxWidth: 340, boxShadow: "0 8px 32px #0006" }}
-            onMouseDown={e => e.stopPropagation()}
-          >
-            <div style={{ fontWeight: "bold", fontSize: 15, color: T.accentGold, marginBottom: 10 }}>
-              Session State Carries Over
-            </div>
-            <p style={{ fontSize: 13, color: T.text, margin: "0 0 16px", lineHeight: 1.6 }}>
-              Your current session state — opened chests, revealed traps, search counts, and fog —
-              will NOT be reset when switching to Edit mode.
-            </p>
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <button
-                onClick={() => { gameState.setMode("edit"); setPendingModeSwitch(false); }}
-                style={{ background: T.btnActiveBg, color: T.btnActiveText, border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: "bold" }}
-              >
-                Continue to Edit
-              </button>
+          <div className="modal-dialog modal-dialog-centered m-0" style={{ width: 340 }} onMouseDown={e => e.stopPropagation()}>
+            <div className="modal-content" style={{ background: T.sidebarBg, border: `2px solid ${T.sidebarBorder}` }}>
+              <div className="modal-header py-2 px-3" style={{ borderBottom: `1px solid ${T.sidebarBorder}` }}>
+                <h6 className="modal-title m-0" style={{ color: T.accentGold, fontSize: 15 }}>Session State Carries Over</h6>
+              </div>
+              <div className="modal-body px-3 py-3">
+                <p style={{ fontSize: 13, color: T.sidebarText, margin: 0, lineHeight: 1.6 }}>
+                  Your current session state — opened chests, revealed traps, search counts, and fog —
+                  will NOT be reset when switching to Edit mode.
+                </p>
+              </div>
+              <div className="modal-footer py-2 px-3" style={{ borderTop: `1px solid ${T.sidebarBorder}` }}>
+                <button
+                  onClick={() => { gameState.setMode("edit"); setPendingModeSwitch(false); }}
+                  className="btn btn-hq-light active"
+                  style={{ fontSize: 13 }}
+                >
+                  Continue to Edit
+                </button>
+              </div>
             </div>
           </div>
         </div>

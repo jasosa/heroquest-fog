@@ -5,15 +5,11 @@ import { resolveTilePath } from "./editPanelUtils.js";
 export const PieceButton = memo(function PieceButton({ piece, isSelected, onSelect, tileSet }) {
   const imgSrc = resolveTilePath(piece, tileSet);
   return (
-    <button onClick={() => onSelect(piece.id)} style={{
-      padding: "6px 8px",
-      background: isSelected ? T.btnActiveBg : T.btnBg,
-      color: isSelected ? T.btnActiveText : T.btnText,
-      border: `1px solid ${isSelected ? T.btnActiveBdr : T.btnBorder}`,
-      cursor: "pointer", fontFamily: "inherit", fontSize: 11,
-      textAlign: "left", display: "flex", alignItems: "center", gap: 8,
-      transition: "all 0.12s", width: "100%",
-    }}>
+    <button
+      onClick={() => onSelect(piece.id)}
+      className={`btn btn-hq-dark w-100 text-start d-flex align-items-center gap-2${isSelected ? " active" : ""}`}
+      style={{ padding: "6px 8px", fontSize: 11, transition: "all 0.12s" }}
+    >
       {imgSrc
         ? <img src={imgSrc} alt={piece.label} style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }} />
         : <div style={{
@@ -24,9 +20,9 @@ export const PieceButton = memo(function PieceButton({ piece, isSelected, onSele
             fontSize: 5, fontWeight: "bold", color: "#000",
           }} />
       }
-      <span style={{ flex: 1 }}>{piece.label}</span>
+      <span className="flex-grow-1">{piece.label}</span>
       {piece.blocks && (
-        <span style={{ fontSize: 8, color: T.accent, border: `1px solid ${T.accent}`, padding: "1px 3px" }}>
+        <span style={{ fontSize: 8, color: T.accent, border: `1px solid ${T.accent}`, padding: "1px 3px", flexShrink: 0 }}>
           BLK
         </span>
       )}
@@ -34,15 +30,6 @@ export const PieceButton = memo(function PieceButton({ piece, isSelected, onSele
   );
 });
 
-/**
- * Shared edit-mode piece palette.
- * Props:
- *   pieceCategories  — array of { id, label, pieces[] }
- *   tool             — currently selected piece id
- *   onSelectTool     — (id) => void
- *   onSave           — optional () => void  (omit to hide Save button)
- *   savedFlash       — optional bool
- */
 export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFlash, saveError, tileSet }) {
   const [activeCatId, setActiveCatId] = useState(pieceCategories[0]?.id ?? null);
   const activeCategory = pieceCategories.find(c => c.id === activeCatId);
@@ -50,23 +37,21 @@ export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFl
   return (
     <>
       {/* Category tabs */}
-      <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginTop: 4 }}>
+      <div className="d-flex flex-wrap gap-1 mt-1">
         {pieceCategories.map(cat => (
-          <button key={cat.id} onClick={() => setActiveCatId(cat.id)} style={{
-            padding: "4px 7px", fontSize: 9, letterSpacing: 1,
-            textTransform: "uppercase", fontFamily: "inherit", cursor: "pointer",
-            background: activeCatId === cat.id ? T.btnActiveBg : T.btnBg,
-            color: activeCatId === cat.id ? T.btnActiveText : T.btnText,
-            border: `1px solid ${activeCatId === cat.id ? T.btnActiveBdr : T.btnBorder}`,
-            transition: "all 0.12s",
-          }}>
+          <button
+            key={cat.id}
+            onClick={() => setActiveCatId(cat.id)}
+            className={`btn btn-hq-dark btn-sm${activeCatId === cat.id ? " active" : ""}`}
+            style={{ padding: "4px 7px", fontSize: 9, letterSpacing: 1 }}
+          >
             {cat.label}
           </button>
         ))}
       </div>
 
       {/* Pieces in active category */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 4 }}>
+      <div className="d-flex flex-column gap-1 mt-1">
         {(activeCategory?.pieces ?? []).map(piece => (
           <PieceButton
             key={piece.id}
@@ -89,23 +74,22 @@ export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFl
       </div>
 
       {onSave && (
-        <div style={{ marginTop: 8 }}>
-          <button onClick={onSave} style={{
-            width: "100%", padding: "10px 0",
-            background: "#2a4a1a", color: "#d8f0c8",
-            border: `1px solid ${T.accentGold}`,
-            cursor: "pointer", fontFamily: "inherit", fontSize: 11,
-            letterSpacing: 1, transition: "all 0.15s",
-          }}>
+        <div className="mt-2">
+          <button
+            onClick={onSave}
+            className="btn w-100"
+            style={{
+              padding: "10px 0",
+              background: "#2a4a1a", color: "#d8f0c8",
+              border: `1px solid ${T.accentGold}`,
+              fontSize: 11, letterSpacing: 1,
+              fontFamily: "inherit", transition: "all 0.15s",
+            }}
+          >
             {savedFlash ? "✓ Saved!" : "💾 Save Quest"}
           </button>
           {saveError && (
-            <div style={{
-              marginTop: 6, padding: "6px 8px",
-              background: "#2a0a0a", color: "#f0c0b0",
-              border: `1px solid ${T.accent}`,
-              fontSize: 10, lineHeight: 1.5,
-            }}>
+            <div className="alert alert-danger py-1 px-2 mt-1 mb-0" style={{ fontSize: 10, lineHeight: 1.5 }}>
               {saveError}
             </div>
           )}
