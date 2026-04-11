@@ -13,7 +13,9 @@
       "Bash(find /tmp -name *.png)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git pull:*)",
+      "Bash(npm install:*)"
     ]
   }
 }
