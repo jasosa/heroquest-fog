@@ -101,11 +101,11 @@ Key changes:
 - **Remove developer footer**: remove the "v0.2 — Real HeroQuest board / 22 rooms" text from the bottom of the sidebar
 - Depends on FEAT-022 for colour tokens
 
-### [FEAT-025] Collapsible legend in play mode sidebar
+### [FEAT-025] Remove legend from play mode sidebar
 Priority: low
-Status: not_started
+Status: committed
 Complexity: low
-Description: The play mode sidebar shows a long room-colour legend that takes up most of the vertical space. Add a toggle button so the DM can collapse or expand it. State persists in localStorage.
+Description: The play mode sidebar shows a long room-colour legend that takes up most of the vertical space and is not useful during play. Remove it entirely.
 
 ### [ISSUE-005] RoomConfirmDialog missing backdrop dismiss
 Priority: low

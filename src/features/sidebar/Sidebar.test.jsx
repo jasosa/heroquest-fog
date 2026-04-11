@@ -74,3 +74,15 @@ describe("Sidebar collapse", () => {
     expect(container.firstChild.style.width).toBe("44px");
   });
 });
+
+describe("PlayPanel — legend removed", () => {
+  it("play mode renders no Legend heading", () => {
+    const { queryByText } = render(<Sidebar {...defaultProps} mode="play" />);
+    expect(queryByText("Legend")).toBeNull();
+  });
+
+  it("play mode renders no Show/Hide legend toggle button", () => {
+    const { queryByTitle } = render(<Sidebar {...defaultProps} mode="play" />);
+    expect(queryByTitle(/legend/i)).toBeNull();
+  });
+});
