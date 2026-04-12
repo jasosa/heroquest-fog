@@ -31,6 +31,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   useEffect(() => { migrateQuests(); }, []);
 
   const importInputRef = useRef(null);
+  const thumbRefs = useRef({});
   const [importError, setImportError] = useState("");
 
   const [editingBook, setEditingBook]   = useState(null);
@@ -50,6 +51,52 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     ? quests
     : quests.filter(q => q.questBookId === selectedBookId);
   const visibleQuests = sortQuests(filteredQuests, books);
+
+  // ── Showcase selection state ───────────────────────────────────────────────
+  const [selectedQuestId, setSelectedQuestId] = useState(() => visibleQuests[0]?.id ?? null);
+
+  const selectedQuestIndex = visibleQuests.findIndex(q => q.id === selectedQuestId);
+  const selectedQuest = selectedQuestIndex >= 0 ? visibleQuests[selectedQuestIndex] : visibleQuests[0] ?? null;
+
+  function handlePrev() {
+    if (!visibleQuests.length) return;
+    const n = visibleQuests.length;
+    const idx = selectedQuestIndex >= 0 ? selectedQuestIndex : 0;
+    setSelectedQuestId(visibleQuests[(idx - 1 + n) % n].id);
+  }
+
+  function handleNext() {
+    if (!visibleQuests.length) return;
+    const n = visibleQuests.length;
+    const idx = selectedQuestIndex >= 0 ? selectedQuestIndex : 0;
+    setSelectedQuestId(visibleQuests[(idx + 1) % n].id);
+  }
+
+  // Reset selection when book filter changes
+  useEffect(() => {
+    setSelectedQuestId(visibleQuests[0]?.id ?? null);
+  }, [selectedBookId]); // NOT visibleQuests — would infinite loop
+
+  // Keyboard nav — guard against text input focus
+  useEffect(() => {
+    function onKey(e) {
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.key === "ArrowLeft") handlePrev();
+      if (e.key === "ArrowRight") handleNext();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedQuestId, selectedBookId]); // re-register when deps change
+
+  // Scroll active thumb into view
+  useEffect(() => {
+    if (!selectedQuestId) return;
+    const el = thumbRefs.current[selectedQuestId];
+    if (el && typeof el.scrollIntoView === "function") {
+      try { el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" }); } catch {}
+    }
+  }, [selectedQuestId]);
 
   function bookQuestCount(bookId) {
     return quests.filter(q => q.questBookId === bookId).length;
@@ -102,7 +149,17 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   function handleDeleteQuest(id) {
     if (!window.confirm("Delete this quest?")) return;
     deleteQuest(id);
-    setQuests(prev => prev.filter(q => q.id !== id));
+    setQuests(prev => {
+      const next = prev.filter(q => q.id !== id);
+      const nextVisible = sortQuests(
+        selectedBookId === null ? next : next.filter(q => q.questBookId === selectedBookId),
+        books
+      );
+      const deletedIdx = visibleQuests.findIndex(q => q.id === id);
+      const newSelected = nextVisible[Math.min(deletedIdx, nextVisible.length - 1)]?.id ?? null;
+      setSelectedQuestId(newSelected);
+      return next;
+    });
   }
 
   // ── Export / Import ─────────────────────────────────────────────────────────
@@ -131,6 +188,19 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     reader.readAsText(file);
     e.target.value = "";
   }
+
+  // ── Derived values ─────────────────────────────────────────────────────────
+  const selectedBookName = selectedBookId === null
+    ? "All Quests"
+    : books.find(b => b.id === selectedBookId)?.title ?? "";
+
+  const isNew = selectedQuest
+    ? Date.now() - selectedQuest.createdAt < 7 * 24 * 3600 * 1000
+    : false;
+
+  const selectedQuestBookName = selectedQuest
+    ? books.find(b => b.id === selectedQuest.questBookId)?.title ?? null
+    : null;
 
   return (
     <div className="d-flex vh-100 overflow-hidden" style={{ background: T.pageBg, fontFamily: FONT_BODY, color: T.text }}>
@@ -275,36 +345,59 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
         </div>
       </nav>
 
-      {/* ── Right main — Quest Cards ─────────────────────────────────────────── */}
-      <main className="flex-grow-1 overflow-y-auto p-4">
+      {/* ── Right main — Showcase layout ────────────────────────────────────── */}
+      <main style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        background: T.pageBg,
+      }}>
 
-        {/* Header */}
-        <div className="mb-4">
-          <h1 style={{
-            margin: 0, fontSize: 24, letterSpacing: 4, color: T.sidebarTitle,
-            textTransform: "uppercase", fontWeight: "normal",
-            fontFamily: FONT_TITLE, textShadow: "0 2px 8px #c4a87066",
-          }}>
-            HeroQuest — Quest Library
-          </h1>
-          <div style={{ marginTop: 4, fontSize: 12, color: T.textMuted, letterSpacing: 2 }}>
-            {selectedBookId === null
-              ? "All Quests"
-              : books.find(b => b.id === selectedBookId)?.title ?? ""}
+        {/* Top bar */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px 24px 8px 24px",
+          borderBottom: `1px solid ${T.sidebarDivider}`,
+          flexShrink: 0,
+        }}>
+          <div>
+            <h1
+              data-testid="library-heading"
+              style={{
+                margin: 0, fontSize: 24, letterSpacing: 4, color: T.sidebarTitle,
+                textTransform: "uppercase", fontWeight: "normal",
+                fontFamily: FONT_TITLE, textShadow: "0 2px 8px #c4a87066",
+              }}
+            >
+              HeroQuest — Quest Library
+            </h1>
+            <div style={{ marginTop: 4, fontSize: 12, color: T.textMuted, fontFamily: FONT_BODY, fontStyle: "italic" }}>
+              {selectedBookName}
+            </div>
+          </div>
+          <div>
+            {!showNewQuest && (
+              <button onClick={() => setShowNewQuest(true)} className="btn btn-hq-light active">
+                ＋ New Quest
+              </button>
+            )}
           </div>
         </div>
 
-        {/* New Quest button / form */}
-        <div className="mb-4">
-          {showNewQuest ? (
-            <div className="p-3" style={{
+        {/* New quest form (below top bar) */}
+        {showNewQuest && (
+          <div style={{ padding: "12px 24px", flexShrink: 0, borderBottom: `1px solid ${T.sidebarDivider}` }}>
+            <div style={{
               background: T.panelBg, border: `1px solid ${T.panelBorder}`,
-              maxWidth: 480,
+              maxWidth: 480, padding: 16,
             }}>
-              <div className="mb-2" style={{ fontSize: 12, fontWeight: "bold", color: T.title, letterSpacing: 2, textTransform: "uppercase" }}>
+              <div style={{ fontSize: 12, fontWeight: "bold", color: T.sidebarTitle, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>
                 New Quest
               </div>
-              <div className="mb-2">
+              <div style={{ marginBottom: 8 }}>
                 <input
                   placeholder="Quest title"
                   value={newQuestTitle}
@@ -313,7 +406,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                   autoFocus
                 />
               </div>
-              <div className="mb-2">
+              <div style={{ marginBottom: 8 }}>
                 <textarea
                   placeholder="Description (optional)"
                   value={newQuestDesc}
@@ -323,7 +416,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                   style={{ resize: "vertical" }}
                 />
               </div>
-              <div className="mb-2">
+              <div style={{ marginBottom: 8 }}>
                 <select
                   value={newQuestBookId ?? ""}
                   onChange={e => setNewQuestBookId(e.target.value || null)}
@@ -335,7 +428,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                   ))}
                 </select>
               </div>
-              <div className="mb-3">
+              <div style={{ marginBottom: 12 }}>
                 <input
                   type="number"
                   placeholder="Quest number (optional)"
@@ -345,7 +438,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                   className="form-control form-control-sm"
                 />
               </div>
-              <div className="d-flex gap-2">
+              <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={handleCreateQuest} className="btn btn-hq-light active">
                   Create &amp; Edit
                 </button>
@@ -357,81 +450,312 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                 </button>
               </div>
             </div>
-          ) : (
-            <button onClick={() => setShowNewQuest(true)} className="btn btn-hq-light active">
-              ＋ New Quest
-            </button>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Quest cards */}
+        {/* Showcase panel + thumbnail strip */}
         {visibleQuests.length === 0 ? (
-          <div style={{ color: T.sidebarTextFaint, fontSize: 14, letterSpacing: 2, textAlign: "center", marginTop: 60 }}>
+          <div
+            data-testid="showcase-empty"
+            style={{ color: T.sidebarTextFaint, fontSize: 14, letterSpacing: 2, textAlign: "center", marginTop: 60, fontFamily: FONT_BODY }}
+          >
             No quests yet. Create one to get started.
           </div>
         ) : (
-          <div className="hq-card-grid">
-            {visibleQuests.map(quest => {
-              const bookName = books.find(b => b.id === quest.questBookId)?.title;
-              return (
-                <div key={quest.id} className="card" style={{ boxShadow: "0 1px 4px #c4a87022", background: T.panelBg }}>
-                  <div className="card-body d-flex flex-column gap-2 p-3">
-                    <div style={{ fontSize: 14, fontWeight: "bold", color: T.sidebarTitle, letterSpacing: 1, fontFamily: FONT_HEADING }}>
-                      {quest.title}
-                    </div>
-                    {quest.description && (
-                      <div style={{
-                        fontSize: 11, color: T.sidebarText, lineHeight: 1.5,
+          <>
+            {/* Showcase panel */}
+            <div
+              data-testid="showcase-panel"
+              style={{ flex: 1, display: "flex", position: "relative", overflow: "hidden" }}
+            >
+              {/* Left detail column */}
+              <div
+                data-testid="showcase-detail"
+                style={{
+                  width: "40%",
+                  background: "#1a1408",
+                  padding: 32,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  overflow: "hidden",
+                }}
+              >
+                <h2
+                  data-testid="showcase-title"
+                  style={{
+                    margin: 0,
+                    fontFamily: FONT_HEADING,
+                    fontSize: "clamp(16px, 2.5vw, 26px)",
+                    color: T.sidebarTitle,
+                    fontWeight: "normal",
+                    overflowWrap: "break-word",
+                  }}
+                >
+                  {selectedQuest.title}
+                </h2>
+
+                {/* Meta line */}
+                <div style={{ fontSize: 12, color: T.sidebarTextMuted, fontFamily: FONT_BODY, fontStyle: "italic" }}>
+                  {selectedQuestBookName && <span>{selectedQuestBookName}</span>}
+                  {selectedQuest.questNumber != null && (
+                    <span>{selectedQuestBookName ? " · " : ""}Quest #{selectedQuest.questNumber}</span>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div style={{
+                  fontSize: 14, fontFamily: FONT_BODY, color: T.sidebarText,
+                  lineHeight: 1.7, overflowY: "auto", maxHeight: "calc(100% - 200px)",
+                }}>
+                  {selectedQuest.description
+                    ? selectedQuest.description
+                    : <span style={{ color: T.sidebarTextFaint, fontStyle: "italic" }}>No description.</span>
+                  }
+                </div>
+
+                {/* Action buttons */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: "auto" }}>
+                  <button
+                    data-testid="action-play"
+                    onClick={() => onPlay(selectedQuest)}
+                    style={{
+                      minHeight: 44,
+                      background: T.accent,
+                      border: `1px solid ${T.accentGold}`,
+                      color: "#fff",
+                      fontFamily: FONT_HEADING,
+                      fontSize: 12,
+                      padding: "8px 16px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ⚔ Play
+                  </button>
+                  <button
+                    data-testid="action-edit"
+                    onClick={() => onEdit(selectedQuest)}
+                    style={{
+                      minHeight: 44,
+                      background: T.sidebarBtnBg,
+                      border: `1px solid ${T.sidebarBtnBorder}`,
+                      color: T.sidebarBtnText,
+                      fontFamily: FONT_HEADING,
+                      fontSize: 12,
+                      padding: "8px 16px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✎ Edit
+                  </button>
+                  <button
+                    data-testid="action-delete"
+                    onClick={() => handleDeleteQuest(selectedQuest.id)}
+                    style={{
+                      minHeight: 44,
+                      background: T.sidebarBtnBg,
+                      border: `1px solid ${T.sidebarBtnBorder}`,
+                      color: T.accent,
+                      fontFamily: FONT_HEADING,
+                      fontSize: 12,
+                      padding: "8px 16px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    × Delete
+                  </button>
+                  <button
+                    data-testid="action-export"
+                    onClick={() => handleExportQuest(selectedQuest)}
+                    style={{
+                      minHeight: 44,
+                      background: T.sidebarBtnBg,
+                      border: `1px solid ${T.sidebarBtnBorder}`,
+                      color: T.sidebarBtnText,
+                      fontFamily: FONT_HEADING,
+                      fontSize: 11,
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ⬇ Export
+                  </button>
+                  <button
+                    data-testid="action-assign"
+                    onClick={() => setAssigningQuest(selectedQuest)}
+                    style={{
+                      minHeight: 44,
+                      background: T.sidebarBtnBg,
+                      border: `1px solid ${T.sidebarBtnBorder}`,
+                      color: T.sidebarBtnText,
+                      fontFamily: FONT_HEADING,
+                      fontSize: 11,
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ☰ Assign Book
+                  </button>
+                </div>
+              </div>
+
+              {/* Right artwork column */}
+              <div style={{
+                flex: 1,
+                position: "relative",
+                background: "#0d0b07",
+                overflow: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+                gap: 8,
+              }}>
+                <div style={{ fontSize: 64, color: T.accentGold, opacity: 0.2 }}>⚔</div>
+                <div style={{ fontSize: 12, color: T.sidebarTextFaint, fontFamily: FONT_BODY, opacity: 0.5 }}>
+                  No artwork
+                </div>
+                {/* Vignette overlay */}
+                <div style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "radial-gradient(ellipse at center, transparent 40%, #00000088 100%)",
+                  pointerEvents: "none",
+                }} />
+              </div>
+
+              {/* "New" ribbon badge */}
+              {isNew && (
+                <div
+                  data-testid="new-badge"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    width: 80,
+                    height: 80,
+                    overflow: "hidden",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <span style={{
+                    position: "absolute",
+                    top: 18,
+                    right: -22,
+                    width: 100,
+                    padding: "3px 0",
+                    background: T.accentGold,
+                    color: "#12100e",
+                    fontFamily: FONT_HEADING,
+                    fontSize: 9,
+                    textAlign: "center",
+                    transform: "rotate(45deg)",
+                    letterSpacing: 2,
+                    textTransform: "uppercase",
+                  }}>
+                    New
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Thumbnail strip */}
+            <div style={{
+              height: 110,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "0 8px",
+              background: "#0d0b07",
+              borderTop: `1px solid ${T.sidebarDivider}`,
+            }}>
+              {/* Prev button */}
+              <button
+                data-testid="nav-prev"
+                onClick={handlePrev}
+                disabled={visibleQuests.length <= 1}
+                style={{
+                  width: 32,
+                  height: 80,
+                  background: T.sidebarBtnBg,
+                  border: `1px solid ${T.sidebarBtnBorder}`,
+                  color: T.sidebarTitle,
+                  fontSize: 16,
+                  cursor: visibleQuests.length <= 1 ? "default" : "pointer",
+                  opacity: visibleQuests.length <= 1 ? 0.3 : 1,
+                  flexShrink: 0,
+                }}
+              >
+                ◀
+              </button>
+
+              {/* Scrollable thumbs row */}
+              <div style={{
+                flex: 1,
+                display: "flex",
+                gap: 8,
+                overflowX: "auto",
+                scrollbarWidth: "none",
+                alignItems: "center",
+              }}>
+                {visibleQuests.map(quest => {
+                  const isActive = quest.id === selectedQuest?.id;
+                  return (
+                    <button
+                      key={quest.id}
+                      data-testid={`thumb-${quest.id}`}
+                      ref={el => { thumbRefs.current[quest.id] = el; }}
+                      onClick={() => setSelectedQuestId(quest.id)}
+                      style={{
+                        width: 120,
+                        height: 80,
+                        flexShrink: 0,
+                        background: "#1a1408",
+                        border: isActive
+                          ? `2px solid ${T.accentGold}`
+                          : `1px solid ${T.sidebarPanelBorder}`,
+                        boxShadow: isActive ? `0 0 8px ${T.accentGold}44` : "none",
+                        color: T.sidebarText,
+                        fontFamily: FONT_HEADING,
+                        fontSize: 10,
+                        padding: "6px 8px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        transition: "border-color 0.15s, box-shadow 0.15s",
                         overflow: "hidden",
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: "vertical",
-                        fontFamily: FONT_BODY,
-                      }}>
-                        {quest.description}
-                      </div>
-                    )}
-                    <div style={{ fontSize: 10, color: T.sidebarTextMuted, display: "flex", flexDirection: "column", gap: 2 }}>
-                      {bookName && <span>Book: {bookName}</span>}
-                      {quest.questNumber != null && <span>Quest #{quest.questNumber}</span>}
-                      <span>Updated: {fmtDate(quest.updatedAt)}</span>
-                    </div>
-                  </div>
-                  <div className="card-footer d-flex gap-1 p-2" style={{ background: "transparent", borderTop: `1px solid ${T.sidebarPanelBorder}` }}>
-                    <button onClick={() => onPlay(quest)} className="btn btn-hq-dark flex-grow-1" style={{ fontSize: 10 }}>
-                      ⚔ Play
-                    </button>
-                    <button onClick={() => onEdit(quest)} className="btn btn-hq-dark flex-grow-1" style={{ fontSize: 10 }}>
-                      ✎ Edit
-                    </button>
-                    <button
-                      onClick={() => setAssigningQuest(quest)}
-                      title="Assign to quest book"
-                      className="btn btn-hq-dark"
-                      style={{ padding: "7px 10px", fontSize: 11 }}
+                      }}
                     >
-                      ☰
+                      {quest.title}
                     </button>
-                    <button
-                      onClick={() => handleExportQuest(quest)}
-                      title="Export quest as JSON"
-                      className="btn btn-hq-dark"
-                      style={{ padding: "7px 10px", fontSize: 11 }}
-                    >
-                      ⬇
-                    </button>
-                    <button
-                      onClick={() => handleDeleteQuest(quest.id)}
-                      className="btn btn-hq-dark"
-                      style={{ padding: "7px 10px", fontSize: 11, color: T.accent }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+
+              {/* Next button */}
+              <button
+                data-testid="nav-next"
+                onClick={handleNext}
+                disabled={visibleQuests.length <= 1}
+                style={{
+                  width: 32,
+                  height: 80,
+                  background: T.sidebarBtnBg,
+                  border: `1px solid ${T.sidebarBtnBorder}`,
+                  color: T.sidebarTitle,
+                  fontSize: 16,
+                  cursor: visibleQuests.length <= 1 ? "default" : "pointer",
+                  opacity: visibleQuests.length <= 1 ? 0.3 : 1,
+                  flexShrink: 0,
+                }}
+              >
+                ▶
+              </button>
+            </div>
+          </>
         )}
       </main>
     </div>

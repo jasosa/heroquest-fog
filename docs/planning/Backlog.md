@@ -8,7 +8,7 @@ Items are grouped by status, then by ID within each group.
 
 ### [FEAT-018] Navigation and mode-switch warnings
 Priority: medium
-Status: committed
+Status: done
 Complexity: low
 Description: Two safeguard warnings:
 1. **Play → Edit mode switch mid-session**: Show a notice that opened chests, revealed traps, and search counts will carry over to the next play session (they are not reset).
@@ -16,7 +16,7 @@ Description: Two safeguard warnings:
 
 ### [FEAT-019] Trap warning visual indicator (glow)
 Priority: medium
-Status: committed
+Status: done
 Complexity: low
 Description: Spotted-but-unrevealed trap warnings should have a red/orange glow to signal interactivity, distinct from the amber/gold glow used on chests. Amber = treasure opportunity; red = physical danger — players must distinguish them instantly on a small screen without reading tooltips.
 
@@ -53,37 +53,23 @@ Status: not_started
 Complexity: low
 Description: When the DM resets fog during a play session, reset `hasShownPlacementPopup` to false so the placement popup re-appears if the quest has a non-empty placement message. This ensures the popup is shown again when restarting with the same browser session.
 
-### [FEAT-022] Dark theme overhaul — JIME-inspired high-contrast palette
-Priority: high
-Status: committed
-Complexity: low
-Description: Replace the current colour tokens in `theme.js` with a JIME-inspired dark palette that passes WCAG AA contrast (4.5:1 minimum) everywhere. The core rule is: dark background → bright text, never same-tone combinations.
-
-Key changes:
-- `pageBg` → `#12100e` (near-black) for the board surround and game screen; the library right panel may keep a slightly warmer dark background
-- Quest card backgrounds switch from near-black dark brown to `#1e1a12` with a 3px bright-gold (`#f0c040`) left border accent
-- Card title colour → `#f0d080` (bright warm gold, ~8:1 on card bg); body text → `#e8dfc8` (~7:1); meta/date → `#b8a87a` (~4.7:1)
-- Sidebar input text → `#e8dfc8`; input border → `#9a7a30` 1.5px (clearly visible against dark bg)
-- Button text on dark → `#d8c888`; active button retains crimson fill with bright gold border `#f0c040`
-- All sidebar section headings → `#f0d080`
-
-No layout or component structure changes in this feature — pure colour token replacements in `theme.js`. All components inherit the new values automatically via `T.*` imports.
-
-Acceptance criteria: every text/background pair in the app meets 4.5:1 contrast ratio.
-
 ### [FEAT-023] Quest Library card grid redesign
 Priority: high
-Status: not_started
+Status: committed
 Complexity: medium
-Description: Redesign the quest card layout in `QuestLibrary.jsx` to match the JIME dark-stone card pattern and fix the accessibility and usability issues identified in the UX review.
+Description: Redesign the Quest Library screen to use a cinematic, full-bleed card layout inspired by the Journeys in Middle-earth app. Instead of a compact card grid, the selected quest is presented as a large showcase panel: a wide illustration area on the right, descriptive text on the left, and a horizontal thumbnail strip along the bottom for browsing other quests.
+
+Reference: the "Poison Promise" campaign screen from JTME — dark atmospheric background, large hero artwork, title centred above the art, description text panel on the left, small scene thumbnails at the bottom, navigation arrows on the sides, and a "New" ribbon badge on fresh quests.
 
 Key changes:
-- Card background: `#1e1a12` (dark stone) with a `3px solid #f0c040` left accent border and `box-shadow: 0 2px 12px #00000066`
-- Typography hierarchy inside card: Cinzel 15px/600 gold title → IM Fell English 11px italic muted meta (book + quest number) → IM Fell English 12px body text (2-line clamp) → Cinzel 10px faint date
-- Button row: replace icon-only buttons with labelled buttons; "Play" (crimson fill, gold border) and "Edit" (dark fill, muted border) as primary actions; keep icon buttons for assign-book (☰), export (⬇), delete (×) but with `aria-label` and minimum 44px touch target height
-- All interactive elements minimum 44px tall
-- Page background in library uses the new dark `pageBg` from FEAT-022; the right content panel gets a subtle lighter dark container (`#1a1710`) to frame the card grid
-- Depends on FEAT-022 for the colour tokens
+- Replace the card grid with a single large showcase card (~80% of the content area). Left panel: quest title (Cinzel, gold, ~22px), meta line (book name + quest number, IM Fell English italic, muted), full description text (IM Fell English 13px, no line-clamp). Right panel: large quest artwork placeholder (`#0d0b07` with a faint parchment-texture overlay and a centered icon if no image is set); if a cover image is stored on the quest object, render it here.
+- "New" ribbon badge (gold diagonal banner, top-right corner of the card) shown on quests created within the last 7 days.
+- Bottom thumbnail strip: horizontally scrollable row of quest mini-cards (~120×80px each), one per quest in the selected book. Active quest is highlighted with a gold border. Clicking a thumbnail selects it and updates the showcase panel without navigating away.
+- Action buttons ("Play", "Edit", "Delete") sit below the left panel description, not inside the thumbnail. "Play" is a crimson fill button (gold border); "Edit" and "Delete" are secondary dark buttons. All minimum 44px tall.
+- Left/right arrow controls (or keyboard ←/→) to cycle through quests within the current book, mirroring the JTME navigation pattern.
+- Sidebar quest book list remains on the left; selecting a different book resets the showcase to the first quest in that book.
+- Dark atmospheric page background (`pageBg` from FEAT-022); showcase card uses `#1a1408` with a subtle warm vignette shadow.
+- Depends on FEAT-022 for colour tokens.
 
 ### [FEAT-024] Sidebar UX polish — inputs, section headers, piece list, touch targets
 Priority: medium
@@ -101,25 +87,12 @@ Key changes:
 - **Remove developer footer**: remove the "v0.2 — Real HeroQuest board / 22 rooms" text from the bottom of the sidebar
 - Depends on FEAT-022 for colour tokens
 
-### [FEAT-025] Remove legend from play mode sidebar
-Priority: low
-Status: committed
-Complexity: low
-Description: The play mode sidebar shows a long room-colour legend that takes up most of the vertical space and is not useful during play. Remove it entirely.
-
 ### [ISSUE-005] RoomConfirmDialog missing backdrop dismiss
 Priority: low
 Impact: low — UX friction on mobile
 Status: not_started
 Complexity: low
 Description: Clicking outside the RoomConfirmDialog does nothing. All other dialogs in the app dismiss on backdrop click. Fix: add `onMouseDown` handler on the backdrop overlay that calls the cancel action, with `e.stopPropagation()` on the inner content div.
-
-### [ISSUE-008] Empty note marker gives no feedback in play mode
-Priority: low
-Impact: low — confusing UX
-Status: not_started
-Complexity: low
-Description: Clicking a note marker with an empty note field in play mode does nothing silently. Players assume it is broken. Fix: show a fallback message (e.g. "No note.") so players know the click registered.
 
 ### [ISSUE-009] Edit mode action buttons are structurally inconsistent
 Priority: low
