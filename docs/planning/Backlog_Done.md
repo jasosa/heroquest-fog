@@ -96,6 +96,26 @@ Each trap type in `pieces.js` has a pre-defined `trapRules` field describing its
 
 In edit mode, traps always show their real icon and DM-authored notes are editable via a config dialog (same pattern as chests and search markers).
 
+### [FEAT-018] Navigation and mode-switch warnings
+Priority: medium
+Status: done
+Complexity: low
+Description: Two safeguard warnings:
+1. **Play → Edit mode switch mid-session**: Show a notice that opened chests, revealed traps, and search counts will carry over to the next play session (they are not reset).
+2. **Back to Library with unsaved changes**: When the DM navigates back to the quest library while the current quest has unsaved edits, prompt a confirmation ("Unsaved changes will be lost — go back anyway?").
+
+### [FEAT-019] Trap warning visual indicator (glow)
+Priority: medium
+Status: done
+Complexity: low
+Description: Spotted-but-unrevealed trap warnings should have a red/orange glow to signal interactivity, distinct from the amber/gold glow used on chests. Amber = treasure opportunity; red = physical danger — players must distinguish them instantly on a small screen without reading tooltips.
+
+UX recommendation: apply a two-layer `drop-shadow` matching the chest glow structure but in crimson/red:
+`drop-shadow(0 0 4px #c0392b) drop-shadow(0 0 8px #e74c3caa)`
+
+This mirrors the chest's inner/outer layering so both elements feel like the same visual language while remaining distinguishable by color. Red also aligns with the existing theme danger colors (`T.accent` / `T.title` are already deep crimson). Implementation is a one-line change in the trap warning block of `TokenOverlay.jsx`.
+
+
 ### [FEAT-020] Spring trap: configure behavior per trap type in edit mode
 Priority: high
 Status: done
@@ -112,6 +132,30 @@ Priority: medium
 Status: done
 Complexity: low
 Description: The DM should be able to edit the default rules text per trap type globally (not per placed instance). This could be a global settings panel or per-piece default in `pieces.js` that is surfaced as editable in a trap-type settings area. Alternatively, if the per-placed `trapNote` field (from FEAT-020) is pre-filled with the default text, the DM editing the placed piece effectively customises the default. Clarify the exact UX before planning.
+
+### [FEAT-022] Dark theme overhaul — JIME-inspired high-contrast palette
+Priority: high
+Status: done
+Complexity: low
+Description: Replace the current colour tokens in `theme.js` with a JIME-inspired dark palette that passes WCAG AA contrast (4.5:1 minimum) everywhere. The core rule is: dark background → bright text, never same-tone combinations.
+
+Key changes:
+- `pageBg` → `#12100e` (near-black) for the board surround and game screen; the library right panel may keep a slightly warmer dark background
+- Quest card backgrounds switch from near-black dark brown to `#1e1a12` with a 3px bright-gold (`#f0c040`) left border accent
+- Card title colour → `#f0d080` (bright warm gold, ~8:1 on card bg); body text → `#e8dfc8` (~7:1); meta/date → `#b8a87a` (~4.7:1)
+- Sidebar input text → `#e8dfc8`; input border → `#9a7a30` 1.5px (clearly visible against dark bg)
+- Button text on dark → `#d8c888`; active button retains crimson fill with bright gold border `#f0c040`
+- All sidebar section headings → `#f0d080`
+
+No layout or component structure changes in this feature — pure colour token replacements in `theme.js`. All components inherit the new values automatically via `T.*` imports.
+
+Acceptance criteria: every text/background pair in the app meets 4.5:1 contrast ratio.
+
+### [FEAT-025] Remove legend from play mode sidebar
+Priority: low
+Status: done
+Complexity: low
+Description: The play mode sidebar shows a long room-colour legend that takes up most of the vertical space and is not useful during play. Remove it entirely.
 
 ---
 

@@ -71,6 +71,20 @@ Key changes:
 - Dark atmospheric page background (`pageBg` from FEAT-022); showcase card uses `#1a1408` with a subtle warm vignette shadow.
 - Depends on FEAT-022 for colour tokens.
 
+### [FEAT-026] Quest book cover image
+Priority: high
+Status: not_started
+Complexity: low
+Description: Allow a cover image to be assigned to a quest book. The image is displayed as the artwork in the showcase right panel (FEAT-023) when a quest from that book is selected.
+
+Key changes:
+- **Data model**: add an optional `coverImage` field to quest book objects in `hq_quest_books` (localStorage). Store the image as a base64 data URL (result of `FileReader.readAsDataURL`). `createQuestBook` and `updateQuestBook` in `questStorage.js` must accept and persist this field.
+- **Create Book form** (sidebar in `QuestLibrary.jsx`): add a file input (`accept="image/*"`) below the description field. Label: "Cover image (optional)". On selection, read the file with `FileReader` and store the base64 string in component state; pass it to `createQuestBook`.
+- **Edit Book dialog** (`EditQuestBookDialog.jsx`): add the same file input. Show a small preview (`40×40px`, `objectFit: cover`) of the current image if one exists. Allow clearing the image with a "× Remove" link next to the preview.
+- **Showcase panel** (`QuestLibrary.jsx`): in the right artwork column, if the selected quest's book has a `coverImage`, render it as `<img src={coverImage} style={{ width:"100%", height:"100%", objectFit:"cover" }} />` replacing the ⚔ placeholder. The vignette overlay remains on top regardless.
+- **No upload size limit enforced in UI** — images are stored as-is in localStorage; a note in the UI copy ("large images may slow the app") is sufficient.
+- Depends on FEAT-023 for the showcase artwork slot.
+
 ### [FEAT-024] Sidebar UX polish — inputs, section headers, piece list, touch targets
 Priority: medium
 Status: not_started
