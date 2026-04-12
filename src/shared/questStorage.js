@@ -21,8 +21,8 @@ export function saveQuestBooks(books) {
   localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
 }
 
-export function createQuestBook(title, description = "") {
-  const book = { id: uid(), title, description, createdAt: Date.now() };
+export function createQuestBook(title, description = "", coverImage = null) {
+  const book = { id: uid(), title, description, coverImage, createdAt: Date.now() };
   const books = loadQuestBooks();
   books.push(book);
   saveQuestBooks(books);
