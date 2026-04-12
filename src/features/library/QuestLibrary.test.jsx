@@ -163,6 +163,35 @@ describe("QuestLibrary book filter resets selection", () => {
   });
 });
 
+// ── QuestLibrary showcase cover image ────────────────────────────────────────
+
+describe("QuestLibrary showcase cover image", () => {
+  it("renders img with coverImage src when selected quest's book has one", () => {
+    const book = storage.createQuestBook("Book", "", "data:image/png;base64,FAKE");
+    storage.createQuest({ title: "Q", description: "", questBookId: book.id });
+    const { container } = render(<QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />);
+    const img = container.querySelector('[data-testid="showcase-cover-img"]');
+    expect(img).toBeTruthy();
+    expect(img.getAttribute("src")).toBe("data:image/png;base64,FAKE");
+    expect(img.getAttribute("alt")).toBe("Cover image preview");
+  });
+
+  it("renders placeholder when book has no coverImage", () => {
+    const book = storage.createQuestBook("Book", "");
+    storage.createQuest({ title: "Q", description: "", questBookId: book.id });
+    const { container } = render(<QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />);
+    expect(container.querySelector('[data-testid="showcase-cover-img"]')).toBeNull();
+    expect(container.querySelector('[data-testid="showcase-placeholder"]')).toBeTruthy();
+  });
+
+  it("renders placeholder when quest has no book", () => {
+    storage.createQuest({ title: "Q", description: "", questBookId: null });
+    const { container } = render(<QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />);
+    expect(container.querySelector('[data-testid="showcase-cover-img"]')).toBeNull();
+    expect(container.querySelector('[data-testid="showcase-placeholder"]')).toBeTruthy();
+  });
+});
+
 // ── Step 9: Action buttons trigger correct handlers ───────────────────────────
 
 describe("QuestLibrary action buttons", () => {

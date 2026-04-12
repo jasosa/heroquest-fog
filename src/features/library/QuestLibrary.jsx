@@ -40,6 +40,9 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   const [showNewBook, setShowNewBook]   = useState(false);
   const [newBookTitle, setNewBookTitle] = useState("");
   const [newBookDesc, setNewBookDesc]   = useState("");
+  const [newBookCoverImage, setNewBookCoverImage] = useState(null);
+  const [newBookSizeWarning, setNewBookSizeWarning] = useState(false);
+  const newBookFileInputRef = useRef(null);
 
   const [showNewQuest, setShowNewQuest]     = useState(false);
   const [newQuestTitle, setNewQuestTitle]   = useState("");
@@ -103,11 +106,21 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   }
 
   // ── Book actions ────────────────────────────────────────────────────────────
+  function handleNewBookImageChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setNewBookSizeWarning(file.size > 512 * 1024);
+    const reader = new FileReader();
+    reader.onload = ev => setNewBookCoverImage(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+
   function handleCreateBook() {
     if (!newBookTitle.trim()) return;
-    const book = createQuestBook(newBookTitle.trim(), newBookDesc.trim());
+    const book = createQuestBook(newBookTitle.trim(), newBookDesc.trim(), newBookCoverImage);
     setBooks(prev => [...prev, book]);
-    setNewBookTitle(""); setNewBookDesc(""); setShowNewBook(false);
+    setNewBookTitle(""); setNewBookDesc(""); setNewBookCoverImage(null);
+    setNewBookSizeWarning(false); setShowNewBook(false);
   }
 
   function handleDeleteBook(id) {
@@ -118,9 +131,9 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     if (selectedBookId === id) setSelectedBookId(null);
   }
 
-  function handleSaveEditBook(title, description) {
-    updateQuestBook(editingBook.id, { title, description });
-    setBooks(prev => prev.map(b => b.id === editingBook.id ? { ...b, title, description } : b));
+  function handleSaveEditBook(title, description, coverImage) {
+    updateQuestBook(editingBook.id, { title, description, coverImage });
+    setBooks(prev => prev.map(b => b.id === editingBook.id ? { ...b, title, description, coverImage } : b));
     setEditingBook(null);
   }
 
@@ -202,12 +215,17 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     ? books.find(b => b.id === selectedQuest.questBookId)?.title ?? null
     : null;
 
+  const selectedQuestBook = selectedQuest
+    ? books.find(b => b.id === selectedQuest.questBookId) ?? null
+    : null;
+
   return (
     <div className="d-flex vh-100 overflow-hidden" style={{ background: T.pageBg, fontFamily: FONT_BODY, color: T.text }}>
       {editingBook && (
         <EditQuestBookDialog
           initialTitle={editingBook.title}
           initialDescription={editingBook.description}
+          initialCoverImage={editingBook.coverImage ?? null}
           onSave={handleSaveEditBook}
           onCancel={() => setEditingBook(null)}
         />
@@ -324,12 +342,53 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                 onChange={e => setNewBookDesc(e.target.value)}
                 className="form-control form-control-sm hq-input-dark"
               />
+              <div>
+                <label
+                  htmlFor="new-book-cover-input"
+                  style={{ fontSize: 10, color: T.sidebarTextMuted, display: "block", marginBottom: 3 }}
+                >
+                  {newBookCoverImage ? "Replace image" : "Cover image (optional)"}
+                </label>
+                {newBookCoverImage && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <img
+                      src={newBookCoverImage}
+                      alt="Cover image preview"
+                      style={{ width: 32, height: 32, objectFit: "cover",
+                        border: `1px solid ${T.sidebarBtnBorder}`, borderRadius: 2 }}
+                    />
+                    <button
+                      type="button"
+                      aria-label="Remove cover image"
+                      onClick={() => { setNewBookCoverImage(null); setNewBookSizeWarning(false); newBookFileInputRef.current?.focus(); }}
+                      style={{ background: T.sidebarBtnBg, border: `1px solid ${T.sidebarBtnBorder}`,
+                        color: T.accent, fontSize: 10, padding: "3px 8px",
+                        minHeight: 32, minWidth: 44, cursor: "pointer", fontFamily: "inherit" }}
+                    >
+                      × Remove
+                    </button>
+                  </div>
+                )}
+                <input
+                  id="new-book-cover-input"
+                  ref={newBookFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleNewBookImageChange}
+                  className="form-control form-control-sm hq-input-dark"
+                />
+                {newBookSizeWarning && (
+                  <div role="alert" style={{ fontSize: 10, color: T.accent, marginTop: 3 }}>
+                    Large images may slow the app.
+                  </div>
+                )}
+              </div>
               <div className="d-flex gap-1">
                 <button onClick={handleCreateBook} className="btn btn-hq-dark active flex-grow-1" style={{ fontSize: 10 }}>
                   Create
                 </button>
                 <button
-                  onClick={() => { setShowNewBook(false); setNewBookTitle(""); setNewBookDesc(""); }}
+                  onClick={() => { setShowNewBook(false); setNewBookTitle(""); setNewBookDesc(""); setNewBookCoverImage(null); setNewBookSizeWarning(false); }}
                   className="btn btn-hq-dark flex-grow-1"
                   style={{ fontSize: 10 }}
                 >
@@ -600,28 +659,25 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
               </div>
 
               {/* Right artwork column */}
-              <div style={{
-                flex: 1,
-                position: "relative",
-                background: "#0d0b07",
-                overflow: "hidden",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "column",
-                gap: 8,
-              }}>
-                <div style={{ fontSize: 64, color: T.accentGold, opacity: 0.2 }}>⚔</div>
-                <div style={{ fontSize: 12, color: T.sidebarTextFaint, fontFamily: FONT_BODY, opacity: 0.5 }}>
-                  No artwork
-                </div>
+              <div style={{ flex: 1, position: "relative", background: "#0d0b07", overflow: "hidden",
+                display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 8 }}>
+                {selectedQuestBook?.coverImage
+                  ? <img
+                      data-testid="showcase-cover-img"
+                      src={selectedQuestBook.coverImage}
+                      alt="Cover image preview"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      onError={e => { e.currentTarget.style.display = "none"; }}
+                    />
+                  : <div data-testid="showcase-placeholder" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                      <div style={{ fontSize: 64, color: T.accentGold, opacity: 0.2 }}>⚔</div>
+                      <div style={{ fontSize: 12, color: T.sidebarTextFaint, fontFamily: FONT_BODY, opacity: 0.5 }}>No artwork</div>
+                    </div>
+                }
                 {/* Vignette overlay */}
-                <div style={{
-                  position: "absolute",
-                  inset: 0,
+                <div style={{ position: "absolute", inset: 0,
                   background: "radial-gradient(ellipse at center, transparent 40%, #00000088 100%)",
-                  pointerEvents: "none",
-                }} />
+                  pointerEvents: "none" }} />
               </div>
 
               {/* "New" ribbon badge */}

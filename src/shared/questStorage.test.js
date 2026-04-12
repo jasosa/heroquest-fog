@@ -222,6 +222,32 @@ describe("createQuest placementMessage", () => {
   });
 });
 
+// ── createQuestBook coverImage ─────────────────────────────────────────────
+describe("createQuestBook coverImage", () => {
+  it("stores coverImage when provided", () => {
+    const book = createQuestBook("T", "d", "data:image/png;base64,abc");
+    expect(book.coverImage).toBe("data:image/png;base64,abc");
+    expect(loadQuestBooks().find(b => b.id === book.id).coverImage).toBe("data:image/png;base64,abc");
+  });
+  it("defaults coverImage to null when not provided", () => {
+    const book = createQuestBook("T", "d");
+    expect(book.coverImage).toBeNull();
+  });
+});
+
+describe("updateQuestBook coverImage", () => {
+  it("persists coverImage via spread", () => {
+    const book = createQuestBook("T", "D");
+    updateQuestBook(book.id, { coverImage: "data:image/png;base64,xyz" });
+    expect(loadQuestBooks().find(b => b.id === book.id).coverImage).toBe("data:image/png;base64,xyz");
+  });
+  it("can clear coverImage by setting to null", () => {
+    const book = createQuestBook("T", "D", "data:image/png;base64,abc");
+    updateQuestBook(book.id, { coverImage: null });
+    expect(loadQuestBooks().find(b => b.id === book.id).coverImage).toBeNull();
+  });
+});
+
 // ── importQuestFromJson ────────────────────────────────────────────────────
 describe("importQuestFromJson", () => {
   it("saves the quest and returns it with a fresh id", () => {

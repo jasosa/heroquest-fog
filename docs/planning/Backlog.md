@@ -4,29 +4,6 @@ Items are grouped by status, then by ID within each group.
 
 ---
 
-## Committed
-
-### [FEAT-018] Navigation and mode-switch warnings
-Priority: medium
-Status: done
-Complexity: low
-Description: Two safeguard warnings:
-1. **Play → Edit mode switch mid-session**: Show a notice that opened chests, revealed traps, and search counts will carry over to the next play session (they are not reset).
-2. **Back to Library with unsaved changes**: When the DM navigates back to the quest library while the current quest has unsaved edits, prompt a confirmation ("Unsaved changes will be lost — go back anyway?").
-
-### [FEAT-019] Trap warning visual indicator (glow)
-Priority: medium
-Status: done
-Complexity: low
-Description: Spotted-but-unrevealed trap warnings should have a red/orange glow to signal interactivity, distinct from the amber/gold glow used on chests. Amber = treasure opportunity; red = physical danger — players must distinguish them instantly on a small screen without reading tooltips.
-
-UX recommendation: apply a two-layer `drop-shadow` matching the chest glow structure but in crimson/red:
-`drop-shadow(0 0 4px #c0392b) drop-shadow(0 0 8px #e74c3caa)`
-
-This mirrors the chest's inner/outer layering so both elements feel like the same visual language while remaining distinguishable by color. Red also aligns with the existing theme danger colors (`T.accent` / `T.title` are already deep crimson). Implementation is a one-line change in the trap warning block of `TokenOverlay.jsx`.
-
----
-
 ## Not Started
 
 ### [FEAT-011] [Cleanup] Rename `pendingRoomReveal` to `pendingUnconfirmedReveal`
@@ -53,27 +30,9 @@ Status: not_started
 Complexity: low
 Description: When the DM resets fog during a play session, reset `hasShownPlacementPopup` to false so the placement popup re-appears if the quest has a non-empty placement message. This ensures the popup is shown again when restarting with the same browser session.
 
-### [FEAT-023] Quest Library card grid redesign
-Priority: high
-Status: committed
-Complexity: medium
-Description: Redesign the Quest Library screen to use a cinematic, full-bleed card layout inspired by the Journeys in Middle-earth app. Instead of a compact card grid, the selected quest is presented as a large showcase panel: a wide illustration area on the right, descriptive text on the left, and a horizontal thumbnail strip along the bottom for browsing other quests.
-
-Reference: the "Poison Promise" campaign screen from JTME — dark atmospheric background, large hero artwork, title centred above the art, description text panel on the left, small scene thumbnails at the bottom, navigation arrows on the sides, and a "New" ribbon badge on fresh quests.
-
-Key changes:
-- Replace the card grid with a single large showcase card (~80% of the content area). Left panel: quest title (Cinzel, gold, ~22px), meta line (book name + quest number, IM Fell English italic, muted), full description text (IM Fell English 13px, no line-clamp). Right panel: large quest artwork placeholder (`#0d0b07` with a faint parchment-texture overlay and a centered icon if no image is set); if a cover image is stored on the quest object, render it here.
-- "New" ribbon badge (gold diagonal banner, top-right corner of the card) shown on quests created within the last 7 days.
-- Bottom thumbnail strip: horizontally scrollable row of quest mini-cards (~120×80px each), one per quest in the selected book. Active quest is highlighted with a gold border. Clicking a thumbnail selects it and updates the showcase panel without navigating away.
-- Action buttons ("Play", "Edit", "Delete") sit below the left panel description, not inside the thumbnail. "Play" is a crimson fill button (gold border); "Edit" and "Delete" are secondary dark buttons. All minimum 44px tall.
-- Left/right arrow controls (or keyboard ←/→) to cycle through quests within the current book, mirroring the JTME navigation pattern.
-- Sidebar quest book list remains on the left; selecting a different book resets the showcase to the first quest in that book.
-- Dark atmospheric page background (`pageBg` from FEAT-022); showcase card uses `#1a1408` with a subtle warm vignette shadow.
-- Depends on FEAT-022 for colour tokens.
-
 ### [FEAT-026] Quest book cover image
 Priority: high
-Status: not_started
+Status: committed
 Complexity: low
 Description: Allow a cover image to be assigned to a quest book. The image is displayed as the artwork in the showcase right panel (FEAT-023) when a quest from that book is selected.
 
