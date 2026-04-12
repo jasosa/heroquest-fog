@@ -16,7 +16,8 @@
       "WebSearch",
       "Bash(git pull:*)",
       "Bash(npm install:*)",
-      "Skill(designing-beautiful-websites)"
+      "Skill(designing-beautiful-websites)",
+      "Bash(git merge feat/FEAT-026 --no-ff -m ':*)"
     ]
   }
 }
