@@ -84,7 +84,7 @@ Description: In Edit mode the zoom level display is obscured by the color palett
 ### [ISSUE-011] Play mode popups use unreadable text color
 Priority: high
 Impact: high — text in dialogs is invisible, blocking normal gameplay
-Status: in_progress
+Status: committed
 Complexity: low
 Description: Popups in Play mode (e.g. RoomConfirmDialog, letter-marker tooltips, special-monster notes) render text in a color that is not visible against their background. Apply the same dialog style used in the Quest Library (dark parchment background, `#f0e6c8` body text, gold headings with Cinzel font) to all Play-mode popups so the content is legible.
 
