@@ -14,10 +14,79 @@ function hexToRgb(hex) {
 afterEach(() => cleanup());
 
 describe("ChestResultPopup", () => {
-  it("shows Trap! heading and message when hasTrap=true", () => {
-    const { getByText } = render(<ChestResultPopup hasTrap={true} message="Spike!" onClose={() => {}} />)
-    expect(getByText(/Trap!/)).toBeTruthy()
-    expect(getByText("Spike!")).toBeTruthy()
+  it("shows 'Chest — Trap!' heading, rules message, Spring Trap and Disarm buttons when hasTrap=true", () => {
+    const { getByText } = render(
+      <ChestResultPopup hasTrap={true} springMessage="" anchorKey="5,5" onSpringTrap={() => {}} onDisarmTrap={() => {}} onClose={() => {}} />
+    );
+    expect(getByText("Chest — Trap!")).toBeTruthy();
+    expect(getByText(/A chest can contain a trap/)).toBeTruthy();
+    expect(getByText("Spring Trap")).toBeTruthy();
+    expect(getByText("Disarm")).toBeTruthy();
+  });
+
+  it("shows springMessage as extra paragraph in options phase when provided", () => {
+    const { getByText } = render(
+      <ChestResultPopup hasTrap={true} springMessage="Poison dart!" anchorKey="5,5" onSpringTrap={() => {}} onDisarmTrap={() => {}} onClose={() => {}} />
+    );
+    expect(getByText("Poison dart!")).toBeTruthy();
+  });
+
+  it("clicking Spring Trap calls onSpringTrap(anchorKey, false) and shows 'Trap Sprung!' heading", () => {
+    const onSpringTrap = vi.fn();
+    const { getByText } = render(
+      <ChestResultPopup hasTrap={true} springMessage="Spike!" anchorKey="5,5" onSpringTrap={onSpringTrap} onDisarmTrap={() => {}} onClose={() => {}} />
+    );
+    fireEvent.click(getByText("Spring Trap"));
+    expect(onSpringTrap).toHaveBeenCalledWith("5,5", false);
+    expect(getByText("Trap Sprung!")).toBeTruthy();
+  });
+
+  it("clicking Disarm shows confirmation screen with 'Disarm Trap?' heading", () => {
+    const { getByText } = render(
+      <ChestResultPopup hasTrap={true} springMessage="" anchorKey="5,5" onSpringTrap={() => {}} onDisarmTrap={() => {}} onClose={() => {}} />
+    );
+    fireEvent.click(getByText("Disarm"));
+    expect(getByText("Disarm Trap?")).toBeTruthy();
+    expect(getByText("Confirm Disarm")).toBeTruthy();
+    expect(getByText("Cancel")).toBeTruthy();
+  });
+
+  it("clicking Confirm Disarm calls onDisarmTrap(anchorKey) and shows 'Trap Disarmed' heading", () => {
+    const onDisarmTrap = vi.fn();
+    const { getByText } = render(
+      <ChestResultPopup hasTrap={true} springMessage="" anchorKey="5,5" onSpringTrap={() => {}} onDisarmTrap={onDisarmTrap} onClose={() => {}} />
+    );
+    fireEvent.click(getByText("Disarm"));
+    fireEvent.click(getByText("Confirm Disarm"));
+    expect(onDisarmTrap).toHaveBeenCalledWith("5,5");
+    expect(getByText("Trap Disarmed")).toBeTruthy();
+  });
+
+  it("clicking Cancel in disarm_confirm returns to options phase", () => {
+    const { getByText } = render(
+      <ChestResultPopup hasTrap={true} springMessage="" anchorKey="5,5" onSpringTrap={() => {}} onDisarmTrap={() => {}} onClose={() => {}} />
+    );
+    fireEvent.click(getByText("Disarm"));
+    fireEvent.click(getByText("Cancel"));
+    expect(getByText("Chest — Trap!")).toBeTruthy();
+  });
+
+  it("Close button in options phase calls onClose when hasTrap=true", () => {
+    const onClose = vi.fn();
+    const { getAllByText } = render(
+      <ChestResultPopup hasTrap={true} springMessage="" anchorKey="5,5" onSpringTrap={() => {}} onDisarmTrap={() => {}} onClose={onClose} />
+    );
+    fireEvent.click(getAllByText("Close")[0]);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("backdrop click in options phase calls onClose when hasTrap=true", () => {
+    const onClose = vi.fn();
+    const { container } = render(
+      <ChestResultPopup hasTrap={true} springMessage="" anchorKey="5,5" onSpringTrap={() => {}} onDisarmTrap={() => {}} onClose={onClose} />
+    );
+    fireEvent.mouseDown(container.querySelector('[data-testid="chest-popup-backdrop"]'));
+    expect(onClose).toHaveBeenCalled();
   });
 
   it("shows All Clear heading when hasTrap=false", () => {

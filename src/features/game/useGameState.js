@@ -333,7 +333,11 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
       if (shouldInterceptChestClick(pieceAtCell?.type, fogRef.current.has(k), openedChestsRef.current.has(k))) {
         setOpenedChests(prev => new Set([...prev, k]));
         const piece = placedRef.current[k];
-        setPendingChestResult(resolveChestResult(piece?.hasTrap ?? false, piece?.trapNote ?? ""));
+        const hasTrap = piece?.hasTrap ?? false;
+        const chestResult = hasTrap
+          ? { hasTrap: true, anchorKey: k, springMessage: piece?.trapNote ?? "" }
+          : resolveChestResult(false, "");
+        setPendingChestResult(chestResult);
         return;
       }
 
@@ -447,7 +451,10 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const openChest = useCallback((anchorKey) => {
     const piece = placedRef.current[anchorKey];
     if (!piece) return;
-    const result = resolveChestResult(piece.hasTrap ?? false, piece.trapNote ?? "");
+    const hasTrap = piece.hasTrap ?? false;
+    const result = hasTrap
+      ? { hasTrap: true, anchorKey, springMessage: piece.trapNote ?? "" }
+      : resolveChestResult(false, "");
     setOpenedChests(prev => new Set([...prev, anchorKey]));
     setPendingChestResult(result);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
