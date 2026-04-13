@@ -102,7 +102,7 @@ export function computeHeroStartFog(placed, computeRevealFn) {
 // lets callbacks read current state without listing it as a dependency.
 export function useLatest(value) {
   const ref = useRef(value);
-  useEffect(() => { ref.current = value; }, [value]);
+  ref.current = value;
   return ref;
 }
 
