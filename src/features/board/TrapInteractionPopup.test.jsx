@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, fireEvent, cleanup } from "@testing-library/react";
 import { TrapInteractionPopup } from "./TrapInteractionPopup.jsx";
+import { T } from "../../shared/theme.js";
 
 afterEach(() => cleanup());
 
@@ -284,6 +285,40 @@ describe("TrapInteractionPopup — Reveal → post_reveal phase", () => {
     // Back to post_reveal — should show the trap image and action buttons
     expect(getByText("Spring Trap")).toBeTruthy();
     expect(getByText("Disarm")).toBeTruthy();
+  });
+});
+
+// ─── styling ─────────────────────────────────────────────────────────────────
+
+describe("TrapInteractionPopup — styling", () => {
+  function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  it("'Trap Spotted!' heading has color T.sidebarTitle", () => {
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
+    const heading = getByText("Trap Spotted!");
+    expect(heading.style.color).toBe(hexToRgb(T.sidebarTitle));
+  });
+
+  it("body text in options phase has color T.sidebarText", () => {
+    const { container } = render(<TrapInteractionPopup {...baseProps} />);
+    const bodyDivs = Array.from(container.querySelectorAll("div")).filter(el =>
+      el.style.fontSize === "13px" && el.style.lineHeight === "1.5"
+    );
+    expect(bodyDivs.length).toBeGreaterThan(0);
+    bodyDivs.forEach(el => {
+      expect(el.style.color).toBe(hexToRgb(T.sidebarText));
+    });
+  });
+
+  it("'Close' dismiss link has color T.sidebarTextFaint", () => {
+    const { getByText } = render(<TrapInteractionPopup {...baseProps} />);
+    const closeLink = getByText("Close");
+    expect(closeLink.style.color).toBe(hexToRgb(T.sidebarTextFaint));
   });
 });
 

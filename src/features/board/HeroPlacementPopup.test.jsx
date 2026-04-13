@@ -3,6 +3,14 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, fireEvent, cleanup } from "@testing-library/react";
 import React from "react";
 import { HeroPlacementPopup } from "./HeroPlacementPopup.jsx";
+import { T } from "../../shared/theme.js";
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgb(${r}, ${g}, ${b})`;
+}
 
 afterEach(() => cleanup());
 
@@ -37,5 +45,21 @@ describe("HeroPlacementPopup", () => {
     );
     fireEvent.click(getByRole("button", { name: /ok/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("heading 'Before you begin...' has color T.sidebarTitle", () => {
+    const { getByText } = render(
+      <HeroPlacementPopup message="Test" onClose={() => {}} />
+    );
+    const heading = getByText("Before you begin...");
+    expect(heading.style.color).toBe(hexToRgb(T.sidebarTitle));
+  });
+
+  it("message body has color T.sidebarText", () => {
+    const { getByText } = render(
+      <HeroPlacementPopup message="Test message body" onClose={() => {}} />
+    );
+    const body = getByText("Test message body");
+    expect(body.style.color).toBe(hexToRgb(T.sidebarText));
   });
 });

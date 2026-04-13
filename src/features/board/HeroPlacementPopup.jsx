@@ -1,4 +1,4 @@
-import { T } from "../../shared/theme.js";
+import { T, FONT_HEADING } from "../../shared/theme.js";
 
 const DEFAULT_MESSAGE = "Place your heroes in the stairway";
 
@@ -11,7 +11,7 @@ const overlayStyle = {
 
 const dialogStyle = {
   background: T.sidebarBg,
-  border: `2px solid ${T.sidebarBorder}`,
+  border: `2px solid ${T.accentGold}`,
   borderRadius: 8,
   padding: 24,
   minWidth: 280,
@@ -26,10 +26,10 @@ export function HeroPlacementPopup({ message, onClose }) {
   return (
     <div style={overlayStyle} onMouseDown={onClose}>
       <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-        <div style={{ fontWeight: "bold", fontSize: 15, color: T.title, letterSpacing: 1 }}>
+        <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING, letterSpacing: 1 }}>
           Before you begin...
         </div>
-        <div style={{ fontSize: 14, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+        <div style={{ fontSize: 14, color: T.sidebarText, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {displayMessage}
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>

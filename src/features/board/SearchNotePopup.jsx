@@ -1,4 +1,4 @@
-import { T } from "../../shared/theme.js";
+import { T, FONT_HEADING } from "../../shared/theme.js";
 
 const SEARCH_DEFAULT_MESSAGE = "Draw a treasure card!";
 
@@ -11,7 +11,7 @@ const overlayStyle = {
 
 const dialogStyle = {
   background: T.sidebarBg,
-  border: `2px solid ${T.sidebarBorder}`,
+  border: `2px solid ${T.accentGold}`,
   borderRadius: 8,
   padding: 20,
   minWidth: 260,
@@ -26,13 +26,13 @@ export function SearchNotePopup({ notes, count, onClose }) {
   return (
     <div style={overlayStyle} onMouseDown={onClose}>
       <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-        <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>
+        <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>
           🔍 Search Result
         </div>       
-        <div style={{ fontSize: 15, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+        <div style={{ fontSize: 15, color: T.sidebarText, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {text}
         </div>
-         <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 1, textTransform: "uppercase" }}>
+         <div style={{ fontSize: 10, color: T.sidebarTextMuted, letterSpacing: 1, textTransform: "uppercase" }}>
           Search number {count + 1}
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>

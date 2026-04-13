@@ -17,7 +17,7 @@ export function RoomConfirmDialog({ onConfirm, onCancel }) {
         maxWidth: 260,
         fontFamily: "inherit",
       }}>
-        <div style={{ fontSize: 12, color: T.text, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 12, color: T.sidebarText, lineHeight: 1.6 }}>
           No revealed door connects to this room yet.
           <br />Reveal anyway?
         </div>

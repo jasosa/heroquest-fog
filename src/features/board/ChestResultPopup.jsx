@@ -9,7 +9,7 @@ const overlayStyle = {
 
 const dialogStyle = {
   background: T.sidebarBg,
-  border: `2px solid ${T.sidebarBorder}`,
+  border: `2px solid ${T.accentGold}`,
   borderRadius: 8,
   padding: 20,
   minWidth: 260,
@@ -25,7 +25,7 @@ export function ChestResultPopup({ hasTrap, message, onClose }) {
         <div style={{ fontWeight: "bold", fontSize: 15, color: hasTrap ? "#e53935" : "#2e7d32" }}>
           {hasTrap ? "⚠ Trap!" : "✓ All Clear"}
         </div>
-        <div style={{ fontSize: 15, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+        <div style={{ fontSize: 15, color: T.sidebarText, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {message}
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>

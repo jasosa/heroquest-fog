@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { T } from "../../shared/theme.js";
+import { T, FONT_HEADING } from "../../shared/theme.js";
 
 const overlayStyle = {
   position: "absolute", inset: 0,
@@ -10,7 +10,7 @@ const overlayStyle = {
 
 const dialogStyle = {
   background: T.sidebarBg,
-  border: `2px solid ${T.sidebarBorder}`,
+  border: `2px solid ${T.accentGold}`,
   borderRadius: 8,
   padding: 20,
   minWidth: 260,
@@ -67,14 +67,14 @@ export function TrapInteractionPopup({
     return (
       <div style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-          <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>
+          <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>
             Trap — Already Sprung
           </div>
           {pieceLabel && (
-            <div style={{ fontSize: 13, color: T.text, fontWeight: "bold" }}>{pieceLabel}</div>
+            <div style={{ fontSize: 13, color: T.sidebarText, fontWeight: "bold" }}>{pieceLabel}</div>
           )}
           {springMessage && (
-            <div style={{ fontSize: 13, color: T.text }}>{springMessage}</div>
+            <div style={{ fontSize: 13, color: T.sidebarText }}>{springMessage}</div>
           )}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button onClick={onClose} style={btnClose}>Close</button>
@@ -89,13 +89,13 @@ export function TrapInteractionPopup({
     return (
       <div style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-          <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>Trap Sprung!</div>
+          <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>Trap Sprung!</div>
           {pieceLabel && (
-            <div style={{ fontSize: 13, color: T.text, fontWeight: "bold" }}>{pieceLabel}</div>
+            <div style={{ fontSize: 13, color: T.sidebarText, fontWeight: "bold" }}>{pieceLabel}</div>
           )}
           {trapImg}
           {springMessage && (
-            <div style={{ fontSize: 13, color: T.text }}>{springMessage}</div>
+            <div style={{ fontSize: 13, color: T.sidebarText }}>{springMessage}</div>
           )}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button onClick={onClose} style={btnClose}>Close</button>
@@ -110,11 +110,11 @@ export function TrapInteractionPopup({
     return (
       <div style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-          <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>Disarm Trap?</div>
+          <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>Disarm Trap?</div>
           {pieceLabel && (
-            <div style={{ fontSize: 13, color: T.text, fontWeight: "bold" }}>{pieceLabel}</div>
+            <div style={{ fontSize: 13, color: T.sidebarText, fontWeight: "bold" }}>{pieceLabel}</div>
           )}
-          <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 13, color: T.sidebarText, lineHeight: 1.5 }}>
             Are you sure you want to disarm this trap? It will be removed for this session.
           </div>
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
@@ -137,11 +137,11 @@ export function TrapInteractionPopup({
     return (
       <div style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-          <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>Trap Disarmed</div>
+          <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>Trap Disarmed</div>
           {pieceLabel && (
-            <div style={{ fontSize: 13, color: T.text, fontWeight: "bold" }}>{pieceLabel}</div>
+            <div style={{ fontSize: 13, color: T.sidebarText, fontWeight: "bold" }}>{pieceLabel}</div>
           )}
-          <div style={{ fontSize: 13, color: T.text }}>
+          <div style={{ fontSize: 13, color: T.sidebarText }}>
             The trap has been safely disarmed and removed for this session.
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
@@ -172,7 +172,7 @@ export function TrapInteractionPopup({
       <button
         onClick={onClose}
         style={{
-          background: "transparent", color: T.textFaint, border: "none",
+          background: "transparent", color: T.sidebarTextFaint, border: "none",
           padding: "6px 0", cursor: "pointer", fontSize: 12, textAlign: "left",
         }}
       >Close</button>
@@ -184,10 +184,10 @@ export function TrapInteractionPopup({
     return (
       <div style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-          <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>{pieceLabel}</div>
+          <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>{pieceLabel}</div>
           {trapImg}
           {springMessage && (
-            <div style={{ fontSize: 13, color: T.text }}>{springMessage}</div>
+            <div style={{ fontSize: 13, color: T.sidebarText }}>{springMessage}</div>
           )}
           {actionButtons}
         </div>
@@ -199,13 +199,13 @@ export function TrapInteractionPopup({
   return (
     <div style={overlayStyle} onMouseDown={onClose}>
       <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-        <div style={{ fontWeight: "bold", fontSize: 15, color: T.title }}>Trap Spotted!</div>
-        <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>
+        <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>Trap Spotted!</div>
+        <div style={{ fontSize: 13, color: T.sidebarText, lineHeight: 1.5 }}>
           A hero can jump a trap. To jump a trap roll a Combat die when passing over it.
           If you roll a black shield the trap is sprung (Click Spring Trap button) otherwise
           you continue your movement.
         </div>
-        <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 13, color: T.sidebarText, lineHeight: 1.5 }}>
           An adjacent hero can disarm a trap. To disarm a trap follow regular HQ rules.
           If you fail, the trap is sprung (Click Spring Trap button) otherwise click the Disarm button.
         </div>
@@ -235,7 +235,7 @@ export function TrapInteractionPopup({
           <button
             onClick={onClose}
             style={{
-              background: "transparent", color: T.textFaint, border: "none",
+              background: "transparent", color: T.sidebarTextFaint, border: "none",
               padding: "6px 0", cursor: "pointer", fontSize: 12, textAlign: "left",
             }}
           >Close</button>

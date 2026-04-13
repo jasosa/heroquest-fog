@@ -337,7 +337,7 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           top: hoverTooltip.y - 12,
           transform: "translate(-50%, -100%)",
           background: "#1a0f04",
-          color: "#f0e6d0",
+          color: T.sidebarText,
           border: "1px solid #c4a870",
           borderRadius: 6,
           padding: "6px 10px",
