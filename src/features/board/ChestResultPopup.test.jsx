@@ -9,6 +9,7 @@ const defaultProps = {
   anchorKey: "5,5",
   onSpringTrap: () => {},
   onDisarmTrap: () => {},
+  onResolve: () => {},
   onClose: () => {},
 };
 
@@ -106,6 +107,54 @@ describe("ChestResultPopup — Disarm flow (hasTrap=false)", () => {
     fireEvent.click(getByText("Disarm"));
     expect(onDisarmTrap).not.toHaveBeenCalled();
     expect(getByText("No Trap")).toBeTruthy();
+  });
+});
+
+describe("ChestResultPopup — onResolve callback", () => {
+  it("Spring Trap (hasTrap=true) calls onResolve(anchorKey)", () => {
+    const onResolve = vi.fn();
+    const { getByText } = render(
+      <ChestResultPopup {...defaultProps} hasTrap={true} springMessage="" onResolve={onResolve} />
+    );
+    fireEvent.click(getByText("Spring Trap"));
+    expect(onResolve).toHaveBeenCalledWith("5,5");
+  });
+
+  it("Confirm Disarm (hasTrap=true) calls onResolve(anchorKey)", () => {
+    const onResolve = vi.fn();
+    const { getByText } = render(
+      <ChestResultPopup {...defaultProps} hasTrap={true} springMessage="" onResolve={onResolve} />
+    );
+    fireEvent.click(getByText("Disarm"));
+    fireEvent.click(getByText("Confirm Disarm"));
+    expect(onResolve).toHaveBeenCalledWith("5,5");
+  });
+
+  it("Spring Trap (hasTrap=false) calls onResolve(anchorKey)", () => {
+    const onResolve = vi.fn();
+    const { getByText } = render(
+      <ChestResultPopup {...defaultProps} hasTrap={false} springMessage="" onResolve={onResolve} />
+    );
+    fireEvent.click(getByText("Spring Trap"));
+    expect(onResolve).toHaveBeenCalledWith("5,5");
+  });
+
+  it("Disarm (hasTrap=false) calls onResolve(anchorKey)", () => {
+    const onResolve = vi.fn();
+    const { getByText } = render(
+      <ChestResultPopup {...defaultProps} hasTrap={false} springMessage="" onResolve={onResolve} />
+    );
+    fireEvent.click(getByText("Disarm"));
+    expect(onResolve).toHaveBeenCalledWith("5,5");
+  });
+
+  it("Close button does NOT call onResolve", () => {
+    const onResolve = vi.fn();
+    const { getAllByText } = render(
+      <ChestResultPopup {...defaultProps} hasTrap={true} springMessage="" onResolve={onResolve} />
+    );
+    fireEvent.click(getAllByText("Close")[0]);
+    expect(onResolve).not.toHaveBeenCalled();
   });
 });
 

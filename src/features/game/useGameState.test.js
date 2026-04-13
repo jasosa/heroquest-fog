@@ -405,15 +405,17 @@ describe("openedChests state", () => {
     expect(result.current.pendingChestResult).toBeNull()
   });
 
-  it("closeChestResult adds the anchorKey to openedChests so clicking again is blocked", () => {
+  it("closeChestResult does NOT add to openedChests — Close allows the player to re-click the chest", () => {
     const initialPlaced = { "5,5": { type: "chest", hasTrap: false, blocks: false, coveredCells: ["5,5"] } };
     const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
-    // Manually set pendingChestResult without going through openChest (simulates stale openedChests)
     act(() => result.current.openChest("5,5"));
-    // Clear openedChests to simulate the timing bug scenario
-    act(() => { /* openedChests would be stale in the browser — simulate by relying on closeChestResult to fix it */ });
     act(() => result.current.closeChestResult());
-    // closeChestResult itself must ensure openedChests has the key
+    expect(result.current.openedChests.has("5,5")).toBe(false);
+  });
+
+  it("resolveChest adds anchorKey to openedChests, blocking future clicks", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    act(() => result.current.resolveChest("5,5"));
     expect(result.current.openedChests.has("5,5")).toBe(true);
   });
 
@@ -646,9 +648,8 @@ describe("useGameState — handleCell chest intercept in play mode", () => {
 
   it("clicking an already-opened chest cell falls through to normal fog behaviour", () => {
     const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
-    // Open the chest first
-    act(() => result.current.openChest("9,9"));
-    act(() => result.current.closeChestResult());
+    // Resolve the chest (Spring Trap / Disarm) — Close alone must not mark it as opened
+    act(() => result.current.resolveChest("9,9"));
     expect(result.current.openedChests.has("9,9")).toBe(true);
     const fogSizeBefore = result.current.fog.size;
 

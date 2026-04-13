@@ -433,6 +433,7 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
           anchorKey={gameState.pendingChestResult.anchorKey}
           onSpringTrap={gameState.springTrap}
           onDisarmTrap={gameState.disarmTrap}
+          onResolve={gameState.resolveChest}
           onClose={gameState.closeChestResult}
         />
       )}

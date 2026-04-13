@@ -30,11 +30,12 @@ const btnClose = {
 const CHEST_RULES_MESSAGE =
   "A chest can contain a trap. If a hero searches for treasure in a room with a chest and the chest is trapped, the hero will be impacted by the trap. To avoid that, a hero adjacent to the chest can try to disarm the trap following regular HQ rules. If you fail, the trap is sprung (click Spring Trap) otherwise click Disarm.";
 
-export function ChestResultPopup({ hasTrap, springMessage, anchorKey, onSpringTrap, onDisarmTrap, onClose }) {
+export function ChestResultPopup({ hasTrap, springMessage, anchorKey, onSpringTrap, onDisarmTrap, onResolve, onClose }) {
   const [phase, setPhase] = useState("options");
   const [prevPhase, setPrevPhase] = useState("options");
 
   function doSpring() {
+    onResolve?.(anchorKey);
     if (hasTrap) {
       onSpringTrap?.(anchorKey, false);
       setPhase("spring_result");
@@ -48,11 +49,13 @@ export function ChestResultPopup({ hasTrap, springMessage, anchorKey, onSpringTr
       setPrevPhase(phase);
       setPhase("disarm_confirm");
     } else {
+      onResolve?.(anchorKey);
       setPhase("no_trap_result");
     }
   }
 
   function confirmDisarm() {
+    onResolve?.(anchorKey);
     onDisarmTrap?.(anchorKey);
     setPhase("disarm_result");
   }

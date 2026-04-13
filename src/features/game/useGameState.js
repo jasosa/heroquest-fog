@@ -331,7 +331,6 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
 
       // Play mode: clicking a chest cell (even if click misses the image) intercepts fog reveal.
       if (shouldInterceptChestClick(pieceAtCell?.type, fogRef.current.has(k), openedChestsRef.current.has(k))) {
-        setOpenedChests(prev => new Set([...prev, k]));
         const piece = placedRef.current[k];
         const hasTrap = piece?.hasTrap ?? false;
         setPendingChestResult({ hasTrap, anchorKey: k, springMessage: piece?.trapNote ?? "" });
@@ -449,11 +448,16 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     const piece = placedRef.current[anchorKey];
     if (!piece) return;
     const hasTrap = piece.hasTrap ?? false;
-    setOpenedChests(prev => new Set([...prev, anchorKey]));
     setPendingChestResult({ hasTrap, anchorKey, springMessage: piece.trapNote ?? "" });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const closeChestResult = useCallback(() => setPendingChestResult(null), []);
+
+  // Called when the player actually resolves a chest (Spring Trap, Disarm, or No Trap result).
+  // Close alone must NOT call this — it should allow re-clicking the chest.
+  const resolveChest = useCallback((anchorKey) => {
+    setOpenedChests(prev => new Set([...prev, anchorKey]));
+  }, []);
 
   const openChestConfig = useCallback((anchorKey) => {
     setPendingChestConfig({ anchorKey });
@@ -612,7 +616,7 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     // Trap config
     pendingTrapConfig, setPendingTrapConfig, openTrapConfig, saveTrapConfig, closeTrapConfig,
     // Chest
-    openedChests, openChest, closeChestResult, pendingChestResult,
+    openedChests, openChest, closeChestResult, resolveChest, pendingChestResult,
     openChestConfig, saveChestConfig, pendingChestConfig, setPendingChestConfig,
     // Hero placement popup
     questPlacementMessage, setQuestPlacementMessage,
