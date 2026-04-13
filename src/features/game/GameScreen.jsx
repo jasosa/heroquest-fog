@@ -77,7 +77,11 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
       {/* Zoom controls */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
         <button onClick={onZoomOut} disabled={zoom <= ZOOM_MIN} style={zoomBtnStyle} title="Zoom out">−</button>
-        <span style={{ fontSize: 11, color: T.textMuted, minWidth: 38, textAlign: "center" }}>
+        <span style={{
+          fontSize: 11, color: T.sidebarText, minWidth: 38, textAlign: "center",
+          background: T.panelBg, border: `1px solid ${T.sidebarBorder}`,
+          borderRadius: 10, padding: "1px 7px",
+        }}>
           {Math.round(zoom * 100)}%
         </span>
         <button onClick={onZoomIn} disabled={zoom >= ZOOM_MAX} style={zoomBtnStyle} title="Zoom in">+</button>

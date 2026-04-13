@@ -82,6 +82,24 @@ describe("GameScreen — hover tooltip colour", () => {
   });
 });
 
+describe("GameScreen — zoom indicator visibility", () => {
+  it("zoom indicator uses T.sidebarText color, not T.textMuted (dark brown invisible on dark bg)", () => {
+    const quest = { id: "q-zoom", title: "T", description: "", placed: {}, doors: {} };
+    const { container } = render(
+      <GameScreen quest={quest} initialMode="edit" onBack={() => {}} onQuestSaved={() => {}} />
+    );
+    // The zoom indicator span shows "100%" at default zoom
+    const zoomSpan = Array.from(container.querySelectorAll("span")).find(el =>
+      el.textContent.trim() === "100%"
+    );
+    expect(zoomSpan).toBeTruthy();
+    // Must NOT use T.textMuted (#5a3010) — dark brown is invisible on the near-black board bg
+    expect(zoomSpan.style.color).not.toBe(hexToRgb(T.textMuted));
+    // Must use a light readable color — T.sidebarText
+    expect(zoomSpan.style.color).toBe(hexToRgb(T.sidebarText));
+  });
+});
+
 describe("GameScreen — play mode badge colour", () => {
   it("play mode badge uses #4caf50 not hardcoded #2a6a2a", () => {
     const quest = { id: "q1", title: "T", description: "", placed: {}, doors: {} };

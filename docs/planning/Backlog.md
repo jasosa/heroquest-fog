@@ -77,14 +77,14 @@ Description: The edit affordance buttons on placed pieces (pencil for note/searc
 ### [ISSUE-010] Zoom level indicator hidden by color palette in Edit mode
 Priority: medium
 Impact: medium — users cannot tell current zoom level while placing pieces
-Status: not_started
+Status: committed
 Complexity: low
 Description: In Edit mode the zoom level display is obscured by the color palette / sidebar controls. The zoom indicator needs to be repositioned or its contrast improved so it is clearly readable regardless of what sits behind it. Fix: move the zoom level badge to a position that does not overlap the palette, or apply a background/border treatment (e.g. dark pill with gold text) that ensures visibility against any background.
 
 ### [ISSUE-011] Play mode popups use unreadable text color
 Priority: high
 Impact: high — text in dialogs is invisible, blocking normal gameplay
-Status: committed
+Status: done
 Complexity: low
 Description: Popups in Play mode (e.g. RoomConfirmDialog, letter-marker tooltips, special-monster notes) render text in a color that is not visible against their background. Apply the same dialog style used in the Quest Library (dark parchment background, `#f0e6c8` body text, gold headings with Cinzel font) to all Play-mode popups so the content is legible.
 
