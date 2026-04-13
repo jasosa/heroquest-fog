@@ -404,6 +404,27 @@ describe("openedChests state", () => {
     act(() => result.current.closeChestResult())
     expect(result.current.pendingChestResult).toBeNull()
   });
+
+  it("openChest with hasTrap:true stores { hasTrap, anchorKey, springMessage } — no message field", () => {
+    const initialPlaced = { "5,5": { type: "chest", hasTrap: true, trapNote: "Poison dart!", blocks: false, coveredCells: ["5,5"] } };
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
+    act(() => result.current.openChest("5,5"));
+    expect(result.current.pendingChestResult).toEqual({ hasTrap: true, anchorKey: "5,5", springMessage: "Poison dart!" });
+  });
+
+  it("openChest with hasTrap:true and no trapNote stores empty springMessage", () => {
+    const initialPlaced = { "5,5": { type: "chest", hasTrap: true, trapNote: "", blocks: false, coveredCells: ["5,5"] } };
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
+    act(() => result.current.openChest("5,5"));
+    expect(result.current.pendingChestResult).toEqual({ hasTrap: true, anchorKey: "5,5", springMessage: "" });
+  });
+
+  it("openChest with hasTrap:false stores { hasTrap: false, anchorKey, springMessage: '' }", () => {
+    const initialPlaced = { "5,5": { type: "chest", hasTrap: false, trapNote: "", blocks: false, coveredCells: ["5,5"] } };
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlaced }));
+    act(() => result.current.openChest("5,5"));
+    expect(result.current.pendingChestResult).toEqual({ hasTrap: false, anchorKey: "5,5", springMessage: "" });
+  });
 });
 
 // ─── springedTraps / disarmedTraps initial state ─────────────────────────────

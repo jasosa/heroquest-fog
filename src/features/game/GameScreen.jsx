@@ -429,7 +429,6 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       {gameState.pendingChestResult && (
         <ChestResultPopup
           hasTrap={gameState.pendingChestResult.hasTrap}
-          message={gameState.pendingChestResult.message}
           springMessage={gameState.pendingChestResult.springMessage}
           anchorKey={gameState.pendingChestResult.anchorKey}
           onSpringTrap={gameState.springTrap}
