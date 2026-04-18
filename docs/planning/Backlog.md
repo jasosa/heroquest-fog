@@ -76,7 +76,7 @@ Description: When the user clicks to create a new quest inside the Quest Library
 
 ### [FEAT-028] Visual label for quest order number in quest book assignment
 Priority: medium
-Status: not_started
+Status: committed
 Complexity: low
 Description: When assigning a quest to a quest book, an input shows a bare number whose meaning is unclear. Add a visible text label (e.g. "Quest # in book") adjacent to the number input so the user understands they are setting the quest's order within the book. Consider also adding a short helper line below the field (e.g. "Position of this quest in the book's sequence").
 

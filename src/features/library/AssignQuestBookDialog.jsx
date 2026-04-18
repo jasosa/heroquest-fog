@@ -39,14 +39,22 @@ export function AssignQuestBookDialog({ quest, books, onSave, onCancel }) {
                 <option key={b.id} value={b.id}>{b.title}</option>
               ))}
             </select>
-            <input
-              type="number"
-              placeholder="Quest number (optional)"
-              value={questNumber}
-              onChange={e => setQuestNumber(e.target.value)}
-              min={0}
-              className="form-control form-control-sm hq-input-dark"
-            />
+            <div>
+              <label style={{ fontSize: 11, color: T.sidebarTextMuted, display: "block", marginBottom: 4 }}>
+                Quest # in book
+              </label>
+              <input
+                type="number"
+                placeholder="Optional"
+                value={questNumber}
+                onChange={e => setQuestNumber(e.target.value)}
+                min={0}
+                className="form-control form-control-sm hq-input-dark"
+              />
+              <div style={{ fontSize: 10, color: T.sidebarTextMuted, marginTop: 3, opacity: 0.8 }}>
+                Position of this quest in the book&apos;s sequence
+              </div>
+            </div>
           </div>
           <div className="modal-footer py-2 px-3 gap-2" style={{ borderTop: `1px solid ${T.sidebarBorder}` }}>
             <button onClick={handleSave} className="btn btn-hq-light active flex-grow-1" style={{ fontSize: 11 }}>
