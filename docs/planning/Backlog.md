@@ -78,12 +78,6 @@ Status: not_started
 Complexity: low
 Description: The quest-order number shown on each quest card in the library is too small to read comfortably. Increase the font size and visual weight of the number badge (e.g. bold Cinzel, larger `fontSize`, stronger gold color, optional circular/pill background) so the quest number is immediately visible when scanning the card list.
 
-### [FEAT-031] Quest book background image opacity
-Priority: low
-Status: not_started
-Complexity: low
-Description: The background image used for quest book cards or the quest book showcase area is rendered at full opacity, competing with text and UI elements. Reduce the opacity of the background image to approximately 70% (e.g. using `opacity: 0.7` on the `<img>` layer or `rgba` overlay) so the content above it remains legible while the artwork is still visible.
-
 ### [FEAT-032] Edit Quest Book dialog — larger layout and improved file input style
 Priority: medium
 Status: not_started

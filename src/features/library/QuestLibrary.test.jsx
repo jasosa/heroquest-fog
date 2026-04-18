@@ -190,6 +190,15 @@ describe("QuestLibrary showcase cover image", () => {
     expect(container.querySelector('[data-testid="showcase-cover-img"]')).toBeNull();
     expect(container.querySelector('[data-testid="showcase-placeholder"]')).toBeTruthy();
   });
+
+  it("showcase-cover-img has opacity 0.7", () => {
+    const book = storage.createQuestBook("Book", "", "data:image/png;base64,FAKE");
+    storage.createQuest({ title: "Q", description: "", questBookId: book.id });
+    const { container } = render(<QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />);
+    const img = container.querySelector('[data-testid="showcase-cover-img"]');
+    expect(img).toBeTruthy();
+    expect(img.style.opacity).toBe("0.7");
+  });
 });
 
 // ── Step 9: Action buttons trigger correct handlers ───────────────────────────

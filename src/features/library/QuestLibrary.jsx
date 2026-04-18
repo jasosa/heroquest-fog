@@ -410,7 +410,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                 data-testid="showcase-cover-img"
                 src={panelBook.coverImage}
                 alt="Cover image preview"
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 0, pointerEvents: "none" }}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 0, pointerEvents: "none", opacity: 0.7 }}
                 onError={e => { e.currentTarget.style.display = "none"; }}
               />
               <div style={{ position: "absolute", inset: 0, background: "rgba(6,4,2,0.68)", zIndex: 1, pointerEvents: "none" }} />

@@ -200,6 +200,12 @@ Status: done
 Complexity: low
 Description: When assigning a quest to a quest book, an input shows a bare number whose meaning is unclear. Add a visible text label (e.g. "Quest # in book") adjacent to the number input so the user understands they are setting the quest's order within the book. Consider also adding a short helper line below the field (e.g. "Position of this quest in the book's sequence").
 
+### [FEAT-031] Quest book background image opacity
+Priority: low
+Status: done
+Complexity: low
+Description: The background image used for quest book cards or the quest book showcase area is rendered at full opacity, competing with text and UI elements. Reduce the opacity of the background image to approximately 70% (e.g. using `opacity: 0.7` on the `<img>` layer or `rgba` overlay) so the content above it remains legible while the artwork is still visible.
+
 ---
 
 ## Issues
