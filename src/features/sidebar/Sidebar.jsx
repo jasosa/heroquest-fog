@@ -112,20 +112,35 @@ export function Sidebar({
         {/* Quest description */}
         {setQuestDescription ? (
           mode === "edit" ? (
-            <textarea
-              value={questDescription}
-              onChange={e => setQuestDescription(e.target.value)}
-              placeholder="Quest description"
-              rows={3}
-              className="form-control form-control-sm hq-input-dark"
-              style={{ resize: "vertical" }}
-            />
+            <div>
+              <label
+                htmlFor="sidebar-quest-description"
+                style={{ fontSize: 11, color: T.sidebarTextMuted, display: "block", marginBottom: 4 }}
+              >
+                Description
+              </label>
+              <textarea
+                id="sidebar-quest-description"
+                value={questDescription}
+                onChange={e => setQuestDescription(e.target.value)}
+                placeholder="Quest description"
+                rows={3}
+                className="form-control form-control-sm hq-input-dark"
+                style={{ resize: "vertical" }}
+              />
+              <div style={{ fontSize: 10, color: T.sidebarTextMuted, marginTop: 3, opacity: 0.8 }}>
+                Shown in the quest library
+              </div>
+            </div>
           ) : questDescription ? (
-            <div style={{
-              fontSize: 10, color: T.sidebarTextMuted, lineHeight: 1.5, fontFamily: FONT_BODY,
-              overflow: "hidden", display: "-webkit-box",
-              WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
-            }}>
+            <div
+              data-testid="play-quest-description"
+              style={{
+                fontSize: 12, color: T.sidebarText, lineHeight: 1.6, fontFamily: FONT_BODY,
+                overflow: "hidden", display: "-webkit-box",
+                WebkitLineClamp: 4, WebkitBoxOrient: "vertical",
+              }}
+            >
               {questDescription}
             </div>
           ) : null
@@ -133,14 +148,23 @@ export function Sidebar({
 
         {/* Placement message — edit mode only */}
         {setQuestPlacementMessage && mode === "edit" && (
-          <textarea
-            value={placementMessage ?? ""}
-            onChange={e => setQuestPlacementMessage(e.target.value)}
-            placeholder="Hero placement message (shown at quest start)"
-            rows={3}
-            className="form-control form-control-sm hq-input-dark"
-            style={{ resize: "vertical" }}
-          />
+          <div>
+            <label
+              htmlFor="sidebar-placement-message"
+              style={{ fontSize: 11, color: T.sidebarTextMuted, display: "block", marginBottom: 4 }}
+            >
+              Placement message
+            </label>
+            <textarea
+              id="sidebar-placement-message"
+              value={placementMessage ?? ""}
+              onChange={e => setQuestPlacementMessage(e.target.value)}
+              placeholder="Optional text shown to players when the quest starts"
+              rows={3}
+              className="form-control form-control-sm hq-input-dark"
+              style={{ resize: "vertical" }}
+            />
+          </div>
         )}
 
         <hr style={{ borderColor: T.sidebarDivider, margin: "2px 0" }} />

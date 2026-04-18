@@ -70,6 +70,10 @@ body {
   border-color: #9a7a30;
   color:        #e8dfc8;
 }
+.hq-input-dark::placeholder {
+  color:   #7a6040;
+  opacity: 1;
+}
 .hq-input-dark:focus {
   background:   #2a1608;
   border-color: #f0c040;

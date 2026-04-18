@@ -75,6 +75,46 @@ describe("Sidebar collapse", () => {
   });
 });
 
+describe("Sidebar edit mode — description label", () => {
+  it("shows a label for the quest description textarea in edit mode", () => {
+    const { container } = render(<Sidebar {...defaultProps} mode="edit" />);
+    const label = container.querySelector('label[for="sidebar-quest-description"]');
+    expect(label).toBeTruthy();
+    expect(label.textContent).toContain("Description");
+  });
+
+  it("description textarea has matching id in edit mode", () => {
+    const { container } = render(<Sidebar {...defaultProps} mode="edit" />);
+    expect(container.querySelector('#sidebar-quest-description')).toBeTruthy();
+  });
+});
+
+describe("Sidebar edit mode — placement message label", () => {
+  it("shows a label for the placement message textarea in edit mode", () => {
+    const { container } = render(<Sidebar {...defaultProps} mode="edit" />);
+    const label = container.querySelector('label[for="sidebar-placement-message"]');
+    expect(label).toBeTruthy();
+    expect(label.textContent).toContain("Placement message");
+  });
+
+  it("placement message textarea has matching id in edit mode", () => {
+    const { container } = render(<Sidebar {...defaultProps} mode="edit" />);
+    expect(container.querySelector('#sidebar-placement-message')).toBeTruthy();
+  });
+});
+
+describe("Sidebar play mode — description font size", () => {
+  it("description in play mode has fontSize of at least 12px", () => {
+    const { container } = render(
+      <Sidebar {...defaultProps} mode="play" questDescription="A great quest" />
+    );
+    const desc = container.querySelector('[data-testid="play-quest-description"]');
+    expect(desc).toBeTruthy();
+    const size = parseInt(desc.style.fontSize, 10);
+    expect(size).toBeGreaterThanOrEqual(12);
+  });
+});
+
 describe("PlayPanel — legend removed", () => {
   it("play mode renders no Legend heading", () => {
     const { queryByText } = render(<Sidebar {...defaultProps} mode="play" />);
