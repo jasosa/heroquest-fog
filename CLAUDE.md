@@ -74,7 +74,9 @@ When asked to work on the next item:
 9. Invoke the `swe` subagent with the approved plan
 10. If all tests pass (`npm test`), commit all changes on the feature branch with
     the item ID and title as the commit message (e.g. `[FEAT-013] Manage traps in Chests`)
-11. Update the item status to `committed` — **never mark items as `done`**
+11. Update the item status to `done` and move it to Backlog_Done.md file
 12. **Never merge the feature branch into `main`** — the user merges manually
 13. Switch back to `main` (`git checkout main`) and loop back to step 1 to pick
     the next highest-priority `not_started` item — **only `not_started` items are eligible, never `committed` or `in_progress`**
+
+When asked to work on a particular item do the same progress but starting on point 4 and do no back swith to main on step 13.

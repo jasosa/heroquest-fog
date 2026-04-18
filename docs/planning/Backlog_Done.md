@@ -194,6 +194,12 @@ Key changes:
 - Dark atmospheric page background (`pageBg` from FEAT-022); showcase card uses `#1a1408` with a subtle warm vignette shadow.
 - Depends on FEAT-022 for colour tokens.
 
+### [FEAT-028] Visual label for quest order number in quest book assignment
+Priority: medium
+Status: done
+Complexity: low
+Description: When assigning a quest to a quest book, an input shows a bare number whose meaning is unclear. Add a visible text label (e.g. "Quest # in book") adjacent to the number input so the user understands they are setting the quest's order within the book. Consider also adding a short helper line below the field (e.g. "Position of this quest in the book's sequence").
+
 ---
 
 ## Issues
@@ -246,6 +252,13 @@ Impact: low — unexpected behavior
 Status: done
 Complexity: low
 Description: The cancel action in `SecretDoorConfigDialog` re-saves the existing values rather than discarding unsaved changes. This is opaque to the DM and inconsistent with every other cancel in the app. Fix: cancel should discard uncommitted state without writing to the placed piece.
+
+### [ISSUE-010] Zoom level indicator hidden by color palette in Edit mode
+Priority: medium
+Impact: medium — users cannot tell current zoom level while placing pieces
+Status: done
+Complexity: low
+Description: In Edit mode the zoom level display is obscured by the color palette / sidebar controls. The zoom indicator needs to be repositioned or its contrast improved so it is clearly readable regardless of what sits behind it. Fix: move the zoom level badge to a position that does not overlap the palette, or apply a background/border treatment (e.g. dark pill with gold text) that ensures visibility against any background.
 
 ### [ISSUE-011] Wrong black shield rule text in trap popup
 Priority: high

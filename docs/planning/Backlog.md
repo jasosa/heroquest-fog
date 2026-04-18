@@ -60,25 +60,11 @@ Status: not_started
 Complexity: low
 Description: The edit affordance buttons on placed pieces (pencil for note/search markers, star for monsters, warning for chests) use three different element types and sizes despite serving the same purpose. Fix: all use a `<button>` element, 16×16px circle, positioned top-right of the piece image. The chest warning button currently uses a `<div>` with `onMouseDown` — convert it to `<button>` (keep `onMouseDown` to prevent cell click propagation).
 
-### [ISSUE-010] Zoom level indicator hidden by color palette in Edit mode
-Priority: medium
-Impact: medium — users cannot tell current zoom level while placing pieces
-Status: done
-Complexity: low
-Description: In Edit mode the zoom level display is obscured by the color palette / sidebar controls. The zoom indicator needs to be repositioned or its contrast improved so it is clearly readable regardless of what sits behind it. Fix: move the zoom level badge to a position that does not overlap the palette, or apply a background/border treatment (e.g. dark pill with gold text) that ensures visibility against any background.
-
-
 ### [FEAT-027] Quest create popup centered and floating
 Priority: medium
 Status: not_started
 Complexity: low
 Description: When the user clicks to create a new quest inside the Quest Library, the creation form currently appears inline. Replace it with a modal overlay (fixed-position backdrop, centered dialog) that floats above all other library elements. Style it consistently with the Edit Quest Book dialog: dark parchment background, gold border, Cinzel headings. Dismiss on backdrop click or Escape key.
-
-### [FEAT-028] Visual label for quest order number in quest book assignment
-Priority: medium
-Status: committed
-Complexity: low
-Description: When assigning a quest to a quest book, an input shows a bare number whose meaning is unclear. Add a visible text label (e.g. "Quest # in book") adjacent to the number input so the user understands they are setting the quest's order within the book. Consider also adding a short helper line below the field (e.g. "Position of this quest in the book's sequence").
 
 ### [FEAT-029] Tooltips on Play and Edit quest buttons in library cards
 Priority: low
