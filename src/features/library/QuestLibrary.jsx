@@ -549,6 +549,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                         : `0 4px 18px rgba(0,0,0,${hasBg ? "0.6" : "0.25"})`,
                       transform: isActive ? "translateY(-3px)" : "none",
                       transition: "border-color 0.15s, box-shadow 0.15s, transform 0.15s",
+                      borderRadius: 8,
                       cursor: "pointer",
                       overflow: "hidden",
                       display: "flex",

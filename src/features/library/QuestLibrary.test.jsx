@@ -201,6 +201,18 @@ describe("QuestLibrary showcase cover image", () => {
   });
 });
 
+// ── Quest card border radius ──────────────────────────────────────────────────
+
+describe("QuestLibrary quest card border radius", () => {
+  it("quest card has borderRadius 8px", () => {
+    const quest = storage.createQuest({ title: "Round Quest", description: "", questBookId: null });
+    const { container } = render(<QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />);
+    const card = container.querySelector(`[data-testid="thumb-${quest.id}"]`);
+    expect(card).toBeTruthy();
+    expect(card.style.borderRadius).toBe("8px");
+  });
+});
+
 // ── Step 9: Action buttons trigger correct handlers ───────────────────────────
 
 describe("QuestLibrary action buttons", () => {
