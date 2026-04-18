@@ -55,12 +55,24 @@ export function EditQuestBookDialog({ initialTitle, initialDescription = "", ini
               className="form-control form-control-sm hq-input-dark"
               autoFocus
             />
-            <input
-              placeholder="Description (optional)"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              className="form-control form-control-sm hq-input-dark"
-            />
+            <div>
+              <label
+                htmlFor="edit-book-description-input"
+                style={{ fontSize: 11, color: T.sidebarTextMuted, display: "block", marginBottom: 4 }}
+              >
+                Description
+              </label>
+              <input
+                id="edit-book-description-input"
+                placeholder="Optional"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                className="form-control form-control-sm hq-input-dark"
+              />
+              <div style={{ fontSize: 10, color: T.sidebarTextMuted, marginTop: 3, opacity: 0.8 }}>
+                Shown in the quest book showcase
+              </div>
+            </div>
             {/* Cover image */}
             <div>
               <label

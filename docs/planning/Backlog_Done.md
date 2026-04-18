@@ -210,6 +210,13 @@ Description: The background image used for quest book cards or the quest book sh
 
 ## Issues
 
+### [ISSUE-016] Quest description text not visible in Edit Quest Book dialog
+Priority: low
+Impact: low — UX friction when editing quest books
+Status: done
+Complexity: low
+Description: The description input in the Edit Quest Book dialog had no visible label, making its purpose unclear. Added a visible label ("Description") above the field and a helper line below it ("Shown in the quest book showcase"), following the same pattern as FEAT-028.
+
 ### [ISSUE-001] Click on an unrevealed cell that contains a trap shouldn't reveal the trap
 Priority: high
 Impact: high — affects gameplay

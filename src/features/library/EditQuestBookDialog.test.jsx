@@ -88,3 +88,21 @@ describe("EditQuestBookDialog cover image", () => {
     expect(input).toBeTruthy();
   });
 });
+
+describe("EditQuestBookDialog description label", () => {
+  it("renders a visible label for the description field", () => {
+    const { container } = render(
+      <EditQuestBookDialog initialTitle="T" onSave={() => {}} onCancel={() => {}} />
+    );
+    const label = container.querySelector('label[for="edit-book-description-input"]');
+    expect(label).toBeTruthy();
+    expect(label.textContent).toContain("Description");
+  });
+
+  it("description input is associated to label via id", () => {
+    const { container } = render(
+      <EditQuestBookDialog initialTitle="T" onSave={() => {}} onCancel={() => {}} />
+    );
+    expect(container.querySelector('#edit-book-description-input')).toBeTruthy();
+  });
+});
