@@ -30,20 +30,6 @@ Status: not_started
 Complexity: low
 Description: When the DM resets fog during a play session, reset `hasShownPlacementPopup` to false so the placement popup re-appears if the quest has a non-empty placement message. This ensures the popup is shown again when restarting with the same browser session.
 
-### [FEAT-026] Quest book cover image
-Priority: high
-Status: committed
-Complexity: low
-Description: Allow a cover image to be assigned to a quest book. The image is displayed as the artwork in the showcase right panel (FEAT-023) when a quest from that book is selected.
-
-Key changes:
-- **Data model**: add an optional `coverImage` field to quest book objects in `hq_quest_books` (localStorage). Store the image as a base64 data URL (result of `FileReader.readAsDataURL`). `createQuestBook` and `updateQuestBook` in `questStorage.js` must accept and persist this field.
-- **Create Book form** (sidebar in `QuestLibrary.jsx`): add a file input (`accept="image/*"`) below the description field. Label: "Cover image (optional)". On selection, read the file with `FileReader` and store the base64 string in component state; pass it to `createQuestBook`.
-- **Edit Book dialog** (`EditQuestBookDialog.jsx`): add the same file input. Show a small preview (`40×40px`, `objectFit: cover`) of the current image if one exists. Allow clearing the image with a "× Remove" link next to the preview.
-- **Showcase panel** (`QuestLibrary.jsx`): in the right artwork column, if the selected quest's book has a `coverImage`, render it as `<img src={coverImage} style={{ width:"100%", height:"100%", objectFit:"cover" }} />` replacing the ⚔ placeholder. The vignette overlay remains on top regardless.
-- **No upload size limit enforced in UI** — images are stored as-is in localStorage; a note in the UI copy ("large images may slow the app") is sufficient.
-- Depends on FEAT-023 for the showcase artwork slot.
-
 ### [FEAT-024] Sidebar UX polish — inputs, section headers, piece list, touch targets
 Priority: medium
 Status: not_started
@@ -77,16 +63,10 @@ Description: The edit affordance buttons on placed pieces (pencil for note/searc
 ### [ISSUE-010] Zoom level indicator hidden by color palette in Edit mode
 Priority: medium
 Impact: medium — users cannot tell current zoom level while placing pieces
-Status: committed
+Status: done
 Complexity: low
 Description: In Edit mode the zoom level display is obscured by the color palette / sidebar controls. The zoom indicator needs to be repositioned or its contrast improved so it is clearly readable regardless of what sits behind it. Fix: move the zoom level badge to a position that does not overlap the palette, or apply a background/border treatment (e.g. dark pill with gold text) that ensures visibility against any background.
 
-### [ISSUE-011] Play mode popups use unreadable text color
-Priority: high
-Impact: high — text in dialogs is invisible, blocking normal gameplay
-Status: done
-Complexity: low
-Description: Popups in Play mode (e.g. RoomConfirmDialog, letter-marker tooltips, special-monster notes) render text in a color that is not visible against their background. Apply the same dialog style used in the Quest Library (dark parchment background, `#f0e6c8` body text, gold headings with Cinzel font) to all Play-mode popups so the content is legible.
 
 ### [FEAT-027] Quest create popup centered and floating
 Priority: medium
