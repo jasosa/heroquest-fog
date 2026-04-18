@@ -79,4 +79,23 @@ When asked to work on the next item:
 13. Switch back to `main` (`git checkout main`) and loop back to step 1 to pick
     the next highest-priority `not_started` item — **only `not_started` items are eligible, never `committed` or `in_progress`**
 
-When asked to work on a particular item do the same progress but starting on point 4 and do no back swith to main on step 13.
+When asked to work on a concrete item from the backlog:
+1. Read `docs/planning/Backlog.md`
+2. Update its status to `in_progress`
+3. Create a git branch for the item: `git checkout -b feat/FEAT-XXX` for features
+   or `git checkout -b fix/ISSUE-XXX` for issues, where XXX is the item ID number.
+   Branch off `main` (`git checkout main && git pull` first if needed).
+4. If the item is a feature with `complexity: high`, invoke the `architect` 
+   subagent first — review the recommendation and confirm the approach
+5. If the item is a new feature (not a bug fix), invoke the `ux` subagent —
+   review the UX proposal before continuing
+6. Invoke the `planner` subagent with the feature description plus any
+   architect and UX outputs
+7. Review the plan before proceeding
+8. Invoke the `swe` subagent with the approved plan
+9. If all tests pass (`npm test`), commit all changes on the feature branch with
+    the item ID and title as the commit message (e.g. `[FEAT-013] Manage traps in Chests`)
+10. Update the item status to `done` and move it to Backlog_Done.md file
+11. **Never merge the feature branch into `main`** — the user merges manually
+12. Switch back to `main` (`git checkout main`) and loop back to step 1 to pick
+    the next highest-priority `not_started` item — **only `not_started` items are eligible, never `committed` or `in_progress`**
