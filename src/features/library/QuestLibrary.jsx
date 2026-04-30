@@ -603,8 +603,8 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                         ? <div
                             data-testid="quest-description"
                             style={{ fontSize: 11, fontFamily: FONT_BODY, color: T.sidebarText, lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", cursor: "help" }}
-                            onMouseEnter={e => setDescTooltip({ x: e.clientX, y: e.clientY, content: quest.description })}
-                            onMouseMove={e => setDescTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null)}
+                            onMouseEnter={e => setDescTooltip({ x: e.clientX, y: e.clientY, content: quest.description, below: e.clientY < window.innerHeight / 2 })}
+                            onMouseMove={e => setDescTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY, below: e.clientY < window.innerHeight / 2 } : null)}
                             onMouseLeave={() => setDescTooltip(null)}
                           >
                             {quest.description}
@@ -669,8 +669,8 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           style={{
             position: "fixed",
             left: descTooltip.x,
-            top: descTooltip.y - 12,
-            transform: "translate(-50%, -100%)",
+            top: descTooltip.below ? descTooltip.y + 14 : descTooltip.y - 12,
+            transform: descTooltip.below ? "translateX(-50%)" : "translate(-50%, -100%)",
             background: "#1a0f04",
             color: T.sidebarText,
             border: `1px solid ${T.accentGold}`,
