@@ -146,12 +146,12 @@ export function TrapInteractionPopup({
         <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>Trap Spotted!</div>
         <div style={{ fontSize: 13, color: T.sidebarText, lineHeight: 1.5 }}>
           A hero can jump a trap. To jump a trap roll a Combat die when passing over it.
-          If you roll a black shield the trap is sprung (Click Spring Trap button) otherwise
+          If you roll a black shield the trap is sprung (Click Reveal Trap button to see their effects) otherwise
           you continue your movement.
         </div>
         <div style={{ fontSize: 13, color: T.sidebarText, lineHeight: 1.5 }}>
-          An adjacent hero can disarm a trap. To disarm a trap follow regular HQ rules.
-          If you fail, the trap is sprung (Click Spring Trap button) otherwise click the Disarm button.
+          An adjacent hero can try to disarm a trap. To disarm a trap follow regular HQ rules.
+          If you fail, the trap is sprung (Click Reveal Trap button) otherwise click the Remove button.
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <button
