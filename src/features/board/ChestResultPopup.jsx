@@ -21,46 +21,41 @@ const dialogStyle = {
   display: "flex", flexDirection: "column", gap: 14,
 };
 
-const btnClose = {
+const btnPrimary = {
   background: T.btnActiveBg, color: T.btnActiveText,
   border: `1px solid ${T.btnActiveBdr}`, borderRadius: 4,
   padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: "bold",
 };
 
 const CHEST_RULES_MESSAGE =
-  "A chest can contain a trap. If a hero searches for treasure in a room with a chest and the chest is trapped, the hero will be impacted by the trap. To avoid that, a hero adjacent to the chest can try to disarm the trap following regular HQ rules. If you fail, the trap is sprung (click Spring Trap) otherwise click Disarm.";
+  "A chest can contain a trap. If a hero searches for treasure in a room with a chest and the chest is trapped, the hero will be impacted by the trap. To avoid that, a hero adjacent to the chest can try to disarm the trap following regular HQ rules. If you fail, click Reveal to see the trap effect, otherwise click Remove.";
 
-export function ChestResultPopup({ hasTrap, springMessage, anchorKey, onSpringTrap, onDisarmTrap, onResolve, onClose }) {
+export function ChestResultPopup({ hasTrap, springMessage, anchorKey, onDisarmTrap, onResolve, onClose }) {
   const [phase, setPhase] = useState("options");
   const [prevPhase, setPrevPhase] = useState("options");
 
-  function doSpring() {
+  function doReveal() {
     onResolve?.(anchorKey);
-    if (hasTrap) {
-      onSpringTrap?.(anchorKey, false);
-      setPhase("spring_result");
-    } else {
-      setPhase("no_trap_result");
-    }
+    setPhase(hasTrap ? "reveal_result" : "no_trap_result");
   }
 
-  function requestDisarm() {
+  function requestRemove() {
     if (hasTrap) {
       setPrevPhase(phase);
-      setPhase("disarm_confirm");
+      setPhase("remove_confirm");
     } else {
       onResolve?.(anchorKey);
       setPhase("no_trap_result");
     }
   }
 
-  function confirmDisarm() {
+  function confirmRemove() {
     onResolve?.(anchorKey);
     onDisarmTrap?.(anchorKey);
-    setPhase("disarm_result");
+    setPhase("remove_result");
   }
 
-  function cancelDisarm() {
+  function cancelRemove() {
     setPhase(prevPhase);
   }
 
@@ -76,15 +71,15 @@ export function ChestResultPopup({ hasTrap, springMessage, anchorKey, onSpringTr
             The chest was safe — there was no trap.
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button onClick={onClose} style={btnClose}>Close</button>
+            <button onClick={onClose} style={btnPrimary}>Close</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── spring_result ─────────────────────────────────────────────────────────
-  if (phase === "spring_result") {
+  // ── reveal_result ─────────────────────────────────────────────────────────
+  if (phase === "reveal_result") {
     return (
       <div data-testid="chest-popup-backdrop" style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
@@ -93,48 +88,48 @@ export function ChestResultPopup({ hasTrap, springMessage, anchorKey, onSpringTr
             <div style={{ fontSize: 13, color: T.sidebarText }}>{springMessage}</div>
           )}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button onClick={onClose} style={btnClose}>Close</button>
+            <button onClick={onClose} style={btnPrimary}>Close</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── disarm_confirm ────────────────────────────────────────────────────────
-  if (phase === "disarm_confirm") {
+  // ── remove_confirm ────────────────────────────────────────────────────────
+  if (phase === "remove_confirm") {
     return (
       <div data-testid="chest-popup-backdrop" style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-          <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>Disarm Trap?</div>
+          <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>Remove Trap?</div>
           <div style={{ fontSize: 13, color: T.sidebarText, lineHeight: 1.5 }}>
-            Are you sure you want to disarm this trap? It will be removed for this session.
+            Are you sure you want to remove this trap? It will be removed for this session.
           </div>
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
             <button
-              onClick={cancelDisarm}
+              onClick={cancelRemove}
               style={{
                 background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`,
                 borderRadius: 4, padding: "8px 16px", cursor: "pointer", fontSize: 13,
               }}
             >Cancel</button>
-            <button onClick={confirmDisarm} style={btnClose}>Confirm Disarm</button>
+            <button onClick={confirmRemove} style={btnPrimary}>Confirm Remove</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── disarm_result ─────────────────────────────────────────────────────────
-  if (phase === "disarm_result") {
+  // ── remove_result ─────────────────────────────────────────────────────────
+  if (phase === "remove_result") {
     return (
       <div data-testid="chest-popup-backdrop" style={overlayStyle} onMouseDown={onClose}>
         <div style={dialogStyle} onMouseDown={e => e.stopPropagation()}>
-          <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>Trap Disarmed</div>
+          <div style={{ fontWeight: "bold", fontSize: 15, color: T.sidebarTitle, fontFamily: FONT_HEADING }}>Trap Removed</div>
           <div style={{ fontSize: 13, color: T.sidebarText }}>
-            The trap has been safely disarmed and removed for this session.
+            The trap has been removed for this session.
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button onClick={onClose} style={btnClose}>Close</button>
+            <button onClick={onClose} style={btnPrimary}>Close</button>
           </div>
         </div>
       </div>
@@ -149,31 +144,28 @@ export function ChestResultPopup({ hasTrap, springMessage, anchorKey, onSpringTr
         <div style={{ fontSize: 13, color: T.sidebarText, lineHeight: 1.5 }}>
           {CHEST_RULES_MESSAGE}
         </div>
-        {springMessage && (
-          <div style={{ fontSize: 13, color: T.sidebarText, lineHeight: 1.5 }}>{springMessage}</div>
-        )}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <button
-            onClick={doSpring}
+            onClick={doReveal}
             style={{
               background: "#c62828", color: "#fff", border: "none", borderRadius: 4,
               padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: "bold", textAlign: "left",
             }}
-          >Spring Trap</button>
+          >Reveal</button>
           <button
-            onClick={requestDisarm}
+            onClick={requestRemove}
             style={{
               background: T.btnBg, color: T.btnText, border: `1px solid ${T.btnBorder}`, borderRadius: 4,
               padding: "8px 14px", cursor: "pointer", fontSize: 13, textAlign: "left",
             }}
-          >Disarm</button>
+          >Remove</button>
           <button
             onClick={onClose}
             style={{
               background: "transparent", color: T.sidebarTextFaint, border: "none",
               padding: "6px 0", cursor: "pointer", fontSize: 12, textAlign: "left",
             }}
-          >Close</button>
+          >Cancel</button>
         </div>
       </div>
     </div>

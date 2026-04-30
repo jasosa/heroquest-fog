@@ -40,13 +40,13 @@ describe("TrapInteractionPopup — options phase", () => {
     const { container } = render(<TrapInteractionPopup {...baseProps} />);
     expect(container.textContent).toMatch(/Combat die/i);
     expect(container.textContent).toMatch(/black shield/i);
-    expect(container.textContent).toMatch(/Spring Trap button/i);
+    expect(container.textContent).toMatch(/Reveal Trap button/i);
   });
 
   it("renders disarm rule text mentioning adjacent hero", () => {
     const { container } = render(<TrapInteractionPopup {...baseProps} />);
     expect(container.textContent).toMatch(/adjacent hero/i);
-    expect(container.textContent).toMatch(/Disarm button/i);
+    expect(container.textContent).toMatch(/Remove button/i);
   });
 
   it("renders 'Reveal trap' button", () => {
