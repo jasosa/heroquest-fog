@@ -28,7 +28,7 @@ const btnPrimary = {
 };
 
 const CHEST_RULES_MESSAGE =
-  "A chest can contain a trap. If a hero searches for treasure in a room with a chest and the chest is trapped, the hero will be impacted by the trap. To avoid that, a hero adjacent to the chest can try to disarm the trap following regular HQ rules. If you fail, click Reveal to see the trap effect, otherwise click Remove.";
+  "A chest can contain a trap. If a hero searches for treasure in a room with a chest and the chest is trapped, the hero will be impacted by the trap. To avoid the trap, a hero adjacent to the chest can try to disarm it following regular HQ rules. If the hero fails, click Reveal to see the trap effects. Otherwise click Remove.";
 
 export function ChestResultPopup({ hasTrap, springMessage, anchorKey, onDisarmTrap, onResolve, onClose }) {
   const [phase, setPhase] = useState("options");
