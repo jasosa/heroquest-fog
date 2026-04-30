@@ -229,3 +229,53 @@ describe("QuestLibrary action buttons", () => {
     expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ id: quest.id }));
   });
 });
+
+// ── Description tooltip ───────────────────────────────────────────────────────
+
+describe("QuestLibrary description tooltip", () => {
+  it("hovering over a description shows a tooltip with the full description text", () => {
+    const desc = "A long quest description that may be truncated in the card.";
+    storage.createQuest({ title: "Tooltip Quest", description: desc, questBookId: null });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const descEl = container.querySelector('[data-testid="quest-description"]');
+    expect(descEl).toBeTruthy();
+    fireEvent.mouseEnter(descEl);
+    const tooltip = container.querySelector('[data-testid="desc-tooltip"]');
+    expect(tooltip).toBeTruthy();
+    expect(tooltip.textContent).toBe(desc);
+  });
+
+  it("mouse leave hides the description tooltip", () => {
+    storage.createQuest({ title: "Q", description: "Some description text", questBookId: null });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const descEl = container.querySelector('[data-testid="quest-description"]');
+    fireEvent.mouseEnter(descEl);
+    expect(container.querySelector('[data-testid="desc-tooltip"]')).toBeTruthy();
+    fireEvent.mouseLeave(descEl);
+    expect(container.querySelector('[data-testid="desc-tooltip"]')).toBeNull();
+  });
+
+  it("does not add a tooltip-triggering element when description is empty", () => {
+    storage.createQuest({ title: "Q", description: "", questBookId: null });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    expect(container.querySelector('[data-testid="quest-description"]')).toBeNull();
+  });
+
+  it("tooltip has position fixed and is non-interactive", () => {
+    storage.createQuest({ title: "Q", description: "Desc text", questBookId: null });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const descEl = container.querySelector('[data-testid="quest-description"]');
+    fireEvent.mouseEnter(descEl);
+    const tooltip = container.querySelector('[data-testid="desc-tooltip"]');
+    expect(tooltip.style.position).toBe("fixed");
+    expect(tooltip.style.pointerEvents).toBe("none");
+  });
+});

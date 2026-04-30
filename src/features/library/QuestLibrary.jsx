@@ -36,6 +36,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
   const [editingBook, setEditingBook]   = useState(null);
   const [assigningQuest, setAssigningQuest] = useState(null);
+  const [descTooltip, setDescTooltip] = useState(null); // {x,y,content}|null
 
   const [showNewBook, setShowNewBook]   = useState(false);
   const [newBookTitle, setNewBookTitle] = useState("");
@@ -599,7 +600,13 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
                       {/* Description */}
                       {quest.description
-                        ? <div style={{ fontSize: 11, fontFamily: FONT_BODY, color: T.sidebarText, lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
+                        ? <div
+                            data-testid="quest-description"
+                            style={{ fontSize: 11, fontFamily: FONT_BODY, color: T.sidebarText, lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", cursor: "help" }}
+                            onMouseEnter={e => setDescTooltip({ x: e.clientX, y: e.clientY, content: quest.description })}
+                            onMouseMove={e => setDescTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null)}
+                            onMouseLeave={() => setDescTooltip(null)}
+                          >
                             {quest.description}
                           </div>
                         : <div style={{ fontSize: 11, fontFamily: FONT_BODY, color: T.sidebarTextFaint, fontStyle: "italic" }}>No description.</div>
@@ -656,6 +663,33 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
         </div>{/* end zIndex:2 content wrapper */}
       </main>
+      {descTooltip?.content && (
+        <div
+          data-testid="desc-tooltip"
+          style={{
+            position: "fixed",
+            left: descTooltip.x,
+            top: descTooltip.y - 12,
+            transform: "translate(-50%, -100%)",
+            background: "#1a0f04",
+            color: T.sidebarText,
+            border: `1px solid ${T.accentGold}`,
+            borderRadius: 6,
+            padding: "8px 12px",
+            fontSize: 12,
+            fontFamily: FONT_BODY,
+            lineHeight: 1.6,
+            whiteSpace: "pre-wrap",
+            maxWidth: 280,
+            boxShadow: "0 4px 16px #0009",
+            zIndex: 9999,
+            pointerEvents: "none",
+            wordBreak: "break-word",
+          }}
+        >
+          {descTooltip.content}
+        </div>
+      )}
     </div>
   );
 }

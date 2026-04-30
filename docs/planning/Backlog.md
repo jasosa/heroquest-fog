@@ -110,7 +110,7 @@ Description: After the user applies zoom in Edit or Play mode the board can only
 
 ### [FEAT-037] Improved quest description layout in Library
 Priority: medium
-Status: not_started
+Status: done
 Complexity: low
 Description: In Library mode the quest introduction/description text area is too small and the text is barely readable. Redesign the quest information section to give the description more vertical space, increase the font size to at least 13px, and ensure sufficient contrast. Consider displaying the description in the showcase right panel (already used for artwork) with a two-column approach: artwork on top, description text below, or a tabbed/toggle layout between artwork and description.
 
