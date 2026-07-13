@@ -10,13 +10,13 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:qa": "node qa-test.mjs",
-    "test:qa:calibration": "node qa-calibration.cjs",
-    "test:qa:pieces": "node qa-pieces.cjs",
-    "test:qa:fog": "node qa-fog.cjs",
-    "test:qa:markers": "node qa-markers.cjs",
-    "test:qa:library": "node qa-library.cjs",
-    "test:qa:all": "node qa-test.mjs && node qa-calibration.cjs && node qa-pieces.cjs && node qa-fog.cjs && node qa-markers.cjs && node qa-library.cjs"
+    "test:qa": "node e2e/test.mjs",
+    "test:qa:calibration": "node e2e/calibration.cjs",
+    "test:qa:pieces": "node e2e/pieces.cjs",
+    "test:qa:fog": "node e2e/fog.cjs",
+    "test:qa:markers": "node e2e/markers.cjs",
+    "test:qa:library": "node e2e/library.cjs",
+    "test:qa:all": "node e2e/test.mjs && node e2e/calibration.cjs && node e2e/pieces.cjs && node e2e/fog.cjs && node e2e/markers.cjs && node e2e/library.cjs"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
