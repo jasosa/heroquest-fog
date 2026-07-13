@@ -7,14 +7,14 @@ npm run dev       # Start dev server with HMR (Vite)
 npm run build     # Production build
 npm run preview   # Preview production build locally
 npm run lint      # Run ESLint
-npm run test      # Run Vitest unit tests (117 tests across 5 suites)
+npm run test      # Run Vitest unit tests (567 tests across 30 files)
 ```
 
 ## Architecture
 
 React + Vite app. No routing library, no state management library, no CSS files — all inline styles. No backend — runs entirely in the browser; localStorage only.
 
-Theme constant `T` in `src/theme.js` — import from there, never redefine inline.
+Theme constant `T` in `src/shared/theme.js` — import from there, never redefine inline.
 
 For detailed subsystem docs, see:
 - @docs/architecture/board.md — board representation, screen routing, styling
@@ -74,10 +74,10 @@ When asked to work on the next item:
 9. Invoke the `swe` subagent with the approved plan
 10. If all tests pass (`npm test`), commit all changes on the feature branch with
     the item ID and title as the commit message (e.g. `[FEAT-013] Manage traps in Chests`)
-11. Update the item status to `done` and move it to Backlog_Done.md file
+11. Update the item status to `done` and move its block into the `## Done` section of `Backlog.md` (single file — there is no separate Done file)
 12. **Never merge the feature branch into `main`** — the user merges manually
 13. Switch back to `main` (`git checkout main`) and loop back to step 1 to pick
-    the next highest-priority `not_started` item — **only `not_started` items are eligible, never `committed` or `in_progress`**
+    the next highest-priority `not_started` item — **only `not_started` items are eligible, never `done` or `in_progress`**
 
 When asked to work on a concrete item from the backlog:
 1. Read `docs/planning/Backlog.md`
@@ -95,7 +95,7 @@ When asked to work on a concrete item from the backlog:
 8. Invoke the `swe` subagent with the approved plan
 9. If all tests pass (`npm test`), commit all changes on the feature branch with
     the item ID and title as the commit message (e.g. `[FEAT-013] Manage traps in Chests`)
-10. Update the item status to `done` and move it to Backlog_Done.md file
+10. Update the item status to `done` and move its block into the `## Done` section of `Backlog.md` (single file — there is no separate Done file)
 11. **Never merge the feature branch into `main`** — the user merges manually
 12. Switch back to `main` (`git checkout main`) and loop back to step 1 to pick
-    the next highest-priority `not_started` item — **only `not_started` items are eligible, never `committed` or `in_progress`**
+    the next highest-priority `not_started` item — **only `not_started` items are eligible, never `done` or `in_progress`**

@@ -1,4 +1,4 @@
-# Piece Catalogue (`src/pieces.js`)
+# Piece Catalogue (`src/shared/pieces.js`)
 
 Four categories: **Monsters**, **Traps**, **Furniture**, **Markers**. Adding a piece to `PIECE_CATEGORIES` automatically registers it in the `PIECES` flat lookup map.
 
@@ -19,4 +19,4 @@ Four categories: **Monsters**, **Traps**, **Furniture**, **Markers**. Adding a p
 
 **Special monsters:** Any placed piece can carry `isSpecial: boolean` and `specialNote: string` via `setMonsterSpecial`. In edit mode, a ★ button opens `SpecialMonsterDialog`. In play mode, special monsters render with a purple glowing ring.
 
-**Multi-cell pieces** store `coveredCells` (absolute `"r,c"` keys) at placement time. Rotation uses `getCoveredCellKeys(anchorR, anchorC, cells, rotation)` from `pieceGeometry.js`. 4 × 90° increments always return to original orientation. No normalization — negative offsets are valid.
+**Multi-cell pieces** store `coveredCells` (absolute `"r,c"` keys) at placement time. Rotation uses `getCoveredCellKeys(anchorR, anchorC, cells, rotation)` from `src/shared/pieceGeometry.js`. 4 × 90° increments always return to original orientation. No normalization — negative offsets are valid.

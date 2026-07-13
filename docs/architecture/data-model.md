@@ -10,15 +10,27 @@ Rendered as absolutely-positioned overlays on the board container (`position: re
 
 Placement: click with Door tool toggles the door at the anchor cell. Right-click cycles rotation (0→1→2→3→0).
 
-## Quest Persistence (`src/questStorage.js`)
+## Quest Persistence (`src/shared/questStorage.js`)
 
-All data in `localStorage`. Two collections:
+All data in `localStorage`. Two collections plus calibration.
 
-**Quest books** (`hq_quest_books`): `{ id, title, description, createdAt }`
+**Quest books** (`hq_quest_books`): `{ id, title, description, coverImage, createdAt }`
+- `coverImage` is a base64 data URL (or `null`), shown in the library showcase.
 
-**Quests** (`hq_quests`): `{ id, title, description, questBookId, placed, doors, createdAt, updatedAt }`
+**Quests** (`hq_quests`) — created with:
+`{ id, title, description, questBookId, questNumber, placementMessage, placed, doors, createdAt, updatedAt }`
 
-Key functions: `createQuestBook`, `deleteQuestBook` (cascades), `createQuest`, `persistQuest` (upsert), `deleteQuest`, `loadQuests`, `loadQuestBooks`, `loadCalibration`, `saveCalibration`.
+Quests saved from edit mode (and quests created via JSON import) may additionally carry the edit-authored marker maps:
+- `searchMarkers` — room search-marker positions (or `null` = use defaults)
+- `searchNotes` — `Record<region, string>` search-note text
+- `secretDoorMarkers` — placed secret-door markers
+- `placementMessage` — hero-placement popup text
+
+`placed` is `Record<"r,c", PlacedPiece>` and `doors` is `Record<"r,c", { rotation }>` (see the Doors section above).
+
+Key functions: `createQuestBook`, `updateQuestBook`, `deleteQuestBook` (cascades to its quests), `createQuest`, `persistQuest` (upsert), `deleteQuest`, `loadQuests`, `loadQuestBooks`, `migrateQuests` (backfills `questNumber`), `loadCalibration`, `saveCalibration`.
+
+**JSON import/export:** `exportQuestAsJson(quest)` returns a downloadable JSON string with runtime-only fields (`id`, `questBookId`, `createdAt`, `updatedAt`) stripped. `importQuestFromJson(jsonString, questBookId)` validates required fields (`title`, `placed`, `doors`), assigns a fresh `id`, and persists the quest under `questBookId`; it throws on malformed or invalid JSON.
 
 Fog is **not** saved — always reset when loading a quest.
 

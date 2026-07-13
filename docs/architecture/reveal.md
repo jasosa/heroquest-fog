@@ -1,4 +1,4 @@
-# Reveal Logic (`src/reveal.js`)
+# Reveal Logic (`src/shared/reveal.js`)
 
 `makeComputeReveal(board, rows, cols)` returns a `computeReveal(r, c, placed)` function.
 
