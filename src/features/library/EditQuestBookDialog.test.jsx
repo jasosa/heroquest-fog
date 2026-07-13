@@ -44,29 +44,29 @@ describe("EditQuestBookDialog cover image", () => {
     );
     // Mock FileReader to call onload synchronously
     const mockResult = "data:image/png;base64,MOCK";
-    const OriginalFileReader = global.FileReader;
-    global.FileReader = class {
+    const OriginalFileReader = globalThis.FileReader;
+    globalThis.FileReader = class {
       readAsDataURL() { this.onload({ target: { result: mockResult } }); }
     };
     const bigFile = new File([new ArrayBuffer(600 * 1024)], "big.png", { type: "image/png" });
     const input = container.querySelector('input[type="file"]');
     fireEvent.change(input, { target: { files: [bigFile] } });
     expect(container.textContent).toContain("Large images may slow the app");
-    global.FileReader = OriginalFileReader;
+    globalThis.FileReader = OriginalFileReader;
   });
 
   it("does not show size warning for file at or below 512KB", () => {
     const { container } = render(
       <EditQuestBookDialog initialTitle="T" onSave={() => {}} onCancel={() => {}} />
     );
-    const OriginalFileReader = global.FileReader;
-    global.FileReader = class {
+    const OriginalFileReader = globalThis.FileReader;
+    globalThis.FileReader = class {
       readAsDataURL() { this.onload({ target: { result: "data:image/png;base64,X" } }); }
     };
     const smallFile = new File([new ArrayBuffer(100 * 1024)], "small.png", { type: "image/png" });
     fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [smallFile] } });
     expect(container.textContent).not.toContain("Large images may slow the app");
-    global.FileReader = OriginalFileReader;
+    globalThis.FileReader = OriginalFileReader;
   });
 
   it("Remove button has aria-label", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getTrapRenderMode, shouldHideHeroStart, shouldShowChestGlow } from "./TokenOverlay.jsx";
+import { getTrapRenderMode, shouldHideHeroStart, shouldShowChestGlow } from "./tokenRenderHelpers.js";
 
 describe("getTrapRenderMode", () => {
   const fog = new Set(["3,5"]);

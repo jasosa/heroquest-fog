@@ -9,7 +9,7 @@ const SEARCH_TOOLTIP = "Search for Treasure";
 export function SearchMarkerOverlay({
   searchMarkers, searchNotes, searchedCounts,
   fog, isEditMode, getTokenPos,
-  onEditNote, onViewNote, onRemoveMarker,
+  onEditNote, onViewNote,
   onShowTooltip, onHideTooltip,
 }) {
   return Object.entries(searchMarkers).map(([region, [r, c]]) => {

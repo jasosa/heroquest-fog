@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { BOARD, ROWS, COLS, CELL } from "../../shared/map.js";
 import { loadCalibration } from "../../shared/questStorage.js";
-import { useMapTransform } from "../calibration/MapCalibrator.jsx";
+import { useMapTransform } from "../calibration/calibrationTransform.js";
 import BoardCell from "./BoardCell.jsx";
 import { TokenOverlay } from "./TokenOverlay.jsx";
 import { DoorOverlay } from "./DoorOverlay.jsx";
@@ -52,7 +52,6 @@ export function BoardGrid({ fog, placed, doors, searchMarkers, searchNotes, sear
   // Each un-revealed cell becomes a quadrilateral whose 4 corners are derived
   // from getTokenPos at ±0.5 offsets.  With no calibration the corners collapse
   // to the exact cell rectangle (identical to the old per-cell dark overlay).
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fogPolygons = useMemo(() => {
     if (isEditMode) return null;
     const polys = [];

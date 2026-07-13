@@ -1,39 +1,7 @@
 import { CELL } from "../../shared/map.js";
 import { PIECES, PIECE_CATEGORY_ID, resolveScale, isTrapPiece } from "../../shared/pieces.js";
 import { T } from "../../shared/theme.js";
-
-// Pure helper: returns true when a chest should show an amber-gold glow.
-// Only glows in play mode, when the cell is in fog, and the chest has not been opened.
-export function shouldShowChestGlow(type, isEditMode, isFogRevealed, isOpened) {
-  return type === "chest" && !isEditMode && isFogRevealed && !isOpened;
-}
-
-// Pure helper: determines whether clicking a chest cell should intercept
-// the normal fog reveal — only when the chest is visible and not yet opened.
-function shouldInterceptChestClick(type, isFogRevealed, isOpened) {
-  return type === "chest" && isFogRevealed && !isOpened;
-}
-
-// Pure helper: returns true when a Hero Start marker should be hidden (play mode only).
-export function shouldHideHeroStart(type, isEditMode) {
-  return type === "start" && !isEditMode;
-}
-
-// Pure helper: returns "warning", "real", or "hidden" for a given piece/state combo.
-// "hidden"  — piece is not visible (not in fog)
-// "warning" — trap in play mode, not yet revealed → show generic warning marker
-// "real"    — show actual piece image/token
-export function getTrapRenderMode(type, isEditMode, fog, revealedTraps, anchorKey, coveredCells, disarmedTraps, springedTraps, removeAfterSpring) {
-  const isVisible = isEditMode || fog.has(anchorKey) ||
-    (coveredCells && coveredCells.some(k => fog.has(k)));
-  if (!isVisible) return "hidden";
-  if (!isEditMode && isTrapPiece(type)) {
-    if (disarmedTraps?.has(anchorKey)) return "hidden";
-    if (springedTraps?.has(anchorKey) && removeAfterSpring) return "hidden";
-  }
-  if (isTrapPiece(type) && !isEditMode && !revealedTraps?.has(anchorKey)) return "warning";
-  return "real";
-}
+import { shouldShowChestGlow, shouldInterceptChestClick, shouldHideHeroStart, getTrapRenderMode } from "./tokenRenderHelpers.js";
 
 function Token({ type }) {
   const p = PIECES[type];

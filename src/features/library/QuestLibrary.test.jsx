@@ -69,7 +69,7 @@ describe("QuestLibrary empty state", () => {
 
 describe("QuestLibrary thumbnail navigation", () => {
   it("clicking a thumb button changes the showcase title", () => {
-    const q1 = storage.createQuest({ title: "Alpha", description: "", questBookId: null });
+    storage.createQuest({ title: "Alpha", description: "", questBookId: null });
     const q2 = storage.createQuest({ title: "Beta", description: "", questBookId: null });
     const { container } = render(
       <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
@@ -118,7 +118,7 @@ describe("QuestLibrary keyboard navigation", () => {
 
 describe("QuestLibrary new-badge", () => {
   it("shows new-badge for fresh quest and hides it for old quest", () => {
-    const fresh = storage.createQuest({ title: "Fresh Quest", description: "", questBookId: null });
+    storage.createQuest({ title: "Fresh Quest", description: "", questBookId: null });
     const old = storage.createQuest({ title: "Old Quest", description: "", questBookId: null });
     // Manually patch createdAt for old quest to be 8 days ago
     const stored = JSON.parse(localStorage.getItem("hq_quests") || "[]");

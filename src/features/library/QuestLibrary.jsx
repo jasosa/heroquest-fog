@@ -18,11 +18,6 @@ import { EditQuestBookDialog } from "./EditQuestBookDialog.jsx";
 import { AssignQuestBookDialog } from "./AssignQuestBookDialog.jsx";
 import { assignQuestToBook } from "./assignQuestBook.js";
 
-function fmtDate(ts) {
-  if (!ts) return "";
-  return new Date(ts).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-}
-
 export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   const [books, setBooks]           = useState(() => loadQuestBooks());
   const [quests, setQuests]         = useState(() => loadQuests());
@@ -98,7 +93,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     if (!selectedQuestId) return;
     const el = thumbRefs.current[selectedQuestId];
     if (el && typeof el.scrollIntoView === "function") {
-      try { el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" }); } catch {}
+      try { el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" }); } catch { /* scrollIntoView options unsupported */ }
     }
   }, [selectedQuestId]);
 

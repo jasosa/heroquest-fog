@@ -5,7 +5,7 @@ import { getCoveredCellKeys } from "../../shared/pieceGeometry.js";
 import { PIECES } from "../../shared/pieces.js";
 import { placeNoteMarker, updateNoteMarker, setMonsterSpecial, setChestTrap, setTrapSpringConfig, setTrapSpringConfigForAll } from "./placementState.js";
 import { isTrapPiece } from "../../shared/pieces.js";
-import { moveSearchMarker, setSearchNoteAt, normalizeSearchNotes, removeSearchMarker } from "../board/searchMarkers.js";
+import { moveSearchMarker, normalizeSearchNotes, removeSearchMarker } from "../board/searchMarkers.js";
 import { placeSecretDoorMarker, removeSecretDoorMarker, linkSecretDoor, setSecretDoorMessage, resolveSecretDoorSearch } from "../board/secretDoorMarkers.js";
 
 export const SEARCH_MAX = 4;
@@ -545,7 +545,7 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     });
   }, []);
 
-  const springTrap = useCallback((anchorKey, removeAfterSpring) => {
+  const springTrap = useCallback((anchorKey, _removeAfterSpring) => {
     setRevealedTraps(prev => addRevealedTrap(prev, anchorKey));
     setSpringedTraps(prev => new Set([...prev, anchorKey]));
   }, []);
