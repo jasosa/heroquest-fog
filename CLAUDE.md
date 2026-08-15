@@ -46,6 +46,25 @@ Rules:
 - Piece rotation never normalizes to `[0,0]` — negative offsets are intentional
 - `key={quest.id}` on GameScreen forces full remount on quest switch — intentional
 
+## Review Cycle
+
+After the `swe` subagent reports all tests passing, invoke the `reviewer` subagent before committing
+anything:
+
+1. `reviewer` independently verifies correctness against the original backlog description, CLAUDE.md
+   guideline compliance, and architecture alignment — re-running `npm test`/`npm run lint` itself
+   rather than trusting the swe agent's self-report.
+2. **APPROVED** → proceed to commit.
+3. **NEEDS REVISION** → invoke `planner` again with the reviewer's required-changes feedback to
+   produce a revised plan, then invoke `swe` again with it, then re-invoke `reviewer`. This is one
+   iteration.
+4. After **3 failed iterations** on the same item, stop working on it: leave its `Status:` as
+   `in_progress`, append a note to its `Backlog.md` entry summarizing the unresolved reviewer
+   feedback, and flag it to the user for a decision.
+5. **Do not block on that decision.** Continue the workflow immediately with the next
+   highest-priority `not_started` item while the stuck item awaits the user's input — a stuck item
+   never halts progress on the rest of the backlog.
+
 ## Permissions
 
 **On a feature branch** (`feat/*` or `fix/*`): proceed autonomously — read, write, edit, and run any
@@ -72,11 +91,12 @@ When asked to work on the next item:
    architect and UX outputs
 8. Review the plan before proceeding
 9. Invoke the `swe` subagent with the approved plan
-10. If all tests pass (`npm test`), commit all changes on the feature branch with
+10. Once all tests pass (`npm test`), run the **Review Cycle** (below) before committing anything
+11. Commit all changes on the feature branch with
     the item ID and title as the commit message (e.g. `[FEAT-013] Manage traps in Chests`)
-11. Update the item status to `done` and move its block into the `## Done` section of `Backlog.md` (single file — there is no separate Done file)
-12. Merge the feature branch into `main` (`git checkout main && git pull && git merge --no-ff feat/FEAT-XXX -m "Merge feat/FEAT-XXX"`), then push (`git push`)
-13. Delete the merged feature branch (`git branch -d feat/FEAT-XXX`) and loop back to step 1 to pick
+12. Update the item status to `done` and move its block into the `## Done` section of `Backlog.md` (single file — there is no separate Done file)
+13. Merge the feature branch into `main` (`git checkout main && git pull && git merge --no-ff feat/FEAT-XXX -m "Merge feat/FEAT-XXX"`), then push (`git push`)
+14. Delete the merged feature branch (`git branch -d feat/FEAT-XXX`) and loop back to step 1 to pick
     the next highest-priority `not_started` item — **only `not_started` items are eligible, never `done` or `in_progress`**
 
 When asked to work on a concrete item from the backlog:
@@ -93,9 +113,10 @@ When asked to work on a concrete item from the backlog:
    architect and UX outputs
 7. Review the plan before proceeding
 8. Invoke the `swe` subagent with the approved plan
-9. If all tests pass (`npm test`), commit all changes on the feature branch with
+9. Once all tests pass (`npm test`), run the **Review Cycle** (below) before committing anything
+10. Commit all changes on the feature branch with
     the item ID and title as the commit message (e.g. `[FEAT-013] Manage traps in Chests`)
-10. Update the item status to `done` and move its block into the `## Done` section of `Backlog.md` (single file — there is no separate Done file)
-11. Merge the feature branch into `main` (`git checkout main && git pull && git merge --no-ff feat/FEAT-XXX -m "Merge feat/FEAT-XXX"`), then push (`git push`)
-12. Delete the merged feature branch (`git branch -d feat/FEAT-XXX`) and loop back to step 1 to pick
+11. Update the item status to `done` and move its block into the `## Done` section of `Backlog.md` (single file — there is no separate Done file)
+12. Merge the feature branch into `main` (`git checkout main && git pull && git merge --no-ff feat/FEAT-XXX -m "Merge feat/FEAT-XXX"`), then push (`git push`)
+13. Delete the merged feature branch (`git branch -d feat/FEAT-XXX`) and loop back to step 1 to pick
     the next highest-priority `not_started` item — **only `not_started` items are eligible, never `done` or `in_progress`**
