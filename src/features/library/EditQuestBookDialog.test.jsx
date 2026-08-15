@@ -87,6 +87,74 @@ describe("EditQuestBookDialog cover image", () => {
     expect(label).toBeTruthy();
     expect(input).toBeTruthy();
   });
+
+  it("empty state renders upload prompt and helper text", () => {
+    const { container } = render(
+      <EditQuestBookDialog initialTitle="T" onSave={() => {}} onCancel={() => {}} />
+    );
+    expect(container.textContent).toContain("Click to upload cover image");
+    expect(container.textContent).toContain("PNG/JPG, under 512KB recommended");
+  });
+
+  it("file input stays type=file, visually hidden but focusable", () => {
+    const { container } = render(
+      <EditQuestBookDialog initialTitle="T" onSave={() => {}} onCancel={() => {}} />
+    );
+    const input = container.querySelector('#edit-book-cover-input');
+    expect(input.type).toBe("file");
+    expect(input.style.display).not.toBe("none");
+    input.focus();
+    expect(document.activeElement).toBe(input);
+  });
+
+  it("filled state renders preview inside dropzone label and keeps Remove button outside the label", () => {
+    const { container } = render(
+      <EditQuestBookDialog initialTitle="T" initialCoverImage="data:image/png;base64,abc" onSave={() => {}} onCancel={() => {}} />
+    );
+    const label = container.querySelector('label[for="edit-book-cover-input"]');
+    const img = label.querySelector('img[alt="Cover image preview"]');
+    expect(img).toBeTruthy();
+    expect(container.textContent).toContain("Replace image");
+    const removeBtn = container.querySelector('[aria-label="Remove cover image"]');
+    expect(removeBtn).toBeTruthy();
+    expect(removeBtn.closest('label[for="edit-book-cover-input"]')).toBeNull();
+  });
+
+  it("dropzone label has the hq-upload-dropzone styling hook", () => {
+    const { container } = render(
+      <EditQuestBookDialog initialTitle="T" onSave={() => {}} onCancel={() => {}} />
+    );
+    const label = container.querySelector('label[for="edit-book-cover-input"]');
+    expect(label.classList.contains("hq-upload-dropzone")).toBe(true);
+  });
+});
+
+describe("EditQuestBookDialog layout", () => {
+  it("dialog is 420px wide", () => {
+    const { container } = render(
+      <EditQuestBookDialog initialTitle="T" onSave={() => {}} onCancel={() => {}} />
+    );
+    const dialog = container.querySelector(".modal-dialog");
+    expect(dialog.style.width).toBe("420px");
+  });
+
+  it("modal body scrolls with a max height", () => {
+    const { container } = render(
+      <EditQuestBookDialog initialTitle="T" onSave={() => {}} onCancel={() => {}} />
+    );
+    const body = container.querySelector(".modal-body");
+    expect(body.style.overflowY).toBe("auto");
+    expect(body.style.maxHeight).toBe("60vh");
+  });
+
+  it("pressing Escape calls onCancel", () => {
+    const onCancel = vi.fn();
+    render(
+      <EditQuestBookDialog initialTitle="T" onSave={() => {}} onCancel={onCancel} />
+    );
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onCancel).toHaveBeenCalled();
+  });
 });
 
 describe("EditQuestBookDialog description label", () => {
