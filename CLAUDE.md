@@ -75,8 +75,8 @@ When asked to work on the next item:
 10. If all tests pass (`npm test`), commit all changes on the feature branch with
     the item ID and title as the commit message (e.g. `[FEAT-013] Manage traps in Chests`)
 11. Update the item status to `done` and move its block into the `## Done` section of `Backlog.md` (single file — there is no separate Done file)
-12. **Never merge the feature branch into `main`** — the user merges manually
-13. Switch back to `main` (`git checkout main`) and loop back to step 1 to pick
+12. Merge the feature branch into `main` (`git checkout main && git pull && git merge --no-ff feat/FEAT-XXX -m "Merge feat/FEAT-XXX"`), then push (`git push`)
+13. Delete the merged feature branch (`git branch -d feat/FEAT-XXX`) and loop back to step 1 to pick
     the next highest-priority `not_started` item — **only `not_started` items are eligible, never `done` or `in_progress`**
 
 When asked to work on a concrete item from the backlog:
@@ -96,6 +96,6 @@ When asked to work on a concrete item from the backlog:
 9. If all tests pass (`npm test`), commit all changes on the feature branch with
     the item ID and title as the commit message (e.g. `[FEAT-013] Manage traps in Chests`)
 10. Update the item status to `done` and move its block into the `## Done` section of `Backlog.md` (single file — there is no separate Done file)
-11. **Never merge the feature branch into `main`** — the user merges manually
-12. Switch back to `main` (`git checkout main`) and loop back to step 1 to pick
+11. Merge the feature branch into `main` (`git checkout main && git pull && git merge --no-ff feat/FEAT-XXX -m "Merge feat/FEAT-XXX"`), then push (`git push`)
+12. Delete the merged feature branch (`git branch -d feat/FEAT-XXX`) and loop back to step 1 to pick
     the next highest-priority `not_started` item — **only `not_started` items are eligible, never `done` or `in_progress`**
