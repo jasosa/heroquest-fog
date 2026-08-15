@@ -17,7 +17,20 @@
       "Bash(git pull:*)",
       "Bash(npm install:*)",
       "Skill(designing-beautiful-websites)",
-      "Bash(git merge feat/FEAT-026 --no-ff -m ':*)"
+      "Bash(npx playwright *)",
+      "Bash(npx vite *)",
+      "Bash(echo \"vite starting, pid $!\")",
+      "Bash(npx wait-on *)",
+      "Bash(kill 1154)",
+      "Bash(pkill -f \"vite --port 5173\")",
+      "Bash(git --no-pager diff package.json)",
+      "Bash(git --no-pager log --oneline -2 main)",
+      "Bash(grep -vE \"^$|^>|potentially fixable\")",
+      "Bash(grep -E \"error|warning|\\\\.jsx?$|\\\\.js$\")",
+      "Bash(npx eslint *)",
+      "Bash(git --no-pager diff -- CLAUDE.md)",
+      "Bash(git --no-pager diff --stat -- CLAUDE.md docs/architecture/)",
+      "Bash(git --no-pager diff -- docs/architecture/reveal.md docs/architecture/pieces.md)"
     ]
   }
 }
