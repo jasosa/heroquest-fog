@@ -548,9 +548,19 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                         >
                           {quest.title}
                         </div>
-                        <div style={{ display: "flex", gap: 4, flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                        <div
+                          data-testid="quest-badges"
+                          style={{
+                            display: "flex", flexDirection: "column", alignItems: "flex-end",
+                            gap: 4, flexShrink: 0,
+                            // Sized to fit the stacked number badge (fontSize 16, padding "4px 10px")
+                            // plus gap (4) plus the New badge (fontSize 8, padding "2px 5px").
+                            // Keep in sync if either badge's fontSize/padding changes.
+                            minHeight: 46,
+                          }}
+                        >
                           {quest.questNumber != null && (
-                            <span style={{ background: T.accentGold, color: "#12100e", fontFamily: FONT_HEADING, fontSize: 8, padding: "2px 5px", letterSpacing: 1 }}>
+                            <span data-testid="quest-number-badge" style={{ background: T.accentGold, color: "#12100e", fontFamily: FONT_HEADING, fontSize: 16, fontWeight: "bold", padding: "4px 10px", letterSpacing: 1, borderRadius: 999, minWidth: 32, textAlign: "center" }}>
                               #{quest.questNumber}
                             </span>
                           )}
