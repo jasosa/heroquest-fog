@@ -44,7 +44,7 @@ export function SearchMarkerOverlay({
             pointerEvents: isEditMode ? "none" : "auto",
             cursor: isEditMode ? "default" : "pointer",
           }}
-          onMouseEnter={isEditMode ? undefined : (e) => onShowTooltip?.(e.clientX, e.clientY, SEARCH_TOOLTIP)}
+          onMouseEnter={isEditMode ? undefined : (e) => onShowTooltip?.(region, e.clientX, e.clientY, SEARCH_TOOLTIP)}
           onMouseLeave={isEditMode ? undefined : () => onHideTooltip?.()}
           onClick={isEditMode ? undefined : () => onViewNote(region, searchNotes?.[region] ?? "")}
         />

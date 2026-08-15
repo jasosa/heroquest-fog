@@ -68,7 +68,7 @@ export function TokenOverlay({
         src="/tiles/Trap_Warning.png"
         alt="Trap"
         onClick={e => { e.stopPropagation(); onTrapInteraction?.(anchorKey); }}
-        onMouseEnter={e => onShowTooltip?.(e.clientX, e.clientY, "Trap!")}
+        onMouseEnter={e => onShowTooltip?.(anchorKey, e.clientX, e.clientY, "Trap!")}
         onMouseLeave={() => onHideTooltip?.()}
         style={{
           position: "absolute",
@@ -93,7 +93,7 @@ export function TokenOverlay({
     const [px, py] = getTokenPos(c, r);
     const hoverProps = (!isEditMode && note)
       ? {
-          onMouseEnter: e => onShowTooltip?.(e.clientX, e.clientY, note),
+          onMouseEnter: e => onShowTooltip?.(anchorKey, e.clientX, e.clientY, note),
           onMouseLeave: () => onHideTooltip?.(),
         }
       : {};
@@ -107,7 +107,7 @@ export function TokenOverlay({
             onClick={e => {
               e.stopPropagation();
               if (isEditMode) onEditNote?.(anchorKey);
-              else if (note) onShowTooltip?.(e.clientX, e.clientY, note);
+              else if (note) onShowTooltip?.(anchorKey, e.clientX, e.clientY, note);
             }}
             style={{
               width: 28, height: 28,
@@ -182,24 +182,25 @@ export function TokenOverlay({
     // Trap image: clickable in play mode when revealed
     const isTrapImage = isTrapPiece(type) && !isEditMode;
 
-    // Hover callbacks for special monster note in play mode.
-    const monsterHoverProps = (!isEditMode && isMonster && isSpecial && specialNote)
+    // Hover callbacks for monster tooltip (name, plus special note if present) in play mode.
+    const hasSpecialNote = isSpecial && !!specialNote?.trim();
+    const monsterTooltipContent = hasSpecialNote ? `${p.label}\n${specialNote}` : p.label;
+    const isMonsterInPlay = !isEditMode && isMonster;
+    const monsterHoverProps = isMonsterInPlay
       ? {
-          onMouseEnter: e => onShowTooltip?.(e.clientX, e.clientY, specialNote),
+          onMouseEnter: e => onShowTooltip?.(anchorKey, e.clientX, e.clientY, monsterTooltipContent),
           onMouseLeave: () => onHideTooltip?.(),
           style: { cursor: "pointer" },
         }
       : {};
-
-    const isSpecialMonsterInPlay = !isEditMode && isMonster && isSpecial && specialNote;
 
     let imgOnClick;
     if (isChestClickable) {
       imgOnClick = e => { e.stopPropagation(); onOpenChest?.(anchorKey); };
     } else if (isTrapImage) {
       imgOnClick = e => { e.stopPropagation(); onTrapInteraction?.(anchorKey, true); };
-    } else if (isSpecialMonsterInPlay) {
-      imgOnClick = e => { e.stopPropagation(); onShowTooltip?.(e.clientX, e.clientY, specialNote); };
+    } else if (isMonsterInPlay) {
+      imgOnClick = e => { e.stopPropagation(); onShowTooltip?.(anchorKey, e.clientX, e.clientY, monsterTooltipContent); };
     }
 
     return (
@@ -209,7 +210,7 @@ export function TokenOverlay({
           alt={p.label}
           {...(!isChestClickable && !isTrapImage ? monsterHoverProps : {})}
           onClick={imgOnClick}
-          onMouseEnter={isChestClickable ? (e => onShowTooltip?.(e.clientX, e.clientY, "Chests can hide traps. Click to search.")) : (monsterHoverProps.onMouseEnter)}
+          onMouseEnter={isChestClickable ? (e => onShowTooltip?.(anchorKey, e.clientX, e.clientY, "Chests can hide traps. Click to search.")) : (monsterHoverProps.onMouseEnter)}
           onMouseLeave={isChestClickable ? (() => onHideTooltip?.()) : (monsterHoverProps.onMouseLeave)}
           style={{
             position: "absolute",

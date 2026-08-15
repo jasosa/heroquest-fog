@@ -58,12 +58,6 @@ Status: not_started
 Complexity: medium
 Description: After the user applies zoom in Edit or Play mode the board can only be navigated via scrollbars, which do not work on mobile. Remove the scrollbars entirely and implement pointer-based panning: when the board is zoomed in, the user can click-and-drag (or touch-and-drag) anywhere on the board container to scroll it. Use `pointer` events (`pointerdown`, `pointermove`, `pointerup`) so it works on both desktop and touch. The board container should use `overflow: hidden` and transform/scroll position should be updated programmatically. Cursor should change to `grab` / `grabbing` while panning. Panning must not interfere with cell clicks for reveal or piece placement — distinguish a pan gesture (pointer moved > threshold) from a tap/click (pointer released without significant movement).
 
-### [FEAT-039] Monster name tooltip on hover in Play mode
-Priority: medium
-Status: not_started
-Complexity: low
-Description: In Play mode, hovering over a placed monster piece should display a small tooltip showing the monster's name (and `specialNote` if the monster is marked as special). Use the same tooltip mechanism already used for letter markers on desktop (hover show/hide). On mobile, a brief tap should toggle the tooltip. The tooltip should be styled consistently with other Play-mode overlays: dark background, gold/parchment text, slightly rounded corners.
-
 ### [FEAT-011] [Cleanup] Rename `pendingRoomReveal` to `pendingUnconfirmedReveal`
 Priority: low
 Status: not_started
@@ -349,6 +343,18 @@ Priority: medium
 Status: done
 Complexity: low
 Description: In Library mode the quest introduction/description text area is too small and the text is barely readable. Redesign the quest information section to give the description more vertical space, increase the font size to at least 13px, and ensure sufficient contrast. Consider displaying the description in the showcase right panel (already used for artwork) with a two-column approach: artwork on top, description text below, or a tabbed/toggle layout between artwork and description.
+
+### [FEAT-039] Monster name tooltip on hover in Play mode
+Priority: medium
+Status: done
+Complexity: low
+Description: In Play mode, hovering over a placed monster piece displays a small tooltip showing the monster's name, plus `specialNote` on its own line beneath the name when the monster is marked special. Reuses the shared tooltip mechanism already used for notemarkers/special monsters — no new component. On mobile, tapping toggles the tooltip open/closed; tapping a different monster replaces the content; tapping any other unclaimed element (e.g. a plain board cell) dismisses the tooltip without swallowing that click's own effect (e.g. fog reveal still happens).
+
+Implementation note: the existing special-monster-only tooltip gate was generalized to fire for all monsters in Play mode (`isMonster && !isEditMode`, dropping the old `isSpecial` requirement) rather than adding a second, competing hover/click handler. The shared `hoverTooltip` state (`GameScreen.jsx`) was extended with an `anchorKey` so a second tap on the same anchor toggles off, and a dismiss handler on the outermost wrapper closes any open tooltip on unclaimed clicks (relies on all tooltip-aware handlers already calling `e.stopPropagation()`). This also incidentally gives the existing notemarker tooltip real toggle/dismiss behavior it lacked before (previously only closed via `onMouseLeave`, unreliable on touch).
+
+Known accepted limitation: clicking a chest (or any other element whose handler calls `stopPropagation()` without touching tooltip state) does not dismiss an open monster/notemarker tooltip — scoped out to avoid touching every such handler; can be revisited if it proves annoying in practice.
+
+Implemented 2026-08-15 via the ux → planner → swe pipeline. 592/592 tests passing (6 new), lint clean. Manually verified in-browser: hover show/swap on desktop, click toggle-open/toggle-off/replace, and dismiss-on-other-click all behave correctly without swallowing the underlying click.
 
 ### [ISSUE-001] Click on an unrevealed cell that contains a trap shouldn't reveal the trap
 Priority: high

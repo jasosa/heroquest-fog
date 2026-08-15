@@ -176,7 +176,7 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
 
   const [bgImage, setBgImage]       = useState("board2");
   const [savedFlash, setSavedFlash] = useState(false);
-  const [hoverTooltip, setHoverTooltip] = useState(null); // {x,y,content}|null
+  const [hoverTooltip, setHoverTooltip] = useState(null); // {anchorKey,x,y,content}|null
   const [zoom, setZoom] = useState(1);
   const zoomIn  = () => setZoom(z => Math.min(ZOOM_MAX, Math.round((z + ZOOM_STEP) * 100) / 100));
   const zoomOut = () => setZoom(z => Math.max(ZOOM_MIN, Math.round((z - ZOOM_STEP) * 100) / 100));
@@ -248,20 +248,25 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     }
   }
 
-  function handleShowTooltip(x, y, content) {
-    setHoverTooltip({ x, y, content });
+  function handleShowTooltip(anchorKey, x, y, content) {
+    setHoverTooltip(prev => (prev && prev.anchorKey === anchorKey) ? null : { anchorKey, x, y, content });
   }
   function handleHideTooltip() {
     setHoverTooltip(null);
   }
+  function handleDismissTooltip() {
+    setHoverTooltip(prev => (prev ? null : prev));
+  }
 
   return (
-    <div style={{
-      display: "flex", height: "100vh", overflow: "hidden",
-      background: T.pageBg,
-      fontFamily: FONT_BODY,
-      color: T.text,
-    }}>
+    <div
+      onClick={handleDismissTooltip}
+      style={{
+        display: "flex", height: "100vh", overflow: "hidden",
+        background: T.pageBg,
+        fontFamily: FONT_BODY,
+        color: T.text,
+      }}>
       <BoardArea
         fog={gameState.fog} placed={gameState.placed} doors={gameState.doors}
         searchMarkers={gameState.searchMarkers}
