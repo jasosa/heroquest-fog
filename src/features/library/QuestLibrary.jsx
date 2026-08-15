@@ -17,6 +17,7 @@ import { sortQuests } from "../../shared/questSort.js";
 import { EditQuestBookDialog } from "./EditQuestBookDialog.jsx";
 import { AssignQuestBookDialog } from "./AssignQuestBookDialog.jsx";
 import { NewQuestDialog } from "./NewQuestDialog.jsx";
+import { NewQuestBookDialog } from "./NewQuestBookDialog.jsx";
 import { assignQuestToBook } from "./assignQuestBook.js";
 
 export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
@@ -35,11 +36,6 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   const [descTooltip, setDescTooltip] = useState(null); // {x,y,content}|null
 
   const [showNewBook, setShowNewBook]   = useState(false);
-  const [newBookTitle, setNewBookTitle] = useState("");
-  const [newBookDesc, setNewBookDesc]   = useState("");
-  const [newBookCoverImage, setNewBookCoverImage] = useState(null);
-  const [newBookSizeWarning, setNewBookSizeWarning] = useState(false);
-  const newBookFileInputRef = useRef(null);
 
   const [showNewQuest, setShowNewQuest]     = useState(false);
 
@@ -99,21 +95,10 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   }
 
   // ── Book actions ────────────────────────────────────────────────────────────
-  function handleNewBookImageChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setNewBookSizeWarning(file.size > 512 * 1024);
-    const reader = new FileReader();
-    reader.onload = ev => setNewBookCoverImage(ev.target.result);
-    reader.readAsDataURL(file);
-  }
-
-  function handleCreateBook() {
-    if (!newBookTitle.trim()) return;
-    const book = createQuestBook(newBookTitle.trim(), newBookDesc.trim(), newBookCoverImage);
+  function handleCreateBook(title, description, coverImage) {
+    const book = createQuestBook(title, description, coverImage);
     setBooks(prev => [...prev, book]);
-    setNewBookTitle(""); setNewBookDesc(""); setNewBookCoverImage(null);
-    setNewBookSizeWarning(false); setShowNewBook(false);
+    setShowNewBook(false);
   }
 
   function handleDeleteBook(id) {
@@ -227,6 +212,12 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           onCancel={() => setShowNewQuest(false)}
         />
       )}
+      {showNewBook && (
+        <NewQuestBookDialog
+          onCreate={handleCreateBook}
+          onCancel={() => setShowNewBook(false)}
+        />
+      )}
 
       {/* ── Left sidebar — Quest Books ───────────────────────────────────────── */}
       <nav className="hq-sidebar d-flex flex-column overflow-y-auto" style={{
@@ -315,77 +306,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             </div>
           )}
 
-          {showNewBook ? (
-            <div className="d-flex flex-column gap-2">
-              <input
-                placeholder="Book title"
-                value={newBookTitle}
-                onChange={e => setNewBookTitle(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleCreateBook()}
-                className="form-control form-control-sm hq-input-dark"
-                autoFocus
-              />
-              <input
-                placeholder="Description (optional)"
-                value={newBookDesc}
-                onChange={e => setNewBookDesc(e.target.value)}
-                className="form-control form-control-sm hq-input-dark"
-              />
-              <div>
-                <label
-                  htmlFor="new-book-cover-input"
-                  style={{ fontSize: 10, color: T.sidebarTextMuted, display: "block", marginBottom: 3 }}
-                >
-                  {newBookCoverImage ? "Replace image" : "Cover image (optional)"}
-                </label>
-                {newBookCoverImage && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <img
-                      src={newBookCoverImage}
-                      alt="Cover image preview"
-                      style={{ width: 32, height: 32, objectFit: "cover",
-                        border: `1px solid ${T.sidebarBtnBorder}`, borderRadius: 2 }}
-                    />
-                    <button
-                      type="button"
-                      aria-label="Remove cover image"
-                      onClick={() => { setNewBookCoverImage(null); setNewBookSizeWarning(false); newBookFileInputRef.current?.focus(); }}
-                      style={{ background: T.sidebarBtnBg, border: `1px solid ${T.sidebarBtnBorder}`,
-                        color: T.accent, fontSize: 10, padding: "3px 8px",
-                        minHeight: 32, minWidth: 44, cursor: "pointer", fontFamily: "inherit" }}
-                    >
-                      × Remove
-                    </button>
-                  </div>
-                )}
-                <input
-                  id="new-book-cover-input"
-                  ref={newBookFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleNewBookImageChange}
-                  className="form-control form-control-sm hq-input-dark"
-                />
-                {newBookSizeWarning && (
-                  <div role="alert" style={{ fontSize: 10, color: T.accent, marginTop: 3 }}>
-                    Large images may slow the app.
-                  </div>
-                )}
-              </div>
-              <div className="d-flex gap-1">
-                <button onClick={handleCreateBook} className="btn btn-hq-dark active flex-grow-1" style={{ fontSize: 10 }}>
-                  Create
-                </button>
-                <button
-                  onClick={() => { setShowNewBook(false); setNewBookTitle(""); setNewBookDesc(""); setNewBookCoverImage(null); setNewBookSizeWarning(false); }}
-                  className="btn btn-hq-dark flex-grow-1"
-                  style={{ fontSize: 10 }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
+          {!showNewBook && (
             <button onClick={() => setShowNewBook(true)} className="btn btn-hq-dark w-100 text-center">
               ＋ New Book
             </button>

@@ -463,3 +463,102 @@ describe("QuestLibrary quest number badge", () => {
     expect(badges.style.minHeight).not.toBe("0px");
   });
 });
+
+// ── New Book dialog trigger/open/close/create flow (FEAT-033) ────────────────
+
+describe("QuestLibrary New Book dialog — baseline", () => {
+  it("no New Quest Book dialog heading is present initially, and the trigger button is visible", () => {
+    const { container, getByText } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+    expect(getByText("＋ New Book")).toBeTruthy();
+  });
+});
+
+describe("QuestLibrary New Book dialog — open/close", () => {
+  it("clicking ＋ New Book shows the dialog and hides the trigger button", () => {
+    const { getByText, container, queryByText } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Book"));
+    const heading = container.querySelector("h6.modal-title");
+    expect(heading).toBeTruthy();
+    expect(heading.textContent).toBe("New Quest Book");
+    expect(queryByText("＋ New Book")).toBeNull();
+  });
+});
+
+describe("QuestLibrary New Book dialog — create flow", () => {
+  it("filling the title and clicking Create adds a book to the sidebar list, closes the dialog, persists to storage, and does not change selectedBookId", () => {
+    const { getByText, getByPlaceholderText, container, queryByText } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Book"));
+    fireEvent.change(getByPlaceholderText("Book title"), { target: { value: "Brand New Book" } });
+    fireEvent.click(getByText("Create"));
+
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+    expect(queryByText("＋ New Book")).toBeTruthy();
+    expect(getByText("Brand New Book")).toBeTruthy();
+
+    const stored = JSON.parse(localStorage.getItem("hq_quest_books") || "[]");
+    expect(stored.some(b => b.title === "Brand New Book")).toBe(true);
+
+    // "All Quests" remains the active filter (selectedBookId unchanged)
+    const allQuestsBtn = container.querySelector("nav button.active");
+    expect(allQuestsBtn.textContent).toContain("All Quests");
+  });
+});
+
+describe("QuestLibrary New Book dialog — cancel", () => {
+  it("clicking Cancel inside the dialog closes it without adding a book", () => {
+    const { getByText, container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Book"));
+    fireEvent.click(getByText("Cancel"));
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+    const stored = JSON.parse(localStorage.getItem("hq_quest_books") || "[]");
+    expect(stored.length).toBe(0);
+  });
+});
+
+describe("QuestLibrary New Book dialog — backdrop dismiss", () => {
+  it("clicking the backdrop closes the dialog without creating a book", () => {
+    const { getByText, container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Book"));
+    const backdrop = container.querySelector(".hq-modal-backdrop");
+    fireEvent.mouseDown(backdrop);
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+    const stored = JSON.parse(localStorage.getItem("hq_quest_books") || "[]");
+    expect(stored.length).toBe(0);
+  });
+});
+
+describe("QuestLibrary New Book dialog — Escape key", () => {
+  it("pressing Escape while the dialog is open closes it", () => {
+    const { getByText, container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Book"));
+    expect(container.querySelector("h6.modal-title")).toBeTruthy();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+  });
+});
+
+describe("QuestLibrary New Book dialog — fresh state on reopen", () => {
+  it("typed values are not retained across close/reopen", () => {
+    const { getByText, getByPlaceholderText } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Book"));
+    fireEvent.change(getByPlaceholderText("Book title"), { target: { value: "Some draft title" } });
+    fireEvent.click(getByText("Cancel"));
+    fireEvent.click(getByText("＋ New Book"));
+    expect(getByPlaceholderText("Book title").value).toBe("");
+  });
+});

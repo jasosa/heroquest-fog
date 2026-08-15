@@ -12,14 +12,6 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ## Active
 
-### [FEAT-033] New Quest Book popup — centered modal matching Edit style
-Priority: medium
-Status: not_started
-Complexity: low
-Description: The "New Quest Book" creation form should appear as a centered modal overlay, identical in position, size, and visual style to the Edit Quest Book dialog (FEAT-032). Currently the two flows have inconsistent presentation. Unify them: same fixed-position backdrop, same dialog dimensions, same internal layout and form element styles.
-
-Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — "New Quest Book" still renders inline in the sidebar below "+ New Book", while "Edit Quest Book" is a proper centered modal. The two remain visibly inconsistent.
-
 ### [FEAT-035] Larger board area — stretch image to fill
 Priority: medium
 Status: not_started
@@ -333,6 +325,16 @@ Description: The Edit Quest Book dialog is now 420px wide (matching `NewQuestDia
 Scope explicitly excluded (pre-existing gaps, not part of this ticket): file-type validation, `FileReader.onerror` handling, and a rapid select-then-remove race condition in the async `FileReader` callback.
 
 Implemented 2026-08-15 via the ux → planner → swe → reviewer pipeline. 627/627 tests passing (7 new), lint clean. Approved on first review pass; visually confirmed in-browser.
+
+### [FEAT-033] New Quest Book popup — centered modal matching Edit style
+Priority: medium
+Status: done
+Complexity: low
+Description: "New Quest Book" is now a centered modal (`NewQuestBookDialog.jsx`), a sibling of `EditQuestBookDialog.jsx`/`NewQuestDialog.jsx`: 420px wide, gold-bordered, scrollable body, Escape-to-cancel, backdrop-dismiss — identical presentation to the Edit dialog. Description field adopted Edit's labeled-input + helper-caption pattern (was previously a bare placeholder input). Cover image reuses the `.hq-upload-dropzone` control from FEAT-032 verbatim. The primary action button keeps the label "Create" (not relabeled to "Save") and uses the modal-style `btn-hq-light` treatment rather than the old sidebar-dark button style. Creating a book does not auto-select it as the active sidebar filter and does not navigate anywhere — preserved exactly as before, since this was a pure presentation-consistency ticket, not a behavior change.
+
+Note: `e2e/ux.cjs` (local-only QA script, not part of `npm test`/CI) references the old `input[placeholder="Description (optional)"]` selector for this flow, which no longer exists (now a labeled input with placeholder "Optional"). Will need updating before that script is next run locally — not a blocker for this ticket.
+
+Implemented 2026-08-15 via the ux → planner → swe → reviewer pipeline. 656/656 tests passing (28 new), lint clean. Approved on first review pass; visually confirmed in-browser.
 
 ### [FEAT-031] Quest book background image opacity
 Priority: low
