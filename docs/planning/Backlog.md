@@ -12,14 +12,6 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ## Active
 
-### [FEAT-027] Quest create popup centered and floating
-Priority: medium
-Status: not_started
-Complexity: low
-Description: When the user clicks to create a new quest inside the Quest Library, the creation form currently appears inline. Replace it with a modal overlay (fixed-position backdrop, centered dialog) that floats above all other library elements. Style it consistently with the Edit Quest Book dialog: dark parchment background, gold border, Cinzel headings. Dismiss on backdrop click or Escape key.
-
-Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — clicking "+ New Quest" still renders the form inline above the existing quest cards, no backdrop/overlay.
-
 ### [FEAT-030] Larger quest number display on quest cards
 Priority: medium
 Status: not_started
@@ -319,6 +311,14 @@ Priority: low
 Status: done
 Complexity: low
 Description: The play mode sidebar shows a long room-colour legend that takes up most of the vertical space and is not useful during play. Remove it entirely.
+
+### [FEAT-027] Quest create popup centered and floating
+Priority: medium
+Status: done
+Complexity: low
+Description: When the user clicks to create a new quest inside the Quest Library, the creation form now appears as a centered modal overlay (`NewQuestDialog.jsx`), a structural sibling of `EditQuestBookDialog.jsx`/`AssignQuestBookDialog.jsx`: fixed backdrop, dark `T.sidebarBg` dialog with `T.accentGold` border, Cinzel/`FONT_HEADING` uppercase title, ~420px wide (wider than the 320px precedent to fit the larger field set). Dismisses on backdrop click (`onMouseDown` + target check), the header × button, Cancel, or Escape (new — no other dialog in the app supports Escape yet, intentionally not retrofitted onto the other two). All dismiss paths are silent/immediate discard, no confirmation — matches the sibling "New Book" inline form's existing behavior. "Create & Edit" is disabled while the title is empty, matching `EditQuestBookDialog`'s Save-button pattern.
+
+Implemented 2026-08-15 via the ux → planner → swe → reviewer pipeline (first use of the new `reviewer` review-cycle gate — approved on first pass, no revision iterations needed). 612/612 tests passing (20 new), lint clean.
 
 ### [FEAT-026] Quest book cover image
 Priority: high

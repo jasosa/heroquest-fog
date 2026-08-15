@@ -16,6 +16,7 @@ import {
 import { sortQuests } from "../../shared/questSort.js";
 import { EditQuestBookDialog } from "./EditQuestBookDialog.jsx";
 import { AssignQuestBookDialog } from "./AssignQuestBookDialog.jsx";
+import { NewQuestDialog } from "./NewQuestDialog.jsx";
 import { assignQuestToBook } from "./assignQuestBook.js";
 
 export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
@@ -41,10 +42,6 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   const newBookFileInputRef = useRef(null);
 
   const [showNewQuest, setShowNewQuest]     = useState(false);
-  const [newQuestTitle, setNewQuestTitle]   = useState("");
-  const [newQuestDesc, setNewQuestDesc]     = useState("");
-  const [newQuestBookId, setNewQuestBookId] = useState(null);
-  const [newQuestNumber, setNewQuestNumber] = useState("");
 
   const filteredQuests = selectedBookId === null
     ? quests
@@ -141,16 +138,9 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   }
 
   // ── Quest actions ───────────────────────────────────────────────────────────
-  function handleCreateQuest() {
-    if (!newQuestTitle.trim()) return;
-    const quest = createQuest({
-      title: newQuestTitle.trim(),
-      description: newQuestDesc.trim(),
-      questBookId: newQuestBookId,
-      questNumber: newQuestNumber === "" ? null : Number(newQuestNumber),
-    });
+  function handleCreateQuest(title, description, questBookId, questNumber) {
+    const quest = createQuest({ title, description, questBookId, questNumber });
     setQuests(prev => [...prev, quest]);
-    setNewQuestTitle(""); setNewQuestDesc(""); setNewQuestBookId(null); setNewQuestNumber("");
     setShowNewQuest(false);
     onEdit(quest);
   }
@@ -228,6 +218,13 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           books={books}
           onSave={handleSaveAssignment}
           onCancel={() => setAssigningQuest(null)}
+        />
+      )}
+      {showNewQuest && (
+        <NewQuestDialog
+          books={books}
+          onCreate={handleCreateQuest}
+          onCancel={() => setShowNewQuest(false)}
         />
       )}
 
@@ -475,34 +472,6 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             )}
           </div>
         </div>
-
-        {/* New quest form (below top bar) */}
-        {showNewQuest && (
-          <div style={{ padding: "12px 24px", flexShrink: 0, borderBottom: `1px solid ${panelBook?.coverImage ? "rgba(80,55,15,0.4)" : T.sidebarDivider}` }}>
-            <div style={{ background: T.panelBg, border: `1px solid ${T.panelBorder}`, maxWidth: 480, padding: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: "bold", color: T.sidebarTitle, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>New Quest</div>
-              <div style={{ marginBottom: 8 }}>
-                <input placeholder="Quest title" value={newQuestTitle} onChange={e => setNewQuestTitle(e.target.value)} className="form-control form-control-sm" autoFocus />
-              </div>
-              <div style={{ marginBottom: 8 }}>
-                <textarea placeholder="Description (optional)" value={newQuestDesc} onChange={e => setNewQuestDesc(e.target.value)} rows={3} className="form-control form-control-sm" style={{ resize: "vertical" }} />
-              </div>
-              <div style={{ marginBottom: 8 }}>
-                <select value={newQuestBookId ?? ""} onChange={e => setNewQuestBookId(e.target.value || null)} className="form-select form-select-sm">
-                  <option value="">— No book —</option>
-                  {books.map(b => <option key={b.id} value={b.id}>{b.title}</option>)}
-                </select>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <input type="number" placeholder="Quest number (optional)" value={newQuestNumber} onChange={e => setNewQuestNumber(e.target.value)} min={0} className="form-control form-control-sm" />
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={handleCreateQuest} className="btn btn-hq-light active">Create &amp; Edit</button>
-                <button onClick={() => { setShowNewQuest(false); setNewQuestTitle(""); setNewQuestDesc(""); setNewQuestBookId(null); setNewQuestNumber(""); }} className="btn btn-hq-light">Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Card grid or empty state */}
         {visibleQuests.length === 0 ? (

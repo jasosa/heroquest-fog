@@ -279,3 +279,99 @@ describe("QuestLibrary description tooltip", () => {
     expect(tooltip.style.pointerEvents).toBe("none");
   });
 });
+
+// ── New Quest dialog trigger/open/close/create flow ──────────────────────────
+
+describe("QuestLibrary New Quest dialog — baseline", () => {
+  it("no New Quest dialog heading is present initially, and the trigger button is visible", () => {
+    const { container, getByText } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+    expect(getByText("＋ New Quest")).toBeTruthy();
+  });
+});
+
+describe("QuestLibrary New Quest dialog — open/close", () => {
+  it("clicking ＋ New Quest shows the dialog and hides the trigger button", () => {
+    const { getByText, container, queryByText } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Quest"));
+    const heading = container.querySelector("h6.modal-title");
+    expect(heading).toBeTruthy();
+    expect(heading.textContent).toBe("New Quest");
+    expect(queryByText("＋ New Quest")).toBeNull();
+  });
+});
+
+describe("QuestLibrary New Quest dialog — create flow", () => {
+  it("filling the title and clicking Create & Edit adds a quest, closes the dialog, and calls onEdit", () => {
+    const onEdit = vi.fn();
+    const { getByText, getByPlaceholderText, container, queryByText } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={onEdit} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Quest"));
+    fireEvent.change(getByPlaceholderText("Quest title"), { target: { value: "Brand New Quest" } });
+    fireEvent.click(getByText("Create & Edit"));
+
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+    expect(queryByText("＋ New Quest")).toBeTruthy();
+    expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ title: "Brand New Quest" }));
+
+    const stored = JSON.parse(localStorage.getItem("hq_quests") || "[]");
+    expect(stored.some(q => q.title === "Brand New Quest")).toBe(true);
+  });
+});
+
+describe("QuestLibrary New Quest dialog — cancel", () => {
+  it("clicking Cancel inside the dialog closes it without adding a quest", () => {
+    const { getByText, container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Quest"));
+    fireEvent.click(getByText("Cancel"));
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+    const stored = JSON.parse(localStorage.getItem("hq_quests") || "[]");
+    expect(stored.length).toBe(0);
+  });
+});
+
+describe("QuestLibrary New Quest dialog — backdrop dismiss", () => {
+  it("clicking the backdrop closes the dialog without creating a quest", () => {
+    const { getByText, container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Quest"));
+    const backdrop = container.querySelector(".hq-modal-backdrop");
+    fireEvent.mouseDown(backdrop);
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+    const stored = JSON.parse(localStorage.getItem("hq_quests") || "[]");
+    expect(stored.length).toBe(0);
+  });
+});
+
+describe("QuestLibrary New Quest dialog — Escape key", () => {
+  it("pressing Escape while the dialog is open closes it", () => {
+    const { getByText, container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Quest"));
+    expect(container.querySelector("h6.modal-title")).toBeTruthy();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(container.querySelector("h6.modal-title")).toBeNull();
+  });
+});
+
+describe("QuestLibrary New Quest dialog — fresh state on reopen", () => {
+  it("typed values are not retained across close/reopen", () => {
+    const { getByText, getByPlaceholderText } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    fireEvent.click(getByText("＋ New Quest"));
+    fireEvent.change(getByPlaceholderText("Quest title"), { target: { value: "Some draft title" } });
+    fireEvent.click(getByText("Cancel"));
+    fireEvent.click(getByText("＋ New Quest"));
+    expect(getByPlaceholderText("Quest title").value).toBe("");
+  });
+});
