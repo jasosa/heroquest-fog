@@ -41,7 +41,7 @@ export function SecretDoorMarkerOverlay({
             cursor: isEditMode ? "default" : "pointer",
             filter: isLinked ? "drop-shadow(0 0 4px #c4a870)" : "none",
           }}
-          onMouseEnter={isEditMode ? undefined : (e) => onShowTooltip?.(e.clientX, e.clientY, SEARCH_SECRET_TOOLTIP)}
+          onMouseEnter={isEditMode ? undefined : (e) => onShowTooltip?.(cellKey, e.clientX, e.clientY, SEARCH_SECRET_TOOLTIP)}
           onMouseLeave={isEditMode ? undefined : () => onHideTooltip?.()}
           onClick={isEditMode ? undefined : () => onSearch(cellKey)}
         />

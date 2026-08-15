@@ -52,6 +52,31 @@ describe("TokenOverlay — warning image onTrapInteraction", () => {
     const img = container.querySelector("img");
     expect(img.style.filter).toContain("c0392b");
   });
+
+  it("hovering the warning image calls onShowTooltip with anchorKey as the first argument", () => {
+    const onShowTooltip = vi.fn();
+    const fog = new Set(["5,5"]);
+    const { container } = render(
+      <TokenOverlay
+        anchorKey="5,5"
+        type="pit"
+        coveredCells={["5,5"]}
+        rotation={0}
+        fog={fog}
+        isEditMode={false}
+        getTokenPos={getTokenPos}
+        tileSet="board2"
+        revealedTraps={new Set()}
+        onTrapInteraction={() => {}}
+        onShowTooltip={onShowTooltip}
+      />
+    );
+    const img = container.querySelector("img");
+    fireEvent.mouseEnter(img);
+    expect(onShowTooltip).toHaveBeenCalled();
+    const [anchorKeyArg] = onShowTooltip.mock.calls[0];
+    expect(anchorKeyArg).toBe("5,5");
+  });
 });
 
 // ─── Task 12: revealed trap click in play mode ────────────────────────────────
@@ -171,7 +196,7 @@ describe("TokenOverlay — special monster click shows note on mobile (play mode
     specialNote: "Boss goblin — immune to arrows",
   };
 
-  it("clicking a special monster image in play mode calls onShowTooltip with the special note", () => {
+  it("clicking a special monster image in play mode calls onShowTooltip with the merged label + special note", () => {
     const onShowTooltip = vi.fn();
     const { container } = render(
       <TokenOverlay {...baseMonsterProps} onShowTooltip={onShowTooltip} />
@@ -179,18 +204,28 @@ describe("TokenOverlay — special monster click shows note on mobile (play mode
     const img = container.querySelector("img");
     fireEvent.click(img);
     expect(onShowTooltip).toHaveBeenCalled();
-    const [,, content] = onShowTooltip.mock.calls[0];
-    expect(content).toBe("Boss goblin — immune to arrows");
+    const [, , , content] = onShowTooltip.mock.calls[0];
+    expect(content).toBe("Goblin\nBoss goblin — immune to arrows");
   });
 
-  it("clicking a non-special monster in play mode does NOT call onShowTooltip", () => {
+  it("clicking a non-special monster in play mode DOES call onShowTooltip with just the label", () => {
     const onShowTooltip = vi.fn();
     const { container } = render(
       <TokenOverlay {...baseMonsterProps} isSpecial={false} specialNote="" onShowTooltip={onShowTooltip} />
     );
     const img = container.querySelector("img");
     fireEvent.click(img);
-    expect(onShowTooltip).not.toHaveBeenCalled();
+    expect(onShowTooltip).toHaveBeenCalled();
+    const [, , , content] = onShowTooltip.mock.calls[0];
+    expect(content).toBe("Goblin");
+  });
+
+  it("a non-special monster's image has cursor: pointer in play mode", () => {
+    const { container } = render(
+      <TokenOverlay {...baseMonsterProps} isSpecial={false} specialNote="" />
+    );
+    const img = container.querySelector("img");
+    expect(img.style.cursor).toBe("pointer");
   });
 
   it("clicking a special monster in edit mode does NOT call onShowTooltip", () => {
