@@ -67,8 +67,11 @@ body {
 /* Dark input override (for sidebar / dark-context forms) */
 .hq-input-dark {
   background:   #221208;
-  border-color: #9a7a30;
+  border:       1.5px solid #9a7a30;
   color:        #e8dfc8;
+  font-size:    13px;
+  padding:      9px 10px;
+  height:       auto;
 }
 .hq-input-dark::placeholder {
   color:   #7a6040;

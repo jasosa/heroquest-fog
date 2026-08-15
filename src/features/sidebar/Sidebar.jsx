@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { T, FONT_HEADING, FONT_BODY } from "../../shared/theme.js";
 import { EditPanel } from "./EditPanel.jsx";
+import { SectionHeader } from "./SectionHeader.jsx";
 import { PIECE_CATEGORIES } from "../../shared/pieces.js";
 
 
@@ -12,7 +13,10 @@ function ModeToggle({ mode, onSetMode }) {
           key={m}
           onClick={() => onSetMode(m)}
           className={`btn btn-hq-dark${mode === m ? " active" : ""}`}
-          style={{ padding: "8px 0", fontSize: 10, letterSpacing: 2 }}
+          style={{
+            padding: "12px 0", fontSize: 12, letterSpacing: 3, minHeight: 44,
+            ...(mode === m ? { textShadow: "0 0 8px #f0c04088" } : {}),
+          }}
         >
           {m === "play" ? "⚔ Play" : "✎ Edit"}
         </button>
@@ -63,7 +67,7 @@ export function Sidebar({
 
   return (
     <aside className="hq-sidebar d-flex flex-column" style={{
-      width: isCollapsed ? 44 : 270,
+      width: isCollapsed ? 44 : 300,
       transition: "width 180ms ease-out",
       overflow: "hidden",
       flexShrink: 0,
@@ -87,13 +91,14 @@ export function Sidebar({
           <button
             onClick={onBack}
             className="btn btn-hq-dark btn-sm align-self-start mb-1"
-            style={{ fontSize: 9, letterSpacing: 2 }}
+            style={{ fontSize: 11, letterSpacing: 2, minHeight: 34 }}
           >
             ← Library
           </button>
         )}
 
         {/* Quest title */}
+        <SectionHeader label="Quest Info" />
         {setQuestTitle ? (
           mode === "edit" ? (
             <input
@@ -167,17 +172,7 @@ export function Sidebar({
           </div>
         )}
 
-        <hr style={{ borderColor: T.sidebarDivider, margin: "2px 0" }} />
-
-        <div style={{
-          textAlign: "center", marginBottom: 4,
-          fontSize: 11, letterSpacing: 4, color: T.sidebarTitle,
-          textTransform: "uppercase", borderBottom: `1px solid ${T.sidebarDivider}`,
-          paddingBottom: 12, fontFamily: FONT_HEADING,
-          textShadow: `0 0 12px ${T.accentGold}66`,
-        }}>
-          Quest Master
-        </div>
+        <SectionHeader label="Mode" />
 
         <ModeToggle mode={mode} onSetMode={setMode} />
 
@@ -198,9 +193,7 @@ export function Sidebar({
 
         {/* Board style selector */}
         <div className="p-2 mt-2" style={{ background: T.sidebarPanelBg, border: `1px solid ${T.sidebarPanelBorder}` }}>
-          <div className="mb-2" style={{ letterSpacing: 3, textTransform: "uppercase", fontFamily: FONT_HEADING, fontSize: 9, color: T.sidebarTitle }}>
-            Board Style
-          </div>
+          <SectionHeader label="Board Style" />
           <div className="btn-group w-100" role="group">
             {[["board", "Board 1"], ["board2", "Board 2"], ["board3", "Board 3"]].map(([b, label]) => (
               <button
@@ -213,15 +206,6 @@ export function Sidebar({
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="mt-auto pt-3" style={{
-          borderTop: `1px solid ${T.sidebarDivider}`,
-          fontSize: 9, color: T.sidebarTextFaint, lineHeight: 1.8,
-          textAlign: "center", fontFamily: FONT_BODY, fontStyle: "italic",
-        }}>
-          v0.2 — Real HeroQuest board<br />
-          22 rooms · quest editor next
         </div>
       </div>
     </aside>
