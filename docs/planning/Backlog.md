@@ -28,11 +28,15 @@ Key changes:
 - **Remove developer footer**: remove the "v0.2 — Real HeroQuest board / 22 rooms" text from the bottom of the sidebar
 - Depends on FEAT-022 for colour tokens
 
+Verified 2026-08-15 via code read (`Sidebar.jsx`, `EditPanel.jsx`, `index.css`): none of the above landed — sidebar is still 270px, footer text is still present, section headers still use a plain `borderTop`, mode toggle/category tabs/piece list still use the pre-FEAT-024 sizing. Input focus glow exists but via a `.hq-input-dark:focus` CSS class, not the inline `onFocus`/`onBlur` approach described.
+
 ### [FEAT-027] Quest create popup centered and floating
 Priority: medium
 Status: not_started
 Complexity: low
 Description: When the user clicks to create a new quest inside the Quest Library, the creation form currently appears inline. Replace it with a modal overlay (fixed-position backdrop, centered dialog) that floats above all other library elements. Style it consistently with the Edit Quest Book dialog: dark parchment background, gold border, Cinzel headings. Dismiss on backdrop click or Escape key.
+
+Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — clicking "+ New Quest" still renders the form inline above the existing quest cards, no backdrop/overlay.
 
 ### [FEAT-030] Larger quest number display on quest cards
 Priority: medium
@@ -40,11 +44,15 @@ Status: not_started
 Complexity: low
 Description: The quest-order number shown on each quest card in the library is too small to read comfortably. Increase the font size and visual weight of the number badge (e.g. bold Cinzel, larger `fontSize`, stronger gold color, optional circular/pill background) so the quest number is immediately visible when scanning the card list.
 
+Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — the number renders as a small low-contrast "#5" pill next to the "NEW" ribbon, no larger/bolder treatment.
+
 ### [FEAT-032] Edit Quest Book dialog — larger layout and improved file input style
 Priority: medium
 Status: not_started
 Complexity: low
 Description: The Edit Quest Book popup is too compact and the "Choose file" input for the cover image uses the default browser file-picker style which clashes with the app's dark-fantasy aesthetic. Increase the dialog's `min-width`/`min-height` to give fields more breathing room. Replace the raw `<input type="file">` with a styled upload area (e.g. a dashed gold-border drop zone with an upload icon and label) that matches the parchment/dark-fantasy visual language used elsewhere in the app.
+
+Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — dialog is still a modestly-sized modal and the cover-image field is still the raw OS file picker ("Seleccionar archivo").
 
 ### [FEAT-033] New Quest Book popup — centered modal matching Edit style
 Priority: medium
@@ -52,11 +60,15 @@ Status: not_started
 Complexity: low
 Description: The "New Quest Book" creation form should appear as a centered modal overlay, identical in position, size, and visual style to the Edit Quest Book dialog (FEAT-032). Currently the two flows have inconsistent presentation. Unify them: same fixed-position backdrop, same dialog dimensions, same internal layout and form element styles.
 
+Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — "New Quest Book" still renders inline in the sidebar below "+ New Book", while "Edit Quest Book" is a proper centered modal. The two remain visibly inconsistent.
+
 ### [FEAT-035] Larger board area — stretch image to fill
 Priority: medium
 Status: not_started
 Complexity: low
 Description: In both Edit and Play modes the board area does not use all available screen space. Increase the board container's dimensions to occupy more of the viewport and ensure the board image (`board2.png` / `board.png`) stretches to fill the enlarged area (`width: 100%; height: 100%` with `background-size: 100% 100%` or equivalent). Verify cell hit-testing and piece rendering remain accurate after the resize.
+
+Verified 2026-08-15 via visual QA pass (running app, 1568×698 viewport): confirmed not implemented — roughly 280px of unused space sits between the board's right edge and the sidebar in Play mode.
 
 ### [FEAT-036] Pan board with mouse drag after zoom (remove scrollbars)
 Priority: medium
@@ -106,6 +118,8 @@ Status: not_started
 Complexity: low
 Description: The "Back to Library" button in Edit and Play mode has a different visual style to the equivalent navigation button used in Calibration mode. Unify the style so both buttons use the same appearance (same padding, font, color, border, and hover state) for a consistent navigation affordance across modes.
 
+Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — Game/Edit mode uses a dark background with gold border and gold small-caps "← LIBRARY"; Calibration mode uses a light parchment background with dark mixed-case "← Library". Still visibly different.
+
 ### [FEAT-038] Move board style buttons above the board
 Priority: low
 Status: not_started
@@ -132,6 +146,8 @@ Impact: low — visual inconsistency
 Status: not_started
 Complexity: low
 Description: The edit affordance buttons on placed pieces (pencil for note/search markers, star for monsters, warning for chests) use three different element types and sizes despite serving the same purpose. Fix: all use a `<button>` element, 16×16px circle, positioned top-right of the piece image. The chest warning button currently uses a `<div>` with `onMouseDown` — convert it to `<button>` (keep `onMouseDown` to prevent cell click propagation).
+
+Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — the monster special-note button is a white circular ★ badge top-right of the piece; the chest button is a red/crimson triangular ⚠ badge in a different position and shape. Still structurally inconsistent.
 
 ---
 

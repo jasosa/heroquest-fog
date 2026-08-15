@@ -51,16 +51,16 @@ the actual source tree, git history, journals, and configuration. Classification
 | FEAT-014 | Secret-door search marker exhausted state | not_started | **Not started** | `secretDoorMarkers.js` has no exhausted/dim state. |
 | FEAT-016 | Search count badge on search markers | not_started | **Partially** | `SEARCH_MAX=4`, `incrementSearchCount`, `searchedCounts` exist in `useGameState.js`; no badge UI / dim-at-4 treatment found. Backend done, UI not. |
 | FEAT-017 | Hero Placement Popup re-appears on fog reset | not_started | **Not started** | `hasShownPlacementPopup` not reset in `resetFog`. |
-| FEAT-024 | Sidebar UX polish | not_started | **Cannot determine** | Many sub-points (width, headers, touch targets) are subjective; depends on FEAT-022 (done). Needs visual QA to confirm which sub-items already landed. |
+| FEAT-024 | Sidebar UX polish | not_started | **Not started** (confirmed 2026-08-15) | Visual QA + code read against `Sidebar.jsx`/`EditPanel.jsx`: width still 270px, dev footer still present, section headers/mode toggle/tabs/piece list still at pre-FEAT-024 sizing. |
 | ISSUE-005 | RoomConfirmDialog backdrop dismiss | not_started | **Not started** | `RoomConfirmDialog.jsx` (47 lines) has no backdrop `onMouseDown` dismiss. |
-| ISSUE-009 | Edit-mode action buttons inconsistent | not_started | **Cannot determine** | Requires visual inspection of pencil/star/warning buttons across `TokenOverlay`. |
-| FEAT-027 | Quest create popup centered/floating modal | not_started | **Cannot determine** | `QuestLibrary.jsx` has dialogs; whether *create* is modal vs inline needs runtime check. |
+| ISSUE-009 | Edit-mode action buttons inconsistent | not_started | **Not started** (confirmed 2026-08-15) | Visual QA: monster ★ button is a white circle; chest button is a red/crimson triangle in a different position. Still inconsistent. |
+| FEAT-027 | Quest create popup centered/floating modal | not_started | **Not started** (confirmed 2026-08-15) | Visual QA: "New Quest" still renders inline above existing quest cards, no backdrop/overlay. |
 | FEAT-029 | Tooltips on Play/Edit quest buttons | not_started | **Not started (likely)** | No `title=`/tooltip on those buttons found in a quick scan; confirm in `QuestLibrary.jsx`. |
-| FEAT-030 | Larger quest number on cards | not_started | **Cannot determine** | Subjective sizing; needs visual QA. |
-| FEAT-032 | Edit Quest Book dialog larger + styled file input | not_started | **Partially** | `EditQuestBookDialog.jsx` (140 lines) exists with cover-image support; styled drop-zone may or may not be present. |
-| FEAT-033 | New Quest Book modal matching Edit style | not_started | **Cannot determine** | Needs runtime comparison of the two flows. |
-| FEAT-034 | "Back to Library" button matches Calibration style | not_started | **Cannot determine** | Visual consistency check. |
-| FEAT-035 | Larger board area / stretch image | not_started | **Cannot determine** | Layout/visual; board.md documents `100% 100%` sizing already. |
+| FEAT-030 | Larger quest number on cards | not_started | **Not started** (confirmed 2026-08-15) | Visual QA: quest number still a small low-contrast "#N" pill next to the "NEW" ribbon. |
+| FEAT-032 | Edit Quest Book dialog larger + styled file input | not_started | **Not started** (confirmed 2026-08-15) | Visual QA: dialog still modestly sized; cover-image field still the raw OS file picker, no styled drop zone. |
+| FEAT-033 | New Quest Book modal matching Edit style | not_started | **Not started** (confirmed 2026-08-15) | Visual QA: "New Quest Book" still inline in the sidebar, inconsistent with the modal "Edit Quest Book" dialog. |
+| FEAT-034 | "Back to Library" button matches Calibration style | not_started | **Not started** (confirmed 2026-08-15) | Visual QA: Game/Edit mode button (dark bg, gold border, small-caps) still visually distinct from Calibration mode button (light parchment bg, mixed-case). |
+| FEAT-035 | Larger board area / stretch image | not_started | **Not started** (confirmed 2026-08-15) | Visual QA at 1568×698: ~280px of unused space between the board's right edge and the sidebar in Play mode. |
 | FEAT-036 | Pan board with mouse drag after zoom | not_started | **Not started** | Zoom exists (`ZOOM_STEP/MIN/MAX` in `GameScreen.jsx`); no pointer-pan handlers found. |
 | **FEAT-037** | Improved quest description layout in Library | **done (mislabelled)** | **Completed** | Commits `4bb0d45`/`a1d6424`/`f845e8d` (description tooltip on hover, clipping fixes). **Action: move to `Backlog_Done.md`, remove from "Not Started".** |
 | FEAT-038 | Move board-style buttons above the board | not_started | **Not started** | Tileset buttons still in sidebar per board.md. |
@@ -156,7 +156,7 @@ These are real, shipped capabilities with **no backlog entry at all**:
 - [x] Add retroactive **done** entries: Calibration (FEAT-CALIB), JSON Import/Export (FEAT-IMPORT), Multi-tileset (FEAT-TILESET), Quest numbering/migration (FEAT-MIGRATE).
 - [x] Drop the now-obsolete `git merge feat/FEAT-026` permission from `.claude/settings.local.json`.
 - [x] Standardise status vocabulary on `done` (drop `committed` from the journals' convention). CLAUDE.md eligibility clauses fixed (`committed`→`done`); journal convention rule annotated and superseded-notes added to both journals. Historical status tables and git-commit-verb uses left intact.
-- [ ] Run a focused **visual QA pass** to settle the 8 "Cannot determine" UI items (FEAT-024/027/030/032/033/034/035, ISSUE-009) into started/not-started.
+- [x] Run a focused **visual QA pass** to settle the 8 "Cannot determine" UI items (FEAT-024/027/030/032/033/034/035, ISSUE-009) into started/not-started. **Done 2026-08-15** — all 8 confirmed `not_started` against the running app; verification notes added to each item in `Backlog.md`.
 
 **Recommended next development items (all remaining are low/medium priority — see `restart-roadmap.md`):**
 1. FEAT-039 — Monster name tooltip (medium; tooltip infra already exists → cheap).
