@@ -1,0 +1,158 @@
+import { useState, useRef, useEffect } from "react";
+import { T, FONT_HEADING } from "../../shared/theme.js";
+
+export function NewQuestBookDialog({ onCreate, onCancel }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [coverImage, setCoverImage] = useState(null);
+  const [sizeWarning, setSizeWarning] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Escape") onCancel();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSizeWarning(file.size > 512 * 1024);
+    const reader = new FileReader();
+    reader.onload = ev => {
+      setCoverImage(ev.target.result);
+      setAnnouncement("Image selected");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleRemove() {
+    setCoverImage(null);
+    setSizeWarning(false);
+    setAnnouncement("Image removed");
+    fileInputRef.current?.focus();
+  }
+
+  function handleCreate() {
+    if (!title.trim()) return;
+    onCreate(title.trim(), description.trim(), coverImage);
+  }
+
+  return (
+    <div
+      className="hq-modal-backdrop"
+      onMouseDown={e => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <div className="modal-dialog modal-dialog-centered m-0" style={{ width: 420 }}>
+        <div className="modal-content" style={{ background: T.sidebarBg, border: `2px solid ${T.accentGold}` }}>
+          <div className="modal-header py-2 px-3" style={{ borderBottom: `1px solid ${T.sidebarBorder}` }}>
+            <h6 className="modal-title m-0" style={{ color: T.sidebarTitle, letterSpacing: 2, textTransform: "uppercase", fontFamily: FONT_HEADING, fontSize: 13 }}>
+              New Quest Book
+            </h6>
+            <button type="button" className="btn-close btn-close-white" onClick={onCancel} />
+          </div>
+          <div className="modal-body px-3 py-3 d-flex flex-column gap-2" style={{ overflowY: "auto", maxHeight: "60vh" }}>
+            <input
+              placeholder="Book title"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleCreate()}
+              className="form-control form-control-sm hq-input-dark"
+              autoFocus
+            />
+            <div>
+              <label
+                htmlFor="new-book-description-input"
+                style={{ fontSize: 11, color: T.sidebarTextMuted, display: "block", marginBottom: 4 }}
+              >
+                Description
+              </label>
+              <input
+                id="new-book-description-input"
+                placeholder="Optional"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                className="form-control form-control-sm hq-input-dark"
+              />
+              <div style={{ fontSize: 10, color: T.sidebarTextMuted, marginTop: 3, opacity: 0.8 }}>
+                Shown in the quest book showcase
+              </div>
+            </div>
+            {/* Cover image */}
+            <div>
+              <label
+                htmlFor="new-book-cover-input"
+                className="hq-upload-dropzone"
+              >
+                {coverImage ? (
+                  <>
+                    <img
+                      src={coverImage}
+                      alt="Cover image preview"
+                      style={{ width: 40, height: 40, objectFit: "cover", border: `1px solid ${T.sidebarBtnBorder}`, borderRadius: 2 }}
+                    />
+                    <span style={{ fontSize: 11, color: T.sidebarTextMuted }}>Replace image</span>
+                  </>
+                ) : (
+                  <>
+                    <span aria-hidden="true" style={{ fontSize: 22 }}>📤</span>
+                    <span style={{ fontSize: 12, color: T.sidebarTextMuted }}>Click to upload cover image</span>
+                    <span style={{ fontSize: 10, color: T.sidebarTextMuted, opacity: 0.8 }}>PNG/JPG, under 512KB recommended</span>
+                  </>
+                )}
+              </label>
+              {coverImage && (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+                  <button
+                    type="button"
+                    aria-label="Remove cover image"
+                    onClick={handleRemove}
+                    style={{
+                      background: T.sidebarBtnBg, border: `1px solid ${T.sidebarBtnBorder}`,
+                      color: T.accent, fontSize: 11, padding: "4px 10px",
+                      minHeight: 32, minWidth: 44, cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    × Remove
+                  </button>
+                </div>
+              )}
+              <input
+                id="new-book-cover-input"
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}
+              />
+              {sizeWarning && (
+                <div role="alert" style={{ fontSize: 10, color: T.accent, marginTop: 4 }}>
+                  Large images may slow the app.
+                </div>
+              )}
+            </div>
+            {/* sr-only live region */}
+            <span aria-live="polite" className="visually-hidden">{announcement}</span>
+          </div>
+          <div className="modal-footer py-2 px-3 gap-2" style={{ borderTop: `1px solid ${T.sidebarBorder}` }}>
+            <button
+              onClick={handleCreate}
+              disabled={!title.trim()}
+              className="btn btn-hq-light active flex-grow-1"
+              style={{ fontSize: 11 }}
+            >
+              Create
+            </button>
+            <button onClick={onCancel} className="btn btn-hq-light flex-grow-1" style={{ fontSize: 11 }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
