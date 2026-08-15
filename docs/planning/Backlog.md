@@ -12,24 +12,6 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ## Active
 
-### [FEAT-024] Sidebar UX polish — inputs, section headers, piece list, touch targets
-Priority: medium
-Status: not_started
-Complexity: medium
-Description: Polish the game sidebar (`Sidebar.jsx`) and edit panel (`EditPanel.jsx`) to fix the usability and readability issues identified in the UX review.
-
-Key changes:
-- **Input fields**: increase to `fontSize: 13`, `padding: 9px 10px`; input border to `1.5px solid #9a7a30`; add `onFocus`/`onBlur` handlers that highlight the border to `#f0c040` when active (since CSS pseudo-classes can't be used in inline styles)
-- **Section headers**: replace invisible `borderTop` dividers with a gold fade-rule pattern — two `linear-gradient` lines flanking a centred Cinzel uppercase label — for every major section (Quest Info, Mode, Pieces, Board Style)
-- **Mode toggle (Play / Edit)**: increase to `padding: 12px 0`, `fontSize: 12`, `letterSpacing: 3`; active state adds `textShadow: "0 0 8px #f0c04088"` glow
-- **Category tabs** (Monsters / Traps / Furniture / Markers): minimum `fontSize: 11`, `padding: 7px 10px`, `minHeight: 36px`
-- **Piece list items**: minimum `minHeight: 48px`, icon size `36×36px`, `fontSize: 13`, `gap: 12px`
-- **Sidebar width**: increase from 270px to 300px (collapsed state stays 44px)
-- **Remove developer footer**: remove the "v0.2 — Real HeroQuest board / 22 rooms" text from the bottom of the sidebar
-- Depends on FEAT-022 for colour tokens
-
-Verified 2026-08-15 via code read (`Sidebar.jsx`, `EditPanel.jsx`, `index.css`): none of the above landed — sidebar is still 270px, footer text is still present, section headers still use a plain `borderTop`, mode toggle/category tabs/piece list still use the pre-FEAT-024 sizing. Input focus glow exists but via a `.hq-input-dark:focus` CSS class, not the inline `onFocus`/`onBlur` approach described.
-
 ### [FEAT-027] Quest create popup centered and floating
 Priority: medium
 Status: not_started
@@ -317,6 +299,26 @@ Key changes:
 - Sidebar quest book list remains on the left; selecting a different book resets the showcase to the first quest in that book.
 - Dark atmospheric page background (`pageBg` from FEAT-022); showcase card uses `#1a1408` with a subtle warm vignette shadow.
 - Depends on FEAT-022 for colour tokens.
+
+### [FEAT-024] Sidebar UX polish — inputs, section headers, piece list, touch targets
+Priority: medium
+Status: done
+Complexity: medium
+Description: Polish the game sidebar (`Sidebar.jsx`) and edit panel (`EditPanel.jsx`) to fix the usability and readability issues identified in the UX review.
+
+Key changes:
+- **Input fields**: `fontSize: 13`, `padding: 9px 10px`, `border: 1.5px solid #9a7a30` via the existing `.hq-input-dark` CSS class (extended, not inline `onFocus`/`onBlur` — the existing `.hq-input-dark:focus` rule already provided the gold glow-on-focus behavior; the UX review found duplicating it via inline handlers risked a style-specificity regression)
+- **Section headers**: new shared `SectionHeader` component (gold fade-rule: two `linear-gradient` lines flanking a centred Cinzel uppercase label) — "Quest Info" (new), "Mode" (replaces the old "Quest Master" label, per user decision), "Pieces" (new), "Board Style" (restyled)
+- **Mode toggle (Play/Edit)**: `padding: 12px 0`, `fontSize: 12`, `letterSpacing: 3`, explicit `minHeight: 44` (UX review: the literal backlog padding/fontSize alone didn't clear the 44px tap-target guideline), active-state gold `textShadow` glow
+- **Category tabs**: `fontSize: 11`, `padding: 7px 10px`, `minHeight: 36` — kept below the 44px guideline as a deliberate, low-cost exception (mis-tap just switches the visible list)
+- **Piece list items**: `minHeight: 48px`, icon/swatch `36×36px`, `fontSize: 13`, `gap: 12` (via inline style — required removing Bootstrap's `gap-2` class, which is `!important` and would otherwise win)
+- **Piece list scroll region**: `maxHeight: 340` + `overflowY: "auto"` + `flexShrink: 0` so a long category (Furniture has 11 pieces) scrolls internally instead of pushing the Save button/category tabs out of view. The `flexShrink: 0` was added after visual QA caught a real flexbox bug — a flex item with `overflow: auto` gets an automatic minimum size of 0, so without it the piece list collapsed to ~27px under space pressure from sibling flex items instead of respecting its `maxHeight`.
+- **Sidebar width**: 270px → 300px (collapsed stays 44px)
+- **"← Library" button**: bumped modestly (`fontSize: 11`, `minHeight: 34`) — not to the full 44px bar, since it's low-frequency and already guarded by the existing "Unsaved Changes" confirm dialog in Edit mode
+- **Removed developer footer** ("v0.2 — Real HeroQuest board / 22 rooms")
+- Depends on FEAT-022 for colour tokens (done)
+
+Implemented 2026-08-15 via the architect-free (medium complexity) ux → planner → swe pipeline. 586/586 tests passing (19 new), lint clean. Visual QA after implementation caught and fixed the piece-list flexbox collapse bug described above — a case the plan explicitly flagged as unverifiable by jsdom tests alone.
 
 ### [FEAT-025] Remove legend from play mode sidebar
 Priority: low

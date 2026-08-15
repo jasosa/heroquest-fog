@@ -63,12 +63,12 @@ describe("Sidebar collapse", () => {
 
   it("Test 5 — sidebar content is present in DOM when expanded", () => {
     const { getByText } = render(<Sidebar {...defaultProps} />);
-    expect(getByText("Quest Master")).toBeTruthy();
+    expect(getByText("Mode")).toBeTruthy();
   });
 
-  it("Test 6 — outer container width is 270px when expanded, 44px when collapsed", () => {
+  it("Test 6 — outer container width is 300px when expanded, 44px when collapsed", () => {
     const { container } = render(<Sidebar {...defaultProps} />);
-    expect(container.firstChild.style.width).toBe("270px");
+    expect(container.firstChild.style.width).toBe("300px");
     const toggleBtn = Array.from(container.querySelectorAll("button")).find(b => b.textContent === "›" || b.textContent === "‹");
     fireEvent.click(toggleBtn);
     expect(container.firstChild.style.width).toBe("44px");
@@ -112,6 +112,56 @@ describe("Sidebar play mode — description font size", () => {
     expect(desc).toBeTruthy();
     const size = parseInt(desc.style.fontSize, 10);
     expect(size).toBeGreaterThanOrEqual(12);
+  });
+});
+
+describe("Sidebar — section headers", () => {
+  it("renders Quest Info, Mode, and Board Style section headers, but no Quest Master text", () => {
+    const { getByText, queryByText } = render(<Sidebar {...defaultProps} mode="edit" />);
+    expect(getByText("Quest Info")).toBeTruthy();
+    expect(getByText("Mode")).toBeTruthy();
+    expect(getByText("Board Style")).toBeTruthy();
+    expect(queryByText("Quest Master")).toBeNull();
+  });
+});
+
+describe("Sidebar — back to library button", () => {
+  it("has a slightly larger font and a moderate minHeight, lower tier than the mode toggle", () => {
+    const { getByText } = render(<Sidebar {...defaultProps} />);
+    const backBtn = getByText("← Library");
+    expect(parseInt(backBtn.style.fontSize, 10)).toBeGreaterThanOrEqual(10);
+    const minHeight = parseInt(backBtn.style.minHeight, 10);
+    expect(minHeight).toBeGreaterThanOrEqual(32);
+    expect(minHeight).toBeLessThanOrEqual(36);
+  });
+});
+
+describe("Sidebar — ModeToggle styling", () => {
+  it("active Play button has larger font, letter spacing, and gold glow; inactive Edit button has no glow", () => {
+    const { getByText } = render(<Sidebar {...defaultProps} mode="play" />);
+    const playBtn = getByText("⚔ Play");
+    const editBtn = getByText("✎ Edit");
+
+    expect(playBtn.style.fontSize).toBe("12px");
+    expect(playBtn.style.letterSpacing).toBe("3px");
+    expect(playBtn.style.textShadow).toContain("f0c04088");
+    expect(editBtn.style.textShadow).toBeFalsy();
+  });
+
+  it("both mode buttons have an explicit minHeight of at least 44px", () => {
+    const { getByText } = render(<Sidebar {...defaultProps} mode="play" />);
+    const playBtn = getByText("⚔ Play");
+    const editBtn = getByText("✎ Edit");
+    expect(parseInt(playBtn.style.minHeight, 10)).toBeGreaterThanOrEqual(44);
+    expect(parseInt(editBtn.style.minHeight, 10)).toBeGreaterThanOrEqual(44);
+  });
+});
+
+describe("Sidebar — dev footer removed", () => {
+  it("does not render the v0.2 dev footer text", () => {
+    const { queryByText } = render(<Sidebar {...defaultProps} />);
+    expect(queryByText(/v0\.2/i)).toBeNull();
+    expect(queryByText(/Real HeroQuest board/i)).toBeNull();
   });
 });
 

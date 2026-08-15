@@ -1,19 +1,20 @@
 import { memo, useState } from "react";
 import { T } from "../../shared/theme.js";
 import { resolveTilePath } from "./editPanelUtils.js";
+import { SectionHeader } from "./SectionHeader.jsx";
 
 export const PieceButton = memo(function PieceButton({ piece, isSelected, onSelect, tileSet }) {
   const imgSrc = resolveTilePath(piece, tileSet);
   return (
     <button
       onClick={() => onSelect(piece.id)}
-      className={`btn btn-hq-dark w-100 text-start d-flex align-items-center gap-2${isSelected ? " active" : ""}`}
-      style={{ padding: "6px 8px", fontSize: 11, transition: "all 0.12s" }}
+      className={`btn btn-hq-dark w-100 text-start d-flex align-items-center${isSelected ? " active" : ""}`}
+      style={{ padding: "8px 10px", fontSize: 13, minHeight: 48, gap: 12, transition: "all 0.12s" }}
     >
       {imgSrc
-        ? <img src={imgSrc} alt={piece.label} style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }} />
+        ? <img src={imgSrc} alt={piece.label} style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
         : <div style={{
-            width: 28, height: 28, background: piece.color, flexShrink: 0,
+            width: 36, height: 36, background: piece.color, flexShrink: 0,
             borderRadius: piece.shape === "circle" ? "50%" : "2px",
             transform: piece.shape === "diamond" ? "rotate(45deg)" : "none",
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -36,6 +37,8 @@ export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFl
 
   return (
     <>
+      <SectionHeader label="Pieces" />
+
       {/* Category tabs */}
       <div className="d-flex flex-wrap gap-1 mt-1">
         {pieceCategories.map(cat => (
@@ -43,7 +46,7 @@ export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFl
             key={cat.id}
             onClick={() => setActiveCatId(cat.id)}
             className={`btn btn-hq-dark btn-sm${activeCatId === cat.id ? " active" : ""}`}
-            style={{ padding: "4px 7px", fontSize: 9, letterSpacing: 1 }}
+            style={{ padding: "7px 10px", fontSize: 11, minHeight: 36, letterSpacing: 1 }}
           >
             {cat.label}
           </button>
@@ -51,7 +54,11 @@ export function EditPanel({ pieceCategories, tool, onSelectTool, onSave, savedFl
       </div>
 
       {/* Pieces in active category */}
-      <div className="d-flex flex-column gap-1 mt-1">
+      <div
+        data-testid="piece-list"
+        className="d-flex flex-column gap-1 mt-1"
+        style={{ maxHeight: 340, overflowY: "auto", flexShrink: 0 }}
+      >
         {(activeCategory?.pieces ?? []).map(piece => (
           <PieceButton
             key={piece.id}
