@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { T, FONT_HEADING } from "../../shared/theme.js";
 
 export function EditQuestBookDialog({ initialTitle, initialDescription = "", initialCoverImage = null, onSave, onCancel }) {
@@ -8,6 +8,14 @@ export function EditQuestBookDialog({ initialTitle, initialDescription = "", ini
   const [sizeWarning, setSizeWarning] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Escape") onCancel();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
 
   function handleFileChange(e) {
     const file = e.target.files?.[0];
@@ -38,7 +46,7 @@ export function EditQuestBookDialog({ initialTitle, initialDescription = "", ini
       className="hq-modal-backdrop"
       onMouseDown={e => { if (e.target === e.currentTarget) onCancel(); }}
     >
-      <div className="modal-dialog modal-dialog-centered m-0" style={{ width: 320 }}>
+      <div className="modal-dialog modal-dialog-centered m-0" style={{ width: 420 }}>
         <div className="modal-content" style={{ background: T.sidebarBg, border: `2px solid ${T.accentGold}` }}>
           <div className="modal-header py-2 px-3" style={{ borderBottom: `1px solid ${T.sidebarBorder}` }}>
             <h6 className="modal-title m-0" style={{ color: T.sidebarTitle, letterSpacing: 2, textTransform: "uppercase", fontFamily: FONT_HEADING, fontSize: 13 }}>
@@ -46,7 +54,7 @@ export function EditQuestBookDialog({ initialTitle, initialDescription = "", ini
             </h6>
             <button type="button" className="btn-close btn-close-white" onClick={onCancel} />
           </div>
-          <div className="modal-body px-3 py-3 d-flex flex-column gap-2">
+          <div className="modal-body px-3 py-3 d-flex flex-column gap-2" style={{ overflowY: "auto", maxHeight: "60vh" }}>
             <input
               placeholder="Book title"
               value={title}
@@ -77,17 +85,27 @@ export function EditQuestBookDialog({ initialTitle, initialDescription = "", ini
             <div>
               <label
                 htmlFor="edit-book-cover-input"
-                style={{ fontSize: 11, color: T.sidebarTextMuted, display: "block", marginBottom: 4 }}
+                className="hq-upload-dropzone"
               >
-                {coverImage ? "Replace image" : "Cover image (optional)"}
+                {coverImage ? (
+                  <>
+                    <img
+                      src={coverImage}
+                      alt="Cover image preview"
+                      style={{ width: 40, height: 40, objectFit: "cover", border: `1px solid ${T.sidebarBtnBorder}`, borderRadius: 2 }}
+                    />
+                    <span style={{ fontSize: 11, color: T.sidebarTextMuted }}>Replace image</span>
+                  </>
+                ) : (
+                  <>
+                    <span aria-hidden="true" style={{ fontSize: 22 }}>📤</span>
+                    <span style={{ fontSize: 12, color: T.sidebarTextMuted }}>Click to upload cover image</span>
+                    <span style={{ fontSize: 10, color: T.sidebarTextMuted, opacity: 0.8 }}>PNG/JPG, under 512KB recommended</span>
+                  </>
+                )}
               </label>
               {coverImage && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <img
-                    src={coverImage}
-                    alt="Cover image preview"
-                    style={{ width: 40, height: 40, objectFit: "cover", border: `1px solid ${T.sidebarBtnBorder}`, borderRadius: 2 }}
-                  />
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
                   <button
                     type="button"
                     aria-label="Remove cover image"
@@ -109,7 +127,7 @@ export function EditQuestBookDialog({ initialTitle, initialDescription = "", ini
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="form-control form-control-sm hq-input-dark"
+                style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}
               />
               {sizeWarning && (
                 <div role="alert" style={{ fontSize: 10, color: T.accent, marginTop: 4 }}>

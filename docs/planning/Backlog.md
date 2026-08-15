@@ -12,14 +12,6 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ## Active
 
-### [FEAT-032] Edit Quest Book dialog — larger layout and improved file input style
-Priority: medium
-Status: not_started
-Complexity: low
-Description: The Edit Quest Book popup is too compact and the "Choose file" input for the cover image uses the default browser file-picker style which clashes with the app's dark-fantasy aesthetic. Increase the dialog's `min-width`/`min-height` to give fields more breathing room. Replace the raw `<input type="file">` with a styled upload area (e.g. a dashed gold-border drop zone with an upload icon and label) that matches the parchment/dark-fantasy visual language used elsewhere in the app.
-
-Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — dialog is still a modestly-sized modal and the cover-image field is still the raw OS file picker ("Seleccionar archivo").
-
 ### [FEAT-033] New Quest Book popup — centered modal matching Edit style
 Priority: medium
 Status: not_started
@@ -331,6 +323,16 @@ Complexity: low
 Description: The quest-order number badge on each quest card is now large, bold (`fontSize: 16`, `fontWeight: "bold"`), and pill-shaped (`borderRadius: 999`, `minWidth`-based so 1–3 digit numbers never clip), immediately readable when scanning the card list. The adjacent "New" ribbon badge was deliberately left at its original small size so the two read as distinct visual tiers rather than competing — a permanent ordinal identifier vs. a transient recency flag. The badge container now stacks vertically (number above "New") with a reserved `minHeight` so card height doesn't jitter as the "New" badge appears/disappears during arrow-key quest navigation.
 
 Implemented 2026-08-15 via the ux → planner → swe → reviewer pipeline. 620/620 tests passing (8 new), lint clean. Approved on first review pass.
+
+### [FEAT-032] Edit Quest Book dialog — larger layout and improved file input style
+Priority: medium
+Status: done
+Complexity: low
+Description: The Edit Quest Book dialog is now 420px wide (matching `NewQuestDialog`) with a scrollable body (`overflowY: auto`, `maxHeight: 60vh`) and Escape-to-cancel. The raw `<input type="file">` cover-image control is replaced with a styled dropzone (`.hq-upload-dropzone` — dashed gold border, 📤 icon, "Click to upload cover image" + helper text in the empty state; thumbnail preview + "Replace image" in the filled state). The upload trigger is a native `<label for="edit-book-cover-input">` wrapping a visually-hidden-but-focusable (sr-only clip-rect, not `display:none`) file input — click-to-browse and keyboard (Tab+Enter/Space) both work via native semantics, no drag-and-drop implemented (backlog's "drop zone" wording was visual/illustrative, confirmed with UX review). The "× Remove" button stays a sibling of the label (not nested inside it) so removing doesn't also reopen the file picker. Existing `coverImage`/`sizeWarning`/`announcement` state and logic were not touched — only the surrounding markup.
+
+Scope explicitly excluded (pre-existing gaps, not part of this ticket): file-type validation, `FileReader.onerror` handling, and a rapid select-then-remove race condition in the async `FileReader` callback.
+
+Implemented 2026-08-15 via the ux → planner → swe → reviewer pipeline. 627/627 tests passing (7 new), lint clean. Approved on first review pass; visually confirmed in-browser.
 
 ### [FEAT-031] Quest book background image opacity
 Priority: low
