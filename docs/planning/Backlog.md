@@ -12,14 +12,6 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ## Active
 
-### [FEAT-030] Larger quest number display on quest cards
-Priority: medium
-Status: not_started
-Complexity: low
-Description: The quest-order number shown on each quest card in the library is too small to read comfortably. Increase the font size and visual weight of the number badge (e.g. bold Cinzel, larger `fontSize`, stronger gold color, optional circular/pill background) so the quest number is immediately visible when scanning the card list.
-
-Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — the number renders as a small low-contrast "#5" pill next to the "NEW" ribbon, no larger/bolder treatment.
-
 ### [FEAT-032] Edit Quest Book dialog — larger layout and improved file input style
 Priority: medium
 Status: not_started
@@ -331,6 +323,14 @@ Priority: medium
 Status: done
 Complexity: low
 Description: When assigning a quest to a quest book, an input shows a bare number whose meaning is unclear. Add a visible text label (e.g. "Quest # in book") adjacent to the number input so the user understands they are setting the quest's order within the book. Consider also adding a short helper line below the field (e.g. "Position of this quest in the book's sequence").
+
+### [FEAT-030] Larger quest number display on quest cards
+Priority: medium
+Status: done
+Complexity: low
+Description: The quest-order number badge on each quest card is now large, bold (`fontSize: 16`, `fontWeight: "bold"`), and pill-shaped (`borderRadius: 999`, `minWidth`-based so 1–3 digit numbers never clip), immediately readable when scanning the card list. The adjacent "New" ribbon badge was deliberately left at its original small size so the two read as distinct visual tiers rather than competing — a permanent ordinal identifier vs. a transient recency flag. The badge container now stacks vertically (number above "New") with a reserved `minHeight` so card height doesn't jitter as the "New" badge appears/disappears during arrow-key quest navigation.
+
+Implemented 2026-08-15 via the ux → planner → swe → reviewer pipeline. 620/620 tests passing (8 new), lint clean. Approved on first review pass.
 
 ### [FEAT-031] Quest book background image opacity
 Priority: low

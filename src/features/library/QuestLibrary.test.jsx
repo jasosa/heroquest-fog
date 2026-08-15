@@ -375,3 +375,91 @@ describe("QuestLibrary New Quest dialog — fresh state on reopen", () => {
     expect(getByPlaceholderText("Quest title").value).toBe("");
   });
 });
+
+// ── FEAT-030: Larger quest number display on quest cards ─────────────────────
+
+describe("QuestLibrary quest number badge", () => {
+  it("renders a larger, bold quest-number-badge", () => {
+    storage.createQuest({ title: "Numbered Quest", description: "", questBookId: null, questNumber: 5 });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const badge = container.querySelector('[data-testid="quest-number-badge"]');
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toBe("#5");
+    expect(badge.style.fontSize).toBe("16px");
+    expect(badge.style.fontWeight).toBe("bold");
+  });
+
+  it("keeps the original background/color contrast on the larger badge", () => {
+    storage.createQuest({ title: "Numbered Quest", description: "", questBookId: null, questNumber: 5 });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const badge = container.querySelector('[data-testid="quest-number-badge"]');
+    expect(badge).toBeTruthy();
+    expect(badge.style.background).toBe(hexToRgb(T.accentGold));
+    expect(badge.style.color).toBe(hexToRgb("#12100e"));
+  });
+
+  it("is pill-shaped and sized to fit its content without clipping", () => {
+    storage.createQuest({ title: "Numbered Quest", description: "", questBookId: null, questNumber: 5 });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const badge = container.querySelector('[data-testid="quest-number-badge"]');
+    expect(badge).toBeTruthy();
+    expect(badge.style.borderRadius).not.toBe("50%");
+    expect(badge.style.minWidth).not.toBe("");
+    expect(badge.style.width).toBe("");
+  });
+
+  it("renders full multi-digit quest numbers without truncation", () => {
+    storage.createQuest({ title: "Multi Digit Quest", description: "", questBookId: null, questNumber: 123 });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const badge = container.querySelector('[data-testid="quest-number-badge"]');
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toBe("#123");
+  });
+
+  it("does not render the badge when questNumber is absent", () => {
+    storage.createQuest({ title: "No Number Quest", description: "", questBookId: null });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    expect(container.querySelector('[data-testid="quest-number-badge"]')).toBeNull();
+  });
+
+  it("leaves the New badge's smaller font size untouched", () => {
+    storage.createQuest({ title: "Fresh Quest", description: "", questBookId: null });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const badge = container.querySelector('[data-testid="new-badge"]');
+    expect(badge).toBeTruthy();
+    expect(badge.style.fontSize).toBe("8px");
+  });
+
+  it("stacks badges vertically in the quest-badges container", () => {
+    storage.createQuest({ title: "Numbered Quest", description: "", questBookId: null, questNumber: 5 });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const badges = container.querySelector('[data-testid="quest-badges"]');
+    expect(badges).toBeTruthy();
+    expect(badges.style.flexDirection).toBe("column");
+  });
+
+  it("reserves vertical space in the badge column to avoid layout jitter", () => {
+    storage.createQuest({ title: "Fresh Numbered Quest", description: "", questBookId: null, questNumber: 5 });
+    const { container } = render(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const badges = container.querySelector('[data-testid="quest-badges"]');
+    expect(badges).toBeTruthy();
+    expect(badges.style.minHeight).not.toBe("");
+    expect(badges.style.minHeight).not.toBe("0px");
+  });
+});
