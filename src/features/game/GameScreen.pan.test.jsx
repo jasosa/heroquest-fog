@@ -85,6 +85,46 @@ describe("GameScreen — pointer-drag panning", () => {
     });
     expect(boardArea.style.cursor).toBe("grab");
   });
+
+  // ISSUE-021: setPointerCapture() retargets the browser's real click event
+  // to the *capturing* element (boardAreaRef) rather than the element the
+  // user actually clicked (a BoardCell/TokenOverlay descendant) — this is
+  // real-browser pointer-capture behavior that jsdom's fireEvent.click does
+  // not simulate (fireEvent.click dispatches directly at the element you
+  // pass it, bypassing any capture-based retargeting), which is why the
+  // existing suppression tests above never caught this: they assert click
+  // suppression logic is correct, not which DOM element the browser would
+  // actually deliver the click to. Capturing the pointer here is not load-
+  // bearing for this feature — handlePointerLeave already ends the gesture
+  // (endPanAsCancel) the moment the pointer leaves the container bounds, so
+  // "keep receiving events after leaving the element" (capture's usual
+  // purpose) was never relied on. This test locks in that the call is gone.
+  it("never calls setPointerCapture — it would retarget real browser clicks away from board cells (ISSUE-021)", () => {
+    mockRect({ width: 1443, height: 1000 });
+    // jsdom doesn't implement setPointerCapture at all (confirming why this
+    // real-browser-only mechanism was invisible to every test above) — add
+    // it before spying so vi.spyOn has a property to wrap.
+    if (!Element.prototype.setPointerCapture) {
+      Element.prototype.setPointerCapture = () => {};
+    }
+    const captureSpy = vi.spyOn(Element.prototype, "setPointerCapture").mockImplementation(() => {});
+    const { container } = render(
+      <GameScreen quest={makeQuest()} initialMode="edit" onBack={() => {}} onQuestSaved={() => {}} />
+    );
+    const boardArea = getBoardAreaDiv(container);
+
+    act(() => {
+      fireEvent.pointerDown(boardArea, { pointerId: 1, pointerType: "mouse", button: 0, clientX: 100, clientY: 100 });
+    });
+    act(() => {
+      fireEvent.pointerMove(boardArea, { pointerId: 1, pointerType: "mouse", button: 0, clientX: 100, clientY: 110 });
+    });
+    act(() => {
+      fireEvent.pointerUp(boardArea, { pointerId: 1, pointerType: "mouse", button: 0, clientX: 100, clientY: 110 });
+    });
+
+    expect(captureSpy).not.toHaveBeenCalled();
+  });
 });
 
 function dismissPlacementPopup(container) {
