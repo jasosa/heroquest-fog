@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { T, FONT_TITLE, FONT_HEADING, FONT_BODY } from "../../shared/theme.js";
 import { COLS, ROWS, CELL } from "../../shared/map.js";
 import { persistQuest, loadCalibration, saveCalibration } from "../../shared/questStorage.js";
+import { computeFitZoom } from "./fitZoom.js";
 import { isSessionDirty, hasUnsavedChanges, stableStringify } from "./navigationGuards.js";
 import QuestLibrary from "../library/QuestLibrary.jsx";
 import MapCalibrator from "../calibration/MapCalibrator.jsx";
@@ -47,7 +48,7 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
   disarmedTraps, springedTraps,
   openedChests, onOpenChest, onConfigureChest,
   zoom, onZoomIn, onZoomOut,
-  trapInteractionPopup }) {
+  trapInteractionPopup, boardAreaRef }) {
   return (
     <div style={{
       flex: 1, display: "flex", flexDirection: "column",
@@ -88,7 +89,7 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
       </div>
 
       {/* Scrollable board area */}
-      <div style={{ overflow: "auto", flex: 1, minHeight: 0, width: "100%" }}>
+      <div ref={boardAreaRef} style={{ overflow: "auto", flex: 1, minHeight: 0, width: "100%" }}>
         {/* Sizing placeholder: gives the scroll container its scrollable dimensions */}
         <div style={{
           width: BOARD_W * zoom,
@@ -180,6 +181,22 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
   const [zoom, setZoom] = useState(1);
   const zoomIn  = () => setZoom(z => Math.min(ZOOM_MAX, Math.round((z + ZOOM_STEP) * 100) / 100));
   const zoomOut = () => setZoom(z => Math.max(ZOOM_MIN, Math.round((z - ZOOM_STEP) * 100) / 100));
+  const boardAreaRef = useRef(null);
+
+  // Mount-time-only viewport fit (FEAT-035). Deliberately does NOT react to
+  // resize/rotation/sidebar toggle — recomputing later would clobber a
+  // player's manual zoom and cause scroll-position drift. Runs once per
+  // GameScreen mount (i.e. once per quest session, since key={quest.id}
+  // forces a full remount on quest switch).
+  useLayoutEffect(() => {
+    const rect = boardAreaRef.current?.getBoundingClientRect();
+    setZoom(computeFitZoom({
+      availableWidth: rect?.width ?? 0,
+      availableHeight: rect?.height ?? 0,
+      boardWidth: BOARD_W, boardHeight: BOARD_H,
+      zoomMin: ZOOM_MIN, zoomMax: ZOOM_MAX,
+    }));
+  }, []);
 
   function handleSave() {
     if (!hasHeroStart(gameState.placed)) {
@@ -302,6 +319,7 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         placementMessage={gameState.questPlacementMessage}
         onDismissPlacementPopup={gameState.dismissPlacementPopup}
         zoom={zoom} onZoomIn={zoomIn} onZoomOut={zoomOut}
+        boardAreaRef={boardAreaRef}
         trapInteractionPopup={gameState.pendingTrapInteraction && (() => {
           const { anchorKey, isRevealed } = gameState.pendingTrapInteraction;
           const piece = gameState.placed[anchorKey];
