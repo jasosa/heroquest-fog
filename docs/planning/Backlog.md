@@ -14,7 +14,7 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ### [FEAT-036] Pan board with mouse drag after zoom (remove scrollbars)
 Priority: medium
-Status: not_started
+Status: in_progress
 Complexity: medium
 Description: After the user applies zoom in Edit or Play mode the board can only be navigated via scrollbars, which do not work on mobile. Remove the scrollbars entirely and implement pointer-based panning: when the board is zoomed in, the user can click-and-drag (or touch-and-drag) anywhere on the board container to scroll it. Use `pointer` events (`pointerdown`, `pointermove`, `pointerup`) so it works on both desktop and touch. The board container should use `overflow: hidden` and transform/scroll position should be updated programmatically. Cursor should change to `grab` / `grabbing` while panning. Panning must not interfere with cell clicks for reveal or piece placement — distinguish a pan gesture (pointer moved > threshold) from a tap/click (pointer released without significant movement).
 
