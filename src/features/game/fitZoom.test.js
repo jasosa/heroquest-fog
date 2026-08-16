@@ -20,22 +20,22 @@ describe("computeFitZoom", () => {
     expect(result).toBe(1);
   });
 
-  it("binds to the width ratio when width is the tighter constraint", () => {
+  it("covers using the width ratio when width is the binding (larger-ratio) dimension", () => {
     const result = computeFitZoom({
-      availableWidth: 1443, availableHeight: 2000,
+      availableWidth: 1443, availableHeight: 1000,
       boardWidth: 962, boardHeight: 703,
       zoomMin: 0.25, zoomMax: 3,
     });
     expect(result).toBe(1.5);
   });
 
-  it("binds to the height ratio when height is the tighter constraint", () => {
+  it("covers using the height ratio when height is the binding (larger-ratio) dimension", () => {
     const result = computeFitZoom({
-      availableWidth: 3000, availableHeight: 1054.5,
+      availableWidth: 962, availableHeight: 1406,
       boardWidth: 962, boardHeight: 703,
       zoomMin: 0.25, zoomMax: 3,
     });
-    expect(result).toBe(1.5);
+    expect(result).toBe(2);
   });
 
   it("clamps to zoomMax when the raw fit ratio exceeds it", () => {

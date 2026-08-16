@@ -85,6 +85,20 @@ Description: The edit affordance buttons on placed pieces (pencil for note/searc
 
 Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — the monster special-note button is a white circular ★ badge top-right of the piece; the chest button is a red/crimson triangular ⚠ badge in a different position and shape. Still structurally inconsistent.
 
+### [ISSUE-019] Board "tilts" when the mouse moves over it in Play mode
+Priority: medium
+Impact: medium — distracting visual glitch during play
+Status: not_started
+Complexity: low
+Description: In Play mode, the board visibly "tilts" as the mouse moves over it. Likely an unintended hover-driven CSS transform (e.g. a perspective/rotate effect on a cell or board-level hover handler) rather than a deliberate design choice. Investigate `BoardCell.jsx` / `BoardGrid.jsx` / any `onMouseMove` handlers on the board for a transform tied to cursor position and remove or fix it. Reported by the user 2026-08-16.
+
+### [ISSUE-020] [Spike] Pieces not centered in cells across board tilesets; audit grid/cell alignment
+Priority: medium
+Impact: medium — visual precision, affects all placed pieces on non-default tilesets
+Status: not_started
+Complexity: medium
+Description: Across the different board tileset versions (`board` / `board2` / `board3` / `board4`), placed pieces are not consistently centered within their grid cells. Investigate how piece positions are computed (`getTokenPos` / calibration transform in `BoardGrid.jsx`, `imageScale`/`resolveScale` in `pieces.js`) and how that should reconcile with each tileset's actual cell geometry, so pieces always render centered regardless of tileset. Also audit whether the logical grid (`BOARD`/`CELL`-based cell boxes) is itself properly aligned with each tileset's visual cell boundaries — misalignment there would explain per-tileset centering drift even if the piece-positioning math is otherwise correct. Spike: research and report findings/options before implementation-planning a fix. Reported by the user 2026-08-16.
+
 ---
 
 ## Done
@@ -468,6 +482,19 @@ Impact: medium — users cannot tell current zoom level while placing pieces
 Status: done
 Complexity: low
 Description: In Edit mode the zoom level display is obscured by the color palette / sidebar controls. The zoom indicator needs to be repositioned or its contrast improved so it is clearly readable regardless of what sits behind it. Fix: move the zoom level badge to a position that does not overlap the palette, or apply a background/border treatment (e.g. dark pill with gold text) that ensures visibility against any background.
+
+### [ISSUE-018] Board auto-fit (FEAT-035) still leaves a gap on one axis
+Priority: medium
+Impact: medium — visual, board doesn't use all available space as intended
+Status: done
+Complexity: low
+Description: FEAT-035's mount-time auto-fit zoom (`computeFitZoom` in `src/features/game/fitZoom.js`) picks the *smaller* of the width/height fit ratios (`Math.min`), i.e. a "contain" fit. Since the board's fixed aspect ratio (962×703 ≈ 1.37) rarely matches the board-area container's aspect ratio, this still leaves a gap on one axis (typically left/right, since the container is usually wider than the board) — reported by the user as "still a lot of space around the board" in both Play and Edit mode after FEAT-035 shipped.
+
+Fix: switched to a "cover" fit — `Math.max` of the two ratios instead of `Math.min`, so the board always scales up enough to fully cover the available area with zero gaps. No image distortion, cells stay square (uniform scale preserved). The board can extend past the container on one axis at the fit zoom level; already handled by the existing `overflow: auto` scroll container, and pairs with the upcoming FEAT-036 (pointer-based panning after zoom).
+
+Confirmed with the user 2026-08-16: chose "cover" over the alternative non-uniform "stretch" fit (which would exactly fill both axes with no overflow but distort the image and cells) because it's a much smaller, lower-risk change with no visual distortion.
+
+Implemented 2026-08-16 via TDD (Red confirmed on the flipped test expectations before the one-line `Math.min`→`Math.max` fix) → reviewer pipeline. 669/669 tests passing (2 tests re-derived for cover semantics, 3 mock-dimension updates), lint clean. Approved on first review pass.
 
 ### [FEAT-CALIB] Map calibration subsystem
 Priority: medium
