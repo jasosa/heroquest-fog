@@ -12,14 +12,6 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ## Active
 
-### [FEAT-035] Larger board area — stretch image to fill
-Priority: medium
-Status: not_started
-Complexity: low
-Description: In both Edit and Play modes the board area does not use all available screen space. Increase the board container's dimensions to occupy more of the viewport and ensure the board image (`board2.png` / `board.png`) stretches to fill the enlarged area (`width: 100%; height: 100%` with `background-size: 100% 100%` or equivalent). Verify cell hit-testing and piece rendering remain accurate after the resize.
-
-Verified 2026-08-15 via visual QA pass (running app, 1568×698 viewport): confirmed not implemented — roughly 280px of unused space sits between the board's right edge and the sidebar in Play mode.
-
 ### [FEAT-036] Pan board with mouse drag after zoom (remove scrollbars)
 Priority: medium
 Status: not_started
@@ -347,6 +339,18 @@ Priority: medium
 Status: done
 Complexity: low
 Description: In Library mode the quest introduction/description text area is too small and the text is barely readable. Redesign the quest information section to give the description more vertical space, increase the font size to at least 13px, and ensure sufficient contrast. Consider displaying the description in the showcase right panel (already used for artwork) with a two-column approach: artwork on top, description text below, or a tabbed/toggle layout between artwork and description.
+
+### [FEAT-035] Larger board area — stretch image to fill
+Priority: medium
+Status: done
+Complexity: low
+Description: In both Edit and Play modes the board area does not use all available screen space. Increase the board container's dimensions to occupy more of the viewport and ensure the board image (`board2.png` / `board.png`) stretches to fill the enlarged area (`width: 100%; height: 100%` with `background-size: 100% 100%` or equivalent). Verify cell hit-testing and piece rendering remain accurate after the resize.
+
+Verified 2026-08-15 via visual QA pass (running app, 1568×698 viewport): confirmed not implemented — roughly 280px of unused space sits between the board's right edge and the sidebar in Play mode.
+
+Implementation note: rather than literally stretching the board image via non-uniform `background-size` (which would distort the fixed 962×703 image relative to the 26×19 `CELL=37` grid and break the pixel-to-cell mapping), a mount-time auto-fit zoom was added instead. New pure function `computeFitZoom` (`src/features/game/fitZoom.js`) computes the zoom ratio that fits the board into the measured board-area container, clamped to `[ZOOM_MIN, ZOOM_MAX]`. `GameScreen.jsx` measures the container via a new `boardAreaRef` in a mount-only `useLayoutEffect` (empty deps) and calls `setZoom(...)`, so the board renders already fit to the available viewport instead of always starting at 100%. Reuses the pre-existing `transform: scale(zoom)` rendering path shared with the manual zoom +/- buttons, so cell hit-testing and piece rendering needed no changes. Deliberately does not react to resize/sidebar-collapse afterward, to avoid clobbering a user's manual zoom or causing scroll-position drift.
+
+Implemented 2026-08-16 via the swe → reviewer pipeline. 669/669 tests passing (13 new), lint clean. Approved on first review pass.
 
 ### [FEAT-039] Monster name tooltip on hover in Play mode
 Priority: medium
