@@ -12,21 +12,6 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ## Active
 
-### [ISSUE-021] Clickable board elements unresponsive above 100% zoom (Edit and Play mode)
-Priority: urgent
-Impact: critical — core interactivity (cell reveal, piece placement, piece interaction) broken whenever the board is zoomed in past 100%, in both modes
-Status: in_progress
-Complexity: low — root cause identified and fixed, pending review
-Description: Reported by the user 2026-08-16: clickable elements on the board (cells, pieces, markers) stop responding to clicks once zoom exceeds 100%, in both Edit and Play mode. Suspected regression from FEAT-036's pointer-gesture/click-suppression wiring in `GameScreen.jsx` (the native capture-phase click-suppression listener, the drag-threshold/pan-arming logic, or the `overflow:hidden`+clamped-pan restructuring) — needs investigation to confirm the exact mechanism before fixing. The tilt/shimmer fix from ISSUE-019 was confirmed resolved by the user in the same report.
-
-Separately confirmed by the user 2026-08-16: fog reveal (clicking a cell to reveal it) in Play mode is also unresponsive above 100% zoom. Same root cause, not a separate bug — fog reveal fires through the identical `BoardCell.onClick` handler that piece/marker clicks use, so it's broken by the exact same mechanism. Folded into this issue rather than opened separately.
-
-Root cause identified and fixed 2026-08-16 (see fix details below) — `handlePointerDown` called `el.setPointerCapture(e.pointerId)` on the board's outer container whenever a drag was armed (which only happens when the board overflows its container, i.e. correlates almost exactly with zoom > 100%). In real browsers this retargets the resulting `click` event to the *capturing* element rather than the element actually under the cursor — so clicks on cells/pieces were silently delivered to the container instead, which has no click handler of its own. This explains why it passed 704+ tests before shipping: jsdom doesn't implement `setPointerCapture` at all, and React Testing Library's `fireEvent.click` bypasses real hit-testing/capture-based retargeting entirely, so no existing test could have caught this even in principle.
-
-Fix: removed the `setPointerCapture` call entirely — it was not load-bearing, since `handlePointerLeave` already ends the pan gesture (`endPanAsCancel()`) the moment the pointer leaves the container bounds, so the drag never relied on capture's usual purpose (continuing to receive events after the cursor leaves the element). A new jsdom test polyfills `setPointerCapture` (absent by default) and spies on it, proving via Red→Green TDD that the call genuinely happened before the fix and is genuinely gone after — this proves the implicated *mechanism* is removed; it cannot prove the real-browser *consequence* (click retargeting) since jsdom doesn't implement that part of the spec, so that inference rests on documented pointer-capture behavior, not a direct test. 709/709 tests passing, lint clean.
-
-Reviewed 2026-08-16 — APPROVED, reviewer independently reconstructed the pre-fix code and re-confirmed Red→Green by hand. Assessed as "very likely fixed" (the removed mechanism is standard, spec-defined Pointer Events behavior, not a speculative quirk) but explicitly not verified in a real browser in this session. Merged given the urgency. **Status intentionally left `in_progress` rather than `done` pending the user's live confirmation that board clicks now work correctly above 100% zoom**, consistent with how ISSUE-019 was handled.
-
 ### [FEAT-011] [Cleanup] Rename `pendingRoomReveal` to `pendingUnconfirmedReveal`
 Priority: low
 Status: not_started
@@ -527,6 +512,19 @@ Investigated 2026-08-16: no explicit rotate/perspective/skew transform exists an
 Mitigation merged 2026-08-16 via architect-free planner → swe → reviewer pipeline (reviewer APPROVED, code-quality/regression review only): (1) `computeFitZoom` now rounds its result to 2 decimals, matching the existing manual zoom-button rounding convention; (2) `BoardCell.jsx`'s hover effect no longer uses `style.filter` — replaced with a `background` tint swap; (3) `willChange: "transform"` added to the board's scaled ancestor div to encourage a stable compositor layer. 708/708 tests passing, lint clean.
 
 **User-confirmed fixed 2026-08-16** — visual verification in the running app confirmed the tilt/shimmer no longer occurs.
+
+### [ISSUE-021] Clickable board elements unresponsive above 100% zoom (Edit and Play mode)
+Priority: urgent
+Impact: critical — core interactivity (cell reveal, piece placement, piece interaction) broken whenever the board is zoomed in past 100%, in both modes
+Status: done
+Complexity: low — root cause identified and fixed
+Description: Reported by the user 2026-08-16: clickable elements on the board (cells, pieces, markers) stop responding to clicks once zoom exceeds 100%, in both Edit and Play mode. Suspected regression from FEAT-036's pointer-gesture/click-suppression wiring in `GameScreen.jsx`. Separately confirmed by the user: fog reveal in Play mode was also unresponsive above 100% zoom — same root cause (identical `BoardCell.onClick` path), folded into this issue rather than opened separately.
+
+Root cause: `handlePointerDown` called `el.setPointerCapture(e.pointerId)` on the board's outer container whenever a drag was armed (only happens when the board overflows its container, i.e. correlates almost exactly with zoom > 100%). In real browsers this retargets the resulting `click` event to the *capturing* element rather than the element actually under the cursor — so clicks on cells/pieces were silently delivered to the container instead, which has no click handler of its own. Explains why 704+ tests didn't catch it: jsdom doesn't implement `setPointerCapture`, and RTL's `fireEvent.click` bypasses real hit-testing/capture-based retargeting entirely.
+
+Fix: removed the `setPointerCapture` call — not load-bearing, since `handlePointerLeave` already ends the pan gesture the moment the pointer leaves the container bounds. New jsdom test polyfills `setPointerCapture` and spies on it, proving via Red→Green TDD the call is gone. 709/709 tests passing, lint clean. Reviewed 2026-08-16 — APPROVED, reviewer independently reconstructed the pre-fix code and re-confirmed Red→Green by hand.
+
+**Live-verified 2026-08-16** via a connected browser session: opened Quest Two at 144% zoom (above 100%), confirmed fog reveal in Play mode works (clicked an unconnected room, `RoomConfirmDialog` fired correctly, "Yes — Reveal" successfully revealed the room), then confirmed piece placement in Edit mode works at the same zoom level (placed a Goblin, appeared correctly). Both originally-broken scenarios now work. Test changes discarded without saving.
 
 ### [ISSUE-020] [Spike] Pieces not centered in cells across board tilesets; audit grid/cell alignment
 Priority: medium
