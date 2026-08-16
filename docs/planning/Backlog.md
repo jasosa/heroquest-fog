@@ -83,8 +83,14 @@ Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented 
 Priority: medium
 Impact: medium — distracting visual glitch during play
 Status: in_progress
-Complexity: low
+Complexity: low (revised: treat as medium-effort in practice — root cause required investigation, not a one-line fix)
 Description: In Play mode, the board visibly "tilts" as the mouse moves over it. Likely an unintended hover-driven CSS transform (e.g. a perspective/rotate effect on a cell or board-level hover handler) rather than a deliberate design choice. Investigate `BoardCell.jsx` / `BoardGrid.jsx` / any `onMouseMove` handlers on the board for a transform tied to cursor position and remove or fix it. Reported by the user 2026-08-16.
+
+Investigated 2026-08-16: no explicit rotate/perspective/skew transform exists anywhere in the board code (confirmed by grep — ruled out as the literal described mechanism). Strongest identified candidate: `BoardCell.jsx`'s per-cell hover handler mutated `style.filter` on every one of ~494 cells as the cursor crossed the grid; `filter` forces per-element compositing-layer promotion, and combined with the board's ancestor `transform: translate(x,y) scale(zoom)` using an *unrounded* fractional `zoom` (from `computeFitZoom`, e.g. `1.49989...`), every cell boundary sat at a non-integer device-pixel position — a known category of sub-pixel rendering artifact when many elements toggle paint-affecting styles under a fractional-scale ancestor.
+
+Mitigation merged 2026-08-16 via architect-free planner → swe → reviewer pipeline (reviewer APPROVED, code-quality/regression review only): (1) `computeFitZoom` now rounds its result to 2 decimals, matching the existing manual zoom-button rounding convention; (2) `BoardCell.jsx`'s hover effect no longer uses `style.filter` — replaced with a `background` tint swap; (3) `willChange: "transform"` added to the board's scaled ancestor div to encourage a stable compositor layer. 708/708 tests passing, lint clean.
+
+**This is an unconfirmed mitigation, not a proven fix** — the symptom is a browser rendering/compositing artifact that cannot be verified by any jsdom/Vitest test; jsdom does not perform real rendering or compositing. Status intentionally left `in_progress` rather than `done` pending the user's live visual confirmation that the tilt is actually gone. If it persists after this ships, the next candidate (already identified, deferred to keep this fix minimal) is rounding `pan.x`/`pan.y` to integer pixels in `panOffset.js`, which are currently sub-pixel values.
 
 ### [ISSUE-020] [Spike] Pieces not centered in cells across board tilesets; audit grid/cell alignment
 Priority: medium

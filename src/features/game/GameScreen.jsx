@@ -124,6 +124,7 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
           position: "absolute", top: 0, left: 0,
           transformOrigin: "top left",
           transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+          willChange: "transform",
         }}>
           <BoardGrid
             fog={fog} placed={placed} doors={doors}

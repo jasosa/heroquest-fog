@@ -66,4 +66,15 @@ describe("computeFitZoom", () => {
     expect(Number.isNaN(result)).toBe(false);
     expect(result).toBeGreaterThan(0);
   });
+
+  it("rounds a non-round raw fit ratio to at most 2 decimal digits", () => {
+    const result = computeFitZoom({
+      availableWidth: 1000, availableHeight: 700,
+      boardWidth: 962, boardHeight: 703,
+      zoomMin: 0.25, zoomMax: 3,
+    });
+    // Raw ratio is 1000/962 = 1.0395010395010396..., rounded to 1.04.
+    expect(result).toBe(Math.round(result * 100) / 100);
+    expect(result).toBe(1.04);
+  });
 });
