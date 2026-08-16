@@ -8,5 +8,6 @@ export function computeFitZoom({ availableWidth, availableHeight, boardWidth, bo
     return 1;
   }
   const rawFit = Math.max(availableWidth / boardWidth, availableHeight / boardHeight);
-  return Math.max(zoomMin, Math.min(zoomMax, rawFit));
+  const clamped = Math.max(zoomMin, Math.min(zoomMax, rawFit));
+  return Math.round(clamped * 100) / 100;
 }

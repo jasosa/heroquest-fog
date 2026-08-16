@@ -23,14 +23,14 @@ const BoardCell = memo(function BoardCell({ r, c, region, isRevealed, isEditMode
         boxSizing: "border-box",
         position: "relative",
         display: "flex", alignItems: "center", justifyContent: "center",
-        transition: "filter 0.1s",
+        transition: "background 0.1s",
         userSelect: "none",
         outline: isLastClick && isEditMode ? "2px solid #c0302066" : "none",
         outlineOffset: "-2px",
       }}
       onContextMenu={e => { e.preventDefault(); if (!isWall && onRightClick) onRightClick(); }}
-      onMouseEnter={e => { if (!isWall) e.currentTarget.style.filter = "brightness(1.4)"; }}
-      onMouseLeave={e =>  { e.currentTarget.style.filter = "none"; }}
+      onMouseEnter={e => { if (!isWall) e.currentTarget.style.background = "#ffffff22"; }}
+      onMouseLeave={e =>  { e.currentTarget.style.background = "transparent"; }}
     >
       {/* Piece footprint — coloured tint across all covered cells (multi-cell pieces only, not image pieces) */}
       {coverage && (isRevealed || isEditMode) && coverage.coveredCells?.length > 1 && !PIECES[coverage.type]?.image && (

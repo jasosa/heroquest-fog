@@ -36,6 +36,16 @@ describe("GameScreen — pan offset centers the overflowing axis on mount", () =
     // height axis overflows (703*1.5=1054.5 > 1000) -> centered -> y = (1000-1054.5)/2 = -27.25
     expect(inner.style.transform).toBe("translate(0px, -27.25px) scale(1.5)");
   });
+
+  it("marks the transform-scaled board div with willChange: transform (stabilizes its compositing layer)", () => {
+    mockRect({ width: 1443, height: 1000 });
+    const { container } = render(
+      <GameScreen quest={makeQuest()} initialMode="play" onBack={() => {}} onQuestSaved={() => {}} />
+    );
+    const inner = getInnerBoardDiv(container);
+    expect(inner).toBeTruthy();
+    expect(inner.style.willChange).toBe("transform");
+  });
 });
 
 function getBoardAreaDiv(container) {

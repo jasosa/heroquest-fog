@@ -83,8 +83,14 @@ Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented 
 Priority: medium
 Impact: medium — distracting visual glitch during play
 Status: in_progress
-Complexity: low
+Complexity: low (revised: treat as medium-effort in practice — root cause required investigation, not a one-line fix)
 Description: In Play mode, the board visibly "tilts" as the mouse moves over it. Likely an unintended hover-driven CSS transform (e.g. a perspective/rotate effect on a cell or board-level hover handler) rather than a deliberate design choice. Investigate `BoardCell.jsx` / `BoardGrid.jsx` / any `onMouseMove` handlers on the board for a transform tied to cursor position and remove or fix it. Reported by the user 2026-08-16.
+
+Investigated 2026-08-16: no explicit rotate/perspective/skew transform exists anywhere in the board code (confirmed by grep — ruled out as the literal described mechanism). Strongest identified candidate: `BoardCell.jsx`'s per-cell hover handler mutated `style.filter` on every one of ~494 cells as the cursor crossed the grid; `filter` forces per-element compositing-layer promotion, and combined with the board's ancestor `transform: translate(x,y) scale(zoom)` using an *unrounded* fractional `zoom` (from `computeFitZoom`, e.g. `1.49989...`), every cell boundary sat at a non-integer device-pixel position — a known category of sub-pixel rendering artifact when many elements toggle paint-affecting styles under a fractional-scale ancestor.
+
+Mitigation merged 2026-08-16 via architect-free planner → swe → reviewer pipeline (reviewer APPROVED, code-quality/regression review only): (1) `computeFitZoom` now rounds its result to 2 decimals, matching the existing manual zoom-button rounding convention; (2) `BoardCell.jsx`'s hover effect no longer uses `style.filter` — replaced with a `background` tint swap; (3) `willChange: "transform"` added to the board's scaled ancestor div to encourage a stable compositor layer. 708/708 tests passing, lint clean.
+
+**This is an unconfirmed mitigation, not a proven fix** — the symptom is a browser rendering/compositing artifact that cannot be verified by any jsdom/Vitest test; jsdom does not perform real rendering or compositing. Status intentionally left `in_progress` rather than `done` pending the user's live visual confirmation that the tilt is actually gone. If it persists after this ships, the next candidate (already identified, deferred to keep this fix minimal) is rounding `pan.x`/`pan.y` to integer pixels in `panOffset.js`, which are currently sub-pixel values.
 
 ### [ISSUE-020] [Spike] Pieces not centered in cells across board tilesets; audit grid/cell alignment
 Priority: medium
@@ -92,6 +98,18 @@ Impact: medium — visual precision, affects all placed pieces on non-default ti
 Status: not_started
 Complexity: medium
 Description: Across the different board tileset versions (`board` / `board2` / `board3` / `board4`), placed pieces are not consistently centered within their grid cells. Investigate how piece positions are computed (`getTokenPos` / calibration transform in `BoardGrid.jsx`, `imageScale`/`resolveScale` in `pieces.js`) and how that should reconcile with each tileset's actual cell geometry, so pieces always render centered regardless of tileset. Also audit whether the logical grid (`BOARD`/`CELL`-based cell boxes) is itself properly aligned with each tileset's visual cell boundaries — misalignment there would explain per-tileset centering drift even if the piece-positioning math is otherwise correct. Spike: research and report findings/options before implementation-planning a fix. Reported by the user 2026-08-16.
+
+### [FEAT-040] Application UI internationalization (English/Spanish)
+Priority: medium
+Status: not_started
+Complexity: high
+Description: The application's own UI chrome — Quest Library, Sidebar, dialogs, buttons, labels, tooltips, section headers, error/status messages, etc. — should support English and Spanish, built on a maintainable internationalization system (structured translation keys / a lightweight i18n library, not hardcoded strings scattered across ~40+ components as today) so additional languages can be added later without a rewrite. Add a language switcher (persisted, e.g. in `localStorage`, alongside the existing `hq_calibration`/`hq_quests`/`hq_quest_books` keys) letting the user pick English or Spanish for the app UI. Distinct from FEAT-041 (quest content translation) — this item covers only the application's own interface text, not DM-authored quest content. Given the scope (every component with visible text needs to move off hardcoded strings), this should go through the `architect` subagent first (complexity: high) to settle the i18n approach (library choice or hand-rolled key/lookup convention, where translation dictionaries live, how components consume them) before planning.
+
+### [FEAT-041] Quest content internationalization (multi-language quest texts)
+Priority: medium
+Status: not_started
+Complexity: high
+Description: When creating/editing a quest, the DM should be able to provide quest text — title, description, placement message, letter-marker notes, search-marker/secret-door messages, trap/chest notes, etc. — in multiple languages, not just a single hardcoded string per field as today. This is quest content (persisted per-quest in `questStorage.js`'s `hq_quests`/`hq_quest_books` collections), authored by the DM, not application chrome — distinct from FEAT-040 (application UI language). Requires a data-model change (e.g. per-field text becoming `{ en: "...", es: "...", ... }` instead of a bare string, with migration for existing single-language quests — see `migrateQuests()` precedent), editor UI to add/manage additional languages per quest/quest-book, and play/edit-mode rendering logic to select the display language per quest text. Open design question for the `architect`/`ux` subagents to resolve: whether quest-text language selection reuses the same global "current display language" as FEAT-040, or is independent per quest/session. Given the data-model and UI scope, this should go through the `architect` subagent first (complexity: high) before planning.
 
 ---
 
