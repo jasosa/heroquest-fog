@@ -95,7 +95,7 @@ Mitigation merged 2026-08-16 via architect-free planner → swe → reviewer pip
 ### [ISSUE-020] [Spike] Pieces not centered in cells across board tilesets; audit grid/cell alignment
 Priority: medium
 Impact: medium — visual precision, affects all placed pieces on non-default tilesets
-Status: not_started
+Status: in_progress
 Complexity: medium
 Description: Across the different board tileset versions (`board` / `board2` / `board3` / `board4`), placed pieces are not consistently centered within their grid cells. Investigate how piece positions are computed (`getTokenPos` / calibration transform in `BoardGrid.jsx`, `imageScale`/`resolveScale` in `pieces.js`) and how that should reconcile with each tileset's actual cell geometry, so pieces always render centered regardless of tileset. Also audit whether the logical grid (`BOARD`/`CELL`-based cell boxes) is itself properly aligned with each tileset's visual cell boundaries — misalignment there would explain per-tileset centering drift even if the piece-positioning math is otherwise correct. Spike: research and report findings/options before implementation-planning a fix. Reported by the user 2026-08-16.
 
