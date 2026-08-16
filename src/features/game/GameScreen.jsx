@@ -183,7 +183,10 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
   const zoomOut = () => setZoom(z => Math.max(ZOOM_MIN, Math.round((z - ZOOM_STEP) * 100) / 100));
   const boardAreaRef = useRef(null);
 
-  // Mount-time-only viewport fit (FEAT-035). Deliberately does NOT react to
+  // Mount-time-only viewport cover-fit (FEAT-035 / ISSUE-018). Scales the
+  // board up until it fully covers the board area on both axes — it may
+  // overflow (and be scrollable) on whichever axis isn't the binding
+  // constraint, rather than leaving a gap. Deliberately does NOT react to
   // resize/rotation/sidebar toggle — recomputing later would clobber a
   // player's manual zoom and cause scroll-position drift. Runs once per
   // GameScreen mount (i.e. once per quest session, since key={quest.id}

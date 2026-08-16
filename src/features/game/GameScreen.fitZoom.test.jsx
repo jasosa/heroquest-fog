@@ -25,9 +25,9 @@ function getZoomText(container) {
   return zoomSpan?.textContent.trim();
 }
 
-describe("GameScreen — fit-to-viewport zoom on mount", () => {
-  it("computes 150% zoom when the board area measures 1443x2000", () => {
-    mockRect({ width: 1443, height: 2000 });
+describe("GameScreen — cover-fit-to-viewport zoom on mount", () => {
+  it("computes 150% zoom (binding on width) when the board area measures 1443x1000", () => {
+    mockRect({ width: 1443, height: 1000 });
     const { container } = render(
       <GameScreen quest={makeQuest()} initialMode="play" onBack={() => {}} onQuestSaved={() => {}} />
     );
@@ -62,7 +62,7 @@ describe("GameScreen — fit-to-viewport zoom on mount", () => {
   });
 
   it("zooming in from a 150% fit baseline goes to 175%, not 125% (proves setZoom writes shared state)", () => {
-    mockRect({ width: 1443, height: 2000 });
+    mockRect({ width: 1443, height: 1000 });
     const { container } = render(
       <GameScreen quest={makeQuest()} initialMode="play" onBack={() => {}} onQuestSaved={() => {}} />
     );
@@ -73,7 +73,7 @@ describe("GameScreen — fit-to-viewport zoom on mount", () => {
   });
 
   it("does not leak zoom state across mounts (simulates key={quest.id} remount)", () => {
-    mockRect({ width: 1443, height: 2000 });
+    mockRect({ width: 1443, height: 1000 });
     const first = render(
       <GameScreen quest={makeQuest()} initialMode="play" onBack={() => {}} onQuestSaved={() => {}} />
     );
