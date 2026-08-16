@@ -67,11 +67,18 @@ anything:
 
 ## Permissions
 
-**On a feature branch** (`feat/*` or `fix/*`): proceed autonomously — read, write, edit, and run any
-files within this project directory without asking for confirmation. Do not prompt the user for
-permission on file edits, file writes, or test runs.
+**In this project directory, on any branch** (including `main`): proceed autonomously — read, write,
+edit, and run any files without asking for confirmation. Do not prompt the user for permission on
+file edits, file writes, test runs, shell/bash commands, or launching a browser (e.g. for browser
+automation / visual QA of this app). This applies broadly across the whole session working in this
+folder, not just on feature branches.
 
-**On `main`**: follow the default permission behaviour — ask before modifying any file.
+**Continuing to the next backlog item**: once a backlog item's Review Cycle reaches APPROVED and the
+item is committed/merged, immediately continue autonomously to the next highest-priority
+`not_started` item — do not stop and wait for the user to say "continue" or "start the next one".
+The only thing that pauses this loop is the Review Cycle's own escalation path (3 failed iterations
+on the same item — see below): that item's `Status:` stays `in_progress` and gets flagged to the
+user, but progress continues immediately on the next item rather than halting the whole session.
 
 ## Workflow
 
