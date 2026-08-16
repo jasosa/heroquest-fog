@@ -61,6 +61,7 @@ export function DoorOverlay({ anchorKey, rotation, type, fog, isEditMode, getTok
       <img
         src={`/tiles/${tileSet}/${p.image}`}
         alt={p.label}
+        draggable={false}
         style={{
           position: "absolute",
           left: cx - imgW / 2,
@@ -71,6 +72,7 @@ export function DoorOverlay({ anchorKey, rotation, type, fog, isEditMode, getTok
           zIndex: 10,
           pointerEvents: "none",
           objectFit: "fill",
+          WebkitTouchCallout: "none",
         }}
       />
     );
