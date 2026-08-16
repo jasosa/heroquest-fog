@@ -81,7 +81,7 @@ Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented 
 
 ### [FEAT-040] Application UI internationalization (English/Spanish)
 Priority: medium
-Status: not_started
+Status: in_progress
 Complexity: high
 Description: The application's own UI chrome — Quest Library, Sidebar, dialogs, buttons, labels, tooltips, section headers, error/status messages, etc. — should support English and Spanish, built on a maintainable internationalization system (structured translation keys / a lightweight i18n library, not hardcoded strings scattered across ~40+ components as today) so additional languages can be added later without a rewrite. Add a language switcher (persisted, e.g. in `localStorage`, alongside the existing `hq_calibration`/`hq_quests`/`hq_quest_books` keys) letting the user pick English or Spanish for the app UI. Distinct from FEAT-041 (quest content translation) — this item covers only the application's own interface text, not DM-authored quest content. Given the scope (every component with visible text needs to move off hardcoded strings), this should go through the `architect` subagent first (complexity: high) to settle the i18n approach (library choice or hand-rolled key/lookup convention, where translation dictionaries live, how components consume them) before planning.
 
