@@ -308,10 +308,15 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
       startPanX: panRef.current.x, startPanY: panRef.current.y,
       crossedThreshold: false,
     };
-    const el = e.currentTarget;
-    if (el && typeof el.setPointerCapture === "function") {
-      try { el.setPointerCapture(e.pointerId); } catch { /* jsdom / unsupported — safe to ignore */ }
-    }
+    // Deliberately NOT calling setPointerCapture here (ISSUE-021): in real
+    // browsers it retargets the eventual click event to the *capturing*
+    // element (this container) instead of the actual clicked descendant
+    // (BoardCell/TokenOverlay), silently breaking cell/piece clicks whenever
+    // a drag was armed — i.e. whenever the board was pannable (zoom high
+    // enough to overflow the container). Not needed for correctness here:
+    // handlePointerLeave already ends the gesture the moment the pointer
+    // leaves the container bounds, so we never relied on capture's usual
+    // purpose of continuing to receive events outside the element.
   }
 
   function handlePointerMove(e) {
