@@ -82,7 +82,7 @@ Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented 
 ### [ISSUE-019] Board "tilts" when the mouse moves over it in Play mode
 Priority: medium
 Impact: medium — distracting visual glitch during play
-Status: not_started
+Status: in_progress
 Complexity: low
 Description: In Play mode, the board visibly "tilts" as the mouse moves over it. Likely an unintended hover-driven CSS transform (e.g. a perspective/rotate effect on a cell or board-level hover handler) rather than a deliberate design choice. Investigate `BoardCell.jsx` / `BoardGrid.jsx` / any `onMouseMove` handlers on the board for a transform tied to cursor position and remove or fix it. Reported by the user 2026-08-16.
 
