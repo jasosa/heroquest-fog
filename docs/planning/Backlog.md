@@ -85,6 +85,20 @@ Description: The edit affordance buttons on placed pieces (pencil for note/searc
 
 Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — the monster special-note button is a white circular ★ badge top-right of the piece; the chest button is a red/crimson triangular ⚠ badge in a different position and shape. Still structurally inconsistent.
 
+### [ISSUE-019] Board "tilts" when the mouse moves over it in Play mode
+Priority: medium
+Impact: medium — distracting visual glitch during play
+Status: not_started
+Complexity: low
+Description: In Play mode, the board visibly "tilts" as the mouse moves over it. Likely an unintended hover-driven CSS transform (e.g. a perspective/rotate effect on a cell or board-level hover handler) rather than a deliberate design choice. Investigate `BoardCell.jsx` / `BoardGrid.jsx` / any `onMouseMove` handlers on the board for a transform tied to cursor position and remove or fix it. Reported by the user 2026-08-16.
+
+### [ISSUE-020] [Spike] Pieces not centered in cells across board tilesets; audit grid/cell alignment
+Priority: medium
+Impact: medium — visual precision, affects all placed pieces on non-default tilesets
+Status: not_started
+Complexity: medium
+Description: Across the different board tileset versions (`board` / `board2` / `board3` / `board4`), placed pieces are not consistently centered within their grid cells. Investigate how piece positions are computed (`getTokenPos` / calibration transform in `BoardGrid.jsx`, `imageScale`/`resolveScale` in `pieces.js`) and how that should reconcile with each tileset's actual cell geometry, so pieces always render centered regardless of tileset. Also audit whether the logical grid (`BOARD`/`CELL`-based cell boxes) is itself properly aligned with each tileset's visual cell boundaries — misalignment there would explain per-tileset centering drift even if the piece-positioning math is otherwise correct. Spike: research and report findings/options before implementation-planning a fix. Reported by the user 2026-08-16.
+
 ---
 
 ## Done
