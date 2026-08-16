@@ -12,6 +12,13 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ## Active
 
+### [ISSUE-021] Clickable board elements unresponsive above 100% zoom (Edit and Play mode)
+Priority: urgent
+Impact: critical — core interactivity (cell reveal, piece placement, piece interaction) broken whenever the board is zoomed in past 100%, in both modes
+Status: in_progress
+Complexity: unknown — likely regression from FEAT-036 (pointer-based board panning), needs root-cause investigation
+Description: Reported by the user 2026-08-16: clickable elements on the board (cells, pieces, markers) stop responding to clicks once zoom exceeds 100%, in both Edit and Play mode. Suspected regression from FEAT-036's pointer-gesture/click-suppression wiring in `GameScreen.jsx` (the native capture-phase click-suppression listener, the drag-threshold/pan-arming logic, or the `overflow:hidden`+clamped-pan restructuring) — needs investigation to confirm the exact mechanism before fixing. The tilt/shimmer fix from ISSUE-019 was confirmed resolved by the user in the same report.
+
 ### [FEAT-011] [Cleanup] Rename `pendingRoomReveal` to `pendingUnconfirmedReveal`
 Priority: low
 Status: not_started
@@ -78,19 +85,6 @@ Complexity: low
 Description: The edit affordance buttons on placed pieces (pencil for note/search markers, star for monsters, warning for chests) use three different element types and sizes despite serving the same purpose. Fix: all use a `<button>` element, 16×16px circle, positioned top-right of the piece image. The chest warning button currently uses a `<div>` with `onMouseDown` — convert it to `<button>` (keep `onMouseDown` to prevent cell click propagation).
 
 Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — the monster special-note button is a white circular ★ badge top-right of the piece; the chest button is a red/crimson triangular ⚠ badge in a different position and shape. Still structurally inconsistent.
-
-### [ISSUE-019] Board "tilts" when the mouse moves over it in Play mode
-Priority: medium
-Impact: medium — distracting visual glitch during play
-Status: in_progress
-Complexity: low (revised: treat as medium-effort in practice — root cause required investigation, not a one-line fix)
-Description: In Play mode, the board visibly "tilts" as the mouse moves over it. Likely an unintended hover-driven CSS transform (e.g. a perspective/rotate effect on a cell or board-level hover handler) rather than a deliberate design choice. Investigate `BoardCell.jsx` / `BoardGrid.jsx` / any `onMouseMove` handlers on the board for a transform tied to cursor position and remove or fix it. Reported by the user 2026-08-16.
-
-Investigated 2026-08-16: no explicit rotate/perspective/skew transform exists anywhere in the board code (confirmed by grep — ruled out as the literal described mechanism). Strongest identified candidate: `BoardCell.jsx`'s per-cell hover handler mutated `style.filter` on every one of ~494 cells as the cursor crossed the grid; `filter` forces per-element compositing-layer promotion, and combined with the board's ancestor `transform: translate(x,y) scale(zoom)` using an *unrounded* fractional `zoom` (from `computeFitZoom`, e.g. `1.49989...`), every cell boundary sat at a non-integer device-pixel position — a known category of sub-pixel rendering artifact when many elements toggle paint-affecting styles under a fractional-scale ancestor.
-
-Mitigation merged 2026-08-16 via architect-free planner → swe → reviewer pipeline (reviewer APPROVED, code-quality/regression review only): (1) `computeFitZoom` now rounds its result to 2 decimals, matching the existing manual zoom-button rounding convention; (2) `BoardCell.jsx`'s hover effect no longer uses `style.filter` — replaced with a `background` tint swap; (3) `willChange: "transform"` added to the board's scaled ancestor div to encourage a stable compositor layer. 708/708 tests passing, lint clean.
-
-**This is an unconfirmed mitigation, not a proven fix** — the symptom is a browser rendering/compositing artifact that cannot be verified by any jsdom/Vitest test; jsdom does not perform real rendering or compositing. Status intentionally left `in_progress` rather than `done` pending the user's live visual confirmation that the tilt is actually gone. If it persists after this ships, the next candidate (already identified, deferred to keep this fix minimal) is rounding `pan.x`/`pan.y` to integer pixels in `panOffset.js`, which are currently sub-pixel values.
 
 ### [ISSUE-020] [Spike] Pieces not centered in cells across board tilesets; audit grid/cell alignment
 Priority: medium
@@ -519,6 +513,19 @@ Implementation: new pure-logic module `src/features/game/panOffset.js` (clamp/ce
 Went through one Review Cycle revision: the first pass found the implementation correct but flagged a genuine test-coverage gap — no test exercised a zoom-button click mid-drag (before `pointerup`), the one case explicitly designed to end an in-progress gesture "as if released." Investigation confirmed no actual bug (the recenter math already reads live, not stale, pan/zoom state); a test was added with a hand-derived fixture plus an explicit "contrast fixture" in comments proving the test would fail if the implementation used stale pre-drag values instead. Re-review approved.
 
 Implemented 2026-08-16 via ux → planner → swe → reviewer (1 revision) pipeline. 704/704 tests passing (35 new), lint clean.
+
+### [ISSUE-019] Board "tilts" when the mouse moves over it in Play mode
+Priority: medium
+Impact: medium — distracting visual glitch during play
+Status: done
+Complexity: low (revised: treat as medium-effort in practice — root cause required investigation, not a one-line fix)
+Description: In Play mode, the board visibly "tilts" as the mouse moves over it. Likely an unintended hover-driven CSS transform (e.g. a perspective/rotate effect on a cell or board-level hover handler) rather than a deliberate design choice. Investigate `BoardCell.jsx` / `BoardGrid.jsx` / any `onMouseMove` handlers on the board for a transform tied to cursor position and remove or fix it. Reported by the user 2026-08-16.
+
+Investigated 2026-08-16: no explicit rotate/perspective/skew transform exists anywhere in the board code (confirmed by grep — ruled out as the literal described mechanism). Strongest identified candidate: `BoardCell.jsx`'s per-cell hover handler mutated `style.filter` on every one of ~494 cells as the cursor crossed the grid; `filter` forces per-element compositing-layer promotion, and combined with the board's ancestor `transform: translate(x,y) scale(zoom)` using an *unrounded* fractional `zoom` (from `computeFitZoom`, e.g. `1.49989...`), every cell boundary sat at a non-integer device-pixel position — a known category of sub-pixel rendering artifact when many elements toggle paint-affecting styles under a fractional-scale ancestor.
+
+Mitigation merged 2026-08-16 via architect-free planner → swe → reviewer pipeline (reviewer APPROVED, code-quality/regression review only): (1) `computeFitZoom` now rounds its result to 2 decimals, matching the existing manual zoom-button rounding convention; (2) `BoardCell.jsx`'s hover effect no longer uses `style.filter` — replaced with a `background` tint swap; (3) `willChange: "transform"` added to the board's scaled ancestor div to encourage a stable compositor layer. 708/708 tests passing, lint clean.
+
+**User-confirmed fixed 2026-08-16** — visual verification in the running app confirmed the tilt/shimmer no longer occurs.
 
 ### [FEAT-CALIB] Map calibration subsystem
 Priority: medium
