@@ -67,6 +67,7 @@ export function TokenOverlay({
       <img
         src="/tiles/Trap_Warning.png"
         alt="Trap"
+        draggable={false}
         onClick={e => { e.stopPropagation(); onTrapInteraction?.(anchorKey); }}
         onMouseEnter={e => onShowTooltip?.(anchorKey, e.clientX, e.clientY, "Trap!")}
         onMouseLeave={() => onHideTooltip?.()}
@@ -80,6 +81,7 @@ export function TokenOverlay({
           pointerEvents: "auto",
           cursor: "pointer",
           filter: "drop-shadow(0 0 4px #c0392b) drop-shadow(0 0 8px #e74c3caa)",
+          WebkitTouchCallout: "none",
         }}
       />
     );
@@ -103,6 +105,7 @@ export function TokenOverlay({
           <img
             src="/tiles/note.png"
             alt="Event Note"
+            draggable={false}
             {...hoverProps}
             onClick={e => {
               e.stopPropagation();
@@ -115,6 +118,7 @@ export function TokenOverlay({
               pointerEvents: "auto",
               cursor: "pointer",
               opacity: isEditMode ? 0.85 : 1,
+              WebkitTouchCallout: "none",
             }}
           />
           {/* Edit pencil button in edit mode */}
@@ -208,6 +212,7 @@ export function TokenOverlay({
         <img
           src={`/tiles/${tileSet}/${p.image}`}
           alt={p.label}
+          draggable={false}
           {...(!isChestClickable && !isTrapImage ? monsterHoverProps : {})}
           onClick={imgOnClick}
           onMouseEnter={isChestClickable ? (e => onShowTooltip?.(anchorKey, e.clientX, e.clientY, "Chests can hide traps. Click to search.")) : (monsterHoverProps.onMouseEnter)}
@@ -224,6 +229,7 @@ export function TokenOverlay({
             objectFit: "fill",
             filter: showGlow ? chestGlowFilter : (specialFilter || undefined),
             cursor: isChestClickable ? "pointer" : (isTrapImage ? "pointer" : (monsterHoverProps.style?.cursor)),
+            WebkitTouchCallout: "none",
           }}
         />
 

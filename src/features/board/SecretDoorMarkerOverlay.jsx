@@ -33,6 +33,7 @@ export function SecretDoorMarkerOverlay({
         <img
           src="/tiles/search-secret-door.png"
           alt="Search for Secret Door"
+          draggable={false}
           style={{
             width: 28, height: 28,
             display: "block",
@@ -40,6 +41,7 @@ export function SecretDoorMarkerOverlay({
             pointerEvents: isEditMode ? "none" : "auto",
             cursor: isEditMode ? "default" : "pointer",
             filter: isLinked ? "drop-shadow(0 0 4px #c4a870)" : "none",
+            WebkitTouchCallout: "none",
           }}
           onMouseEnter={isEditMode ? undefined : (e) => onShowTooltip?.(cellKey, e.clientX, e.clientY, SEARCH_SECRET_TOOLTIP)}
           onMouseLeave={isEditMode ? undefined : () => onHideTooltip?.()}

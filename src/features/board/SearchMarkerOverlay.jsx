@@ -37,12 +37,14 @@ export function SearchMarkerOverlay({
         <img
           src="/tiles/search.png"
           alt=""
+          draggable={false}
           style={{
             width: 28, height: 28,
             display: "block",
             opacity: isEditMode ? 0.65 : 1,
             pointerEvents: isEditMode ? "none" : "auto",
             cursor: isEditMode ? "default" : "pointer",
+            WebkitTouchCallout: "none",
           }}
           onMouseEnter={isEditMode ? undefined : (e) => onShowTooltip?.(region, e.clientX, e.clientY, SEARCH_TOOLTIP)}
           onMouseLeave={isEditMode ? undefined : () => onHideTooltip?.()}

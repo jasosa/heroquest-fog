@@ -12,12 +12,6 @@ it stays in this file (do not delete it, and there is no separate Done file).
 
 ## Active
 
-### [FEAT-036] Pan board with mouse drag after zoom (remove scrollbars)
-Priority: medium
-Status: in_progress
-Complexity: medium
-Description: After the user applies zoom in Edit or Play mode the board can only be navigated via scrollbars, which do not work on mobile. Remove the scrollbars entirely and implement pointer-based panning: when the board is zoomed in, the user can click-and-drag (or touch-and-drag) anywhere on the board container to scroll it. Use `pointer` events (`pointerdown`, `pointermove`, `pointerup`) so it works on both desktop and touch. The board container should use `overflow: hidden` and transform/scroll position should be updated programmatically. Cursor should change to `grab` / `grabbing` while panning. Panning must not interfere with cell clicks for reveal or piece placement — distinguish a pan gesture (pointer moved > threshold) from a tap/click (pointer released without significant movement).
-
 ### [FEAT-011] [Cleanup] Rename `pendingRoomReveal` to `pendingUnconfirmedReveal`
 Priority: low
 Status: not_started
@@ -495,6 +489,18 @@ Fix: switched to a "cover" fit — `Math.max` of the two ratios instead of `Math
 Confirmed with the user 2026-08-16: chose "cover" over the alternative non-uniform "stretch" fit (which would exactly fill both axes with no overflow but distort the image and cells) because it's a much smaller, lower-risk change with no visual distortion.
 
 Implemented 2026-08-16 via TDD (Red confirmed on the flipped test expectations before the one-line `Math.min`→`Math.max` fix) → reviewer pipeline. 669/669 tests passing (2 tests re-derived for cover semantics, 3 mock-dimension updates), lint clean. Approved on first review pass.
+
+### [FEAT-036] Pan board with mouse drag after zoom (remove scrollbars)
+Priority: medium
+Status: done
+Complexity: medium
+Description: After the user applies zoom in Edit or Play mode the board can only be navigated via scrollbars, which do not work on mobile. Remove the scrollbars entirely and implement pointer-based panning: when the board is zoomed in, the user can click-and-drag (or touch-and-drag) anywhere on the board container to scroll it. Use `pointer` events (`pointerdown`, `pointermove`, `pointerup`) so it works on both desktop and touch. The board container should use `overflow: hidden` and transform/scroll position should be updated programmatically. Cursor should change to `grab` / `grabbing` while panning. Panning must not interfere with cell clicks for reveal or piece placement — distinguish a pan gesture (pointer moved > threshold) from a tap/click (pointer released without significant movement).
+
+Implementation: new pure-logic module `src/features/game/panOffset.js` (clamp/center/recenter-on-zoom/threshold math, mirrors `fitZoom.js`'s pattern) plus pointer-gesture wiring in `GameScreen.jsx` — pointerdown/move/up/cancel/lostpointercapture handlers attached at the board-container level (not per-cell), a ref-based drag tracker (avoids re-render per pixel of movement), and a native capture-phase `click` listener that suppresses the synthetic click following a completed pan (required since React's delegated `onClick` fires after native capture on an ancestor — a bubble-phase guard would be too late). `HeroPlacementPopup` was restructured to a full-container sibling overlay (previously sized to the board's footprint, which no longer tracks the board's true on-screen position once pan is added); `RoomConfirmDialog` needed no change since it already lives inside the panned/scaled `BoardGrid` subtree. Pan-arming is gated off while either in-board dialog is open, and never arms for right-click (button===2), so Edit mode's right-click-rotate is untouched. Pan state lives as sibling `GameScreen` state next to `zoom` — resets naturally on quest switch (`key={quest.id}` remount), persists across Play/Edit mode toggles, same lifetime as zoom.
+
+Went through one Review Cycle revision: the first pass found the implementation correct but flagged a genuine test-coverage gap — no test exercised a zoom-button click mid-drag (before `pointerup`), the one case explicitly designed to end an in-progress gesture "as if released." Investigation confirmed no actual bug (the recenter math already reads live, not stale, pan/zoom state); a test was added with a hand-derived fixture plus an explicit "contrast fixture" in comments proving the test would fail if the implementation used stale pre-drag values instead. Re-review approved.
+
+Implemented 2026-08-16 via ux → planner → swe → reviewer (1 revision) pipeline. 704/704 tests passing (35 new), lint clean.
 
 ### [FEAT-CALIB] Map calibration subsystem
 Priority: medium

@@ -1,8 +1,12 @@
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { T, FONT_TITLE, FONT_HEADING, FONT_BODY } from "../../shared/theme.js";
 import { COLS, ROWS, CELL } from "../../shared/map.js";
 import { persistQuest, loadCalibration, saveCalibration } from "../../shared/questStorage.js";
 import { computeFitZoom } from "./fitZoom.js";
+import {
+  PAN_DRAG_THRESHOLD_PX, computeInitialPanOffset, computeRecenterOnZoomOffset,
+  clampPanOffset, isPannable, exceedsPanThreshold,
+} from "./panOffset.js";
 import { isSessionDirty, hasUnsavedChanges, stableStringify } from "./navigationGuards.js";
 import QuestLibrary from "../library/QuestLibrary.jsx";
 import MapCalibrator from "../calibration/MapCalibrator.jsx";
@@ -48,6 +52,7 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
   disarmedTraps, springedTraps,
   openedChests, onOpenChest, onConfigureChest,
   zoom, onZoomIn, onZoomOut,
+  pan, cursor, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onLostPointerCapture, onPointerLeave,
   trapInteractionPopup, boardAreaRef }) {
   return (
     <div style={{
@@ -88,56 +93,64 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
         <button onClick={onZoomIn} disabled={zoom >= ZOOM_MAX} style={zoomBtnStyle} title="Zoom in">+</button>
       </div>
 
-      {/* Scrollable board area */}
-      <div ref={boardAreaRef} style={{ overflow: "auto", flex: 1, minHeight: 0, width: "100%" }}>
-        {/* Sizing placeholder: gives the scroll container its scrollable dimensions */}
-        <div style={{
-          width: BOARD_W * zoom,
-          height: BOARD_H * zoom,
-          position: "relative",
-          margin: "0 auto",      // centre horizontally when smaller than container
-        }}>
-          {/* Hero placement popup — shown once when entering play mode */}
-          {pendingPlacementPopup && (
-            <HeroPlacementPopup
-              message={placementMessage}
-              onClose={onDismissPlacementPopup}
-            />
-          )}
+      {/* Pannable board area */}
+      <div
+        ref={boardAreaRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+        onLostPointerCapture={onLostPointerCapture}
+        onPointerLeave={onPointerLeave}
+        style={{
+          overflow: "hidden", flex: 1, minHeight: 0, width: "100%",
+          position: "relative", touchAction: "none", cursor,
+        }}
+      >
+        {/* Hero placement popup — shown once when entering play mode; covers
+            the full container (not just the board's footprint), independent
+            of pan/zoom. */}
+        {pendingPlacementPopup && (
+          <HeroPlacementPopup
+            message={placementMessage}
+            onClose={onDismissPlacementPopup}
+          />
+        )}
 
-          {/* Board scaled from top-left of placeholder */}
-          <div style={{
-            position: "absolute", top: 0, left: 0,
-            transformOrigin: "top left",
-            transform: `scale(${zoom})`,
-          }}>
-            <BoardGrid
-              fog={fog} placed={placed} doors={doors}
-              searchMarkers={searchMarkers} searchNotes={searchNotes} searchedCounts={searchedCounts}
-              mode={mode}
-              lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
-              bgImage={bgImage}
-              pendingRoomReveal={pendingRoomReveal}
-              onConfirmReveal={onConfirmReveal}
-              onCancelReveal={onCancelReveal}
-              onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip}
-              onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
-              onEditSearchNote={onEditSearchNote} onViewSearchNote={onViewSearchNote}
-              onRemoveSearchMarker={onRemoveSearchMarker}
-              secretDoorMarkers={secretDoorMarkers}
-              revealedSecretDoors={revealedSecretDoors}
-              onEditSecretDoorConfig={onEditSecretDoorConfig}
-              onSearchSecretDoor={onSearchSecretDoor}
-              revealedTraps={revealedTraps}
-              onTrapInteraction={onTrapInteraction}
-              onConfigureTrap={onConfigureTrap}
-              disarmedTraps={disarmedTraps}
-              springedTraps={springedTraps}
-              openedChests={openedChests}
-              onOpenChest={onOpenChest}
-              onConfigureChest={onConfigureChest}
-            />
-          </div>
+        {/* Sizing placeholder: gives the board its unscaled dimensions */}
+        <div style={{
+          width: BOARD_W,
+          height: BOARD_H,
+          position: "absolute", top: 0, left: 0,
+          transformOrigin: "top left",
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+        }}>
+          <BoardGrid
+            fog={fog} placed={placed} doors={doors}
+            searchMarkers={searchMarkers} searchNotes={searchNotes} searchedCounts={searchedCounts}
+            mode={mode}
+            lastClick={lastClick} onCellClick={onCellClick} onCellRotate={onCellRotate}
+            bgImage={bgImage}
+            pendingRoomReveal={pendingRoomReveal}
+            onConfirmReveal={onConfirmReveal}
+            onCancelReveal={onCancelReveal}
+            onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip}
+            onAnnotateMonster={onAnnotateMonster} onEditNote={onEditNote}
+            onEditSearchNote={onEditSearchNote} onViewSearchNote={onViewSearchNote}
+            onRemoveSearchMarker={onRemoveSearchMarker}
+            secretDoorMarkers={secretDoorMarkers}
+            revealedSecretDoors={revealedSecretDoors}
+            onEditSecretDoorConfig={onEditSecretDoorConfig}
+            onSearchSecretDoor={onSearchSecretDoor}
+            revealedTraps={revealedTraps}
+            onTrapInteraction={onTrapInteraction}
+            onConfigureTrap={onConfigureTrap}
+            disarmedTraps={disarmedTraps}
+            springedTraps={springedTraps}
+            openedChests={openedChests}
+            onOpenChest={onOpenChest}
+            onConfigureChest={onConfigureChest}
+          />
         </div>
       </div>
 
@@ -179,27 +192,179 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
   const [savedFlash, setSavedFlash] = useState(false);
   const [hoverTooltip, setHoverTooltip] = useState(null); // {anchorKey,x,y,content}|null
   const [zoom, setZoom] = useState(1);
-  const zoomIn  = () => setZoom(z => Math.min(ZOOM_MAX, Math.round((z + ZOOM_STEP) * 100) / 100));
-  const zoomOut = () => setZoom(z => Math.max(ZOOM_MIN, Math.round((z - ZOOM_STEP) * 100) / 100));
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
   const boardAreaRef = useRef(null);
+
+  // Refs kept in sync with the latest zoom/pan state so pointer handlers
+  // (registered once, with no dependency on zoom/pan) can read current
+  // values without stale closures — same pattern as useGameState's useLatest.
+  const zoomRef = useRef(zoom);
+  const panRef = useRef(pan);
+  useLayoutEffect(() => { zoomRef.current = zoom; }, [zoom]);
+  useLayoutEffect(() => { panRef.current = pan; }, [pan]);
+
+  // Drag-gesture tracking lives in a ref (not state) to avoid a re-render on
+  // every pointermove pixel; `isPanning` state only flips once the drag
+  // crosses PAN_DRAG_THRESHOLD_PX (the only bit that needs to trigger a
+  // cursor re-render).
+  // Note: dragRef tracks a single in-flight pointerId, checked only inside
+  // handlePointerMove (`drag.pointerId !== e.pointerId`); pointerup /
+  // pointercancel / lostpointercapture don't re-check pointerId, and
+  // setPointerCapture doesn't make this safe for a second concurrent
+  // pointer either. Multi-touch drag (two fingers panning at once) is
+  // explicitly out of scope for this feature.
+  const dragRef = useRef({ active: false, pointerId: null, startX: 0, startY: 0, startPanX: 0, startPanY: 0, crossedThreshold: false });
+  // Set right before a drag ends; read by the native capture-phase click
+  // listener below to suppress the synthetic click a pointerup generates
+  // after a real pan gesture.
+  const wasPanningRef = useRef(false);
+
+  function resetDrag() {
+    dragRef.current = { active: false, pointerId: null, startX: 0, startY: 0, startPanX: 0, startPanY: 0, crossedThreshold: false };
+    setIsPanning(false);
+  }
+
+  // pointerup (and the zoom-button-mid-drag case, which behaves "as if
+  // pointerup fired") is the only path that can trigger a browser-emitted
+  // synthetic click for the same gesture, so only this path arms the
+  // suppression flag.
+  function endPanAsRelease() {
+    if (dragRef.current.active) {
+      wasPanningRef.current = dragRef.current.crossedThreshold;
+    }
+    resetDrag();
+  }
+
+  // pointercancel / lostpointercapture / pointerleave never produce a
+  // trailing click for the same gesture (the browser doesn't emit one), so
+  // these must NOT arm the suppression flag — a genuinely new click right
+  // after should behave normally.
+  function endPanAsCancel() {
+    resetDrag();
+  }
+
+  function applyZoom(newZoom) {
+    endPanAsRelease();
+    const rect = boardAreaRef.current?.getBoundingClientRect();
+    const newPan = computeRecenterOnZoomOffset({
+      oldOffset: panRef.current, oldZoom: zoomRef.current, newZoom,
+      containerWidth: rect?.width ?? 0, containerHeight: rect?.height ?? 0,
+      boardWidth: BOARD_W, boardHeight: BOARD_H,
+    });
+    setZoom(newZoom);
+    setPan(newPan);
+  }
+  const zoomIn  = () => applyZoom(Math.min(ZOOM_MAX, Math.round((zoomRef.current + ZOOM_STEP) * 100) / 100));
+  const zoomOut = () => applyZoom(Math.max(ZOOM_MIN, Math.round((zoomRef.current - ZOOM_STEP) * 100) / 100));
 
   // Mount-time-only viewport cover-fit (FEAT-035 / ISSUE-018). Scales the
   // board up until it fully covers the board area on both axes — it may
-  // overflow (and be scrollable) on whichever axis isn't the binding
+  // overflow (and be pannable) on whichever axis isn't the binding
   // constraint, rather than leaving a gap. Deliberately does NOT react to
   // resize/rotation/sidebar toggle — recomputing later would clobber a
-  // player's manual zoom and cause scroll-position drift. Runs once per
+  // player's manual zoom and cause a pan-position jump. Runs once per
   // GameScreen mount (i.e. once per quest session, since key={quest.id}
   // forces a full remount on quest switch).
   useLayoutEffect(() => {
     const rect = boardAreaRef.current?.getBoundingClientRect();
-    setZoom(computeFitZoom({
-      availableWidth: rect?.width ?? 0,
-      availableHeight: rect?.height ?? 0,
+    const containerWidth = rect?.width ?? 0;
+    const containerHeight = rect?.height ?? 0;
+    const fitZoom = computeFitZoom({
+      availableWidth: containerWidth,
+      availableHeight: containerHeight,
       boardWidth: BOARD_W, boardHeight: BOARD_H,
       zoomMin: ZOOM_MIN, zoomMax: ZOOM_MAX,
+    });
+    setZoom(fitZoom);
+    setPan(computeInitialPanOffset({
+      containerWidth, containerHeight,
+      boardWidth: BOARD_W, boardHeight: BOARD_H,
+      zoom: fitZoom,
     }));
   }, []);
+
+  // ── Pointer-gesture panning ────────────────────────────────────────────
+  // Arms only for the primary mouse button (or any non-mouse pointer, e.g.
+  // touch/pen) and only when no in-board dialog (room-confirm / hero
+  // placement) is open. Right-click is never touched here, so BoardCell's
+  // existing onContextMenu rotate handler needs no changes.
+  function shouldArmPan(e) {
+    if (gameState.pendingRoomReveal || gameState.pendingPlacementPopup) return false;
+    if (e.pointerType === "mouse") return e.button === 0;
+    return true;
+  }
+
+  function handlePointerDown(e) {
+    if (!shouldArmPan(e)) return;
+    const rect = boardAreaRef.current?.getBoundingClientRect();
+    const containerWidth = rect?.width ?? 0;
+    const containerHeight = rect?.height ?? 0;
+    if (!isPannable({ containerWidth, containerHeight, boardWidth: BOARD_W, boardHeight: BOARD_H, zoom: zoomRef.current })) return;
+    dragRef.current = {
+      active: true, pointerId: e.pointerId,
+      startX: e.clientX, startY: e.clientY,
+      startPanX: panRef.current.x, startPanY: panRef.current.y,
+      crossedThreshold: false,
+    };
+    const el = e.currentTarget;
+    if (el && typeof el.setPointerCapture === "function") {
+      try { el.setPointerCapture(e.pointerId); } catch { /* jsdom / unsupported — safe to ignore */ }
+    }
+  }
+
+  function handlePointerMove(e) {
+    const drag = dragRef.current;
+    if (!drag.active || drag.pointerId !== e.pointerId) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    if (!drag.crossedThreshold && exceedsPanThreshold({ dx, dy, threshold: PAN_DRAG_THRESHOLD_PX })) {
+      drag.crossedThreshold = true;
+      setIsPanning(true);
+    }
+    const rect = boardAreaRef.current?.getBoundingClientRect();
+    const containerWidth = rect?.width ?? 0;
+    const containerHeight = rect?.height ?? 0;
+    setPan(clampPanOffset({
+      offset: { x: drag.startPanX + dx, y: drag.startPanY + dy },
+      containerWidth, containerHeight,
+      boardWidth: BOARD_W, boardHeight: BOARD_H,
+      zoom: zoomRef.current,
+    }));
+  }
+
+  function handlePointerUp() { endPanAsRelease(); }
+  function handlePointerCancel() { endPanAsCancel(); }
+  function handleLostPointerCapture() { endPanAsCancel(); }
+  function handlePointerLeave() { endPanAsCancel(); }
+
+  // Native capture-phase click listener: required because React's delegated
+  // onClick on BoardCell/TokenOverlay fires after native capture reaches
+  // this ancestor, so a React-level/bubble-phase guard would be too late to
+  // suppress the synthetic click a pointerup emits after a real pan drag.
+  useEffect(() => {
+    const el = boardAreaRef.current;
+    if (!el) return undefined;
+    function handleClickCapture(e) {
+      if (wasPanningRef.current) {
+        e.stopPropagation();
+        e.preventDefault();
+        wasPanningRef.current = false;
+      }
+    }
+    el.addEventListener("click", handleClickCapture, true);
+    return () => el.removeEventListener("click", handleClickCapture, true);
+  }, []);
+
+  const boardAreaRect = boardAreaRef.current?.getBoundingClientRect();
+  const boardIsPannable = isPannable({
+    containerWidth: boardAreaRect?.width ?? 0,
+    containerHeight: boardAreaRect?.height ?? 0,
+    boardWidth: BOARD_W, boardHeight: BOARD_H, zoom,
+  });
+  const boardAreaCursor = (gameState.pendingRoomReveal || gameState.pendingPlacementPopup)
+    ? "default"
+    : isPanning ? "grabbing" : (boardIsPannable ? "grab" : "default");
 
   function handleSave() {
     if (!hasHeroStart(gameState.placed)) {
@@ -322,6 +487,10 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         placementMessage={gameState.questPlacementMessage}
         onDismissPlacementPopup={gameState.dismissPlacementPopup}
         zoom={zoom} onZoomIn={zoomIn} onZoomOut={zoomOut}
+        pan={pan} cursor={boardAreaCursor}
+        onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp} onPointerCancel={handlePointerCancel}
+        onLostPointerCapture={handleLostPointerCapture} onPointerLeave={handlePointerLeave}
         boardAreaRef={boardAreaRef}
         trapInteractionPopup={gameState.pendingTrapInteraction && (() => {
           const { anchorKey, isRevealed } = gameState.pendingTrapInteraction;
