@@ -2,6 +2,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, fireEvent, cleanup } from "@testing-library/react";
 import { Sidebar } from "./Sidebar.jsx";
+import { renderWithI18n } from "../../test-utils/renderWithI18n.jsx";
 
 const defaultProps = {
   mode: "play",
@@ -174,5 +175,35 @@ describe("PlayPanel — legend removed", () => {
   it("play mode renders no Show/Hide legend toggle button", () => {
     const { queryByTitle } = render(<Sidebar {...defaultProps} mode="play" />);
     expect(queryByTitle(/legend/i)).toBeNull();
+  });
+});
+
+// ── FEAT-040: Language switcher ───────────────────────────────────────────────
+
+describe("Sidebar language switcher", () => {
+  it("renders EN and ES segments when expanded", () => {
+    const { getByText } = renderWithI18n(<Sidebar {...defaultProps} />);
+    expect(getByText("EN")).toBeTruthy();
+    expect(getByText("ES")).toBeTruthy();
+  });
+
+  it("does not render the switcher when collapsed", () => {
+    localStorage.setItem("hq_sidebar_collapsed", "true");
+    const { queryByText } = renderWithI18n(<Sidebar {...defaultProps} />);
+    expect(queryByText("EN")).toBeNull();
+    expect(queryByText("ES")).toBeNull();
+  });
+
+  it("clicking ES switches visible text to Spanish and persists to localStorage", () => {
+    const { getByText } = renderWithI18n(<Sidebar {...defaultProps} mode="edit" />);
+    expect(getByText("Quest Info")).toBeTruthy();
+    fireEvent.click(getByText("ES"));
+    expect(getByText("Información de la Misión")).toBeTruthy();
+    expect(localStorage.getItem("hq_locale")).toBe("es");
+  });
+
+  it("starting in Spanish (seeded locale) renders Spanish text", () => {
+    const { getByText } = renderWithI18n(<Sidebar {...defaultProps} mode="edit" />, { locale: "es" });
+    expect(getByText("Información de la Misión")).toBeTruthy();
   });
 });

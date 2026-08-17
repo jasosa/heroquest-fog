@@ -19,8 +19,10 @@ import { AssignQuestBookDialog } from "./AssignQuestBookDialog.jsx";
 import { NewQuestDialog } from "./NewQuestDialog.jsx";
 import { NewQuestBookDialog } from "./NewQuestBookDialog.jsx";
 import { assignQuestToBook } from "./assignQuestBook.js";
+import { useI18n } from "../../shared/i18n/useI18n.js";
 
 export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
+  const { locale, setLocale, t } = useI18n();
   const [books, setBooks]           = useState(() => loadQuestBooks());
   const [quests, setQuests]         = useState(() => loadQuests());
   const [selectedBookId, setSelectedBookId] = useState(null);
@@ -102,7 +104,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   }
 
   function handleDeleteBook(id) {
-    if (!window.confirm("Delete this book and all its quests?")) return;
+    if (!window.confirm(t("library.confirmDeleteBook"))) return;
     deleteQuestBook(id);
     setBooks(prev => prev.filter(b => b.id !== id));
     setQuests(prev => prev.filter(q => q.questBookId !== id));
@@ -131,7 +133,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   }
 
   function handleDeleteQuest(id) {
-    if (!window.confirm("Delete this quest?")) return;
+    if (!window.confirm(t("library.confirmDeleteQuest"))) return;
     deleteQuest(id);
     setQuests(prev => {
       const next = prev.filter(q => q.id !== id);
@@ -166,7 +168,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
         setQuests(prev => [...prev, quest]);
         setImportError("");
       } catch (err) {
-        setImportError(err.message ?? "Failed to import quest.");
+        setImportError(err.message ?? t("library.importFailedFallback"));
       }
     };
     reader.readAsText(file);
@@ -175,7 +177,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
   // ── Derived values ─────────────────────────────────────────────────────────
   const selectedBookName = selectedBookId === null
-    ? "All Quests"
+    ? t("library.allQuests")
     : books.find(b => b.id === selectedBookId)?.title ?? "";
 
   const selectedQuestBook = selectedQuest
@@ -234,7 +236,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           borderBottom: `1px solid ${T.sidebarDivider}`, paddingBottom: 12, marginBottom: 4,
           textShadow: `0 0 10px ${T.accentGold}55`,
         }}>
-          Quest Books
+          {t("library.questBooks")}
         </div>
 
         {/* All Quests */}
@@ -243,7 +245,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           className={`btn btn-hq-dark w-100 text-start d-flex justify-content-between align-items-center${selectedBookId === null ? " active" : ""}`}
           style={{ fontWeight: selectedBookId === null ? "bold" : "normal" }}
         >
-          <span>All Quests</span>
+          <span>{t("library.allQuests")}</span>
           <span style={{ fontSize: 10, opacity: 0.7 }}>({quests.length})</span>
         </button>
 
@@ -264,7 +266,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             </button>
             <button
               onClick={() => setEditingBook(book)}
-              title="Edit book"
+              title={t("library.editBookTitle")}
               className="btn btn-hq-dark"
               style={{ padding: "5px 7px", fontSize: 12, flexShrink: 0 }}
             >
@@ -272,7 +274,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             </button>
             <button
               onClick={() => handleDeleteBook(book.id)}
-              title="Delete book"
+              title={t("library.deleteBookTitle")}
               className="btn btn-hq-dark"
               style={{ padding: "5px 7px", fontSize: 12, flexShrink: 0, color: T.accent }}
             >
@@ -286,11 +288,11 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           {onCalibrate && (
             <button
               onClick={onCalibrate}
-              title="Open map calibration tool"
+              title={t("library.calibrateMapsTitle")}
               className="btn btn-hq-dark w-100 mb-2"
               style={{ fontSize: 9, color: T.sidebarTextFaint }}
             >
-              ⚙ Calibrate Maps
+              {t("library.calibrateMaps")}
             </button>
           )}
           <input type="file" accept=".json" ref={importInputRef} className="d-none" onChange={handleImportFile} />
@@ -298,7 +300,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             onClick={() => { setImportError(""); importInputRef.current.click(); }}
             className="btn btn-hq-dark w-100 mb-2"
           >
-            ⬆ Import Quest
+            {t("library.importQuest")}
           </button>
           {importError && (
             <div className="alert alert-danger py-1 px-2 mb-2" style={{ fontSize: 10 }}>
@@ -308,7 +310,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
           {!showNewBook && (
             <button onClick={() => setShowNewBook(true)} className="btn btn-hq-dark w-100 text-center">
-              ＋ New Book
+              {t("library.newBook")}
             </button>
           )}
         </div>
@@ -323,7 +325,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
               <img
                 data-testid="showcase-cover-img"
                 src={panelBook.coverImage}
-                alt="Cover image preview"
+                alt={t("library.coverImageAlt")}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 0, pointerEvents: "none", opacity: 0.7 }}
                 onError={e => { e.currentTarget.style.display = "none"; }}
               />
@@ -356,7 +358,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                 fontFamily: FONT_TITLE, textShadow: "0 2px 8px #c4a87066",
               }}
             >
-              HeroQuest — Quest Library
+              {t("library.heading")}
             </h1>
             <div style={{ marginTop: 4, fontSize: 12, color: T.textMuted, fontFamily: FONT_BODY, fontStyle: "italic" }}>
               {selectedBookName}
@@ -388,9 +390,36 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             >▶</button>
             {!showNewQuest && (
               <button onClick={() => setShowNewQuest(true)} className="btn btn-hq-light active">
-                ＋ New Quest
+                {t("library.newQuest")}
               </button>
             )}
+            {/* Language switcher */}
+            <div
+              role="group"
+              aria-label={t("library.languageSwitcherLabel")}
+              style={{ display: "flex", marginLeft: 8, paddingLeft: 8, borderLeft: `1px solid ${T.sidebarDivider}` }}
+            >
+              <button
+                onClick={() => setLocale("en")}
+                style={{
+                  width: 30, height: 30,
+                  background: locale === "en" ? T.sidebarBtnActiveBg : T.sidebarBtnBg,
+                  border: `1px solid ${locale === "en" ? T.sidebarBtnActiveBdr : T.sidebarBtnBorder}`,
+                  color: locale === "en" ? T.sidebarBtnActiveText : T.sidebarTitle,
+                  fontSize: 10, cursor: "pointer", flexShrink: 0,
+                }}
+              >EN</button>
+              <button
+                onClick={() => setLocale("es")}
+                style={{
+                  width: 30, height: 30,
+                  background: locale === "es" ? T.sidebarBtnActiveBg : T.sidebarBtnBg,
+                  border: `1px solid ${locale === "es" ? T.sidebarBtnActiveBdr : T.sidebarBtnBorder}`,
+                  color: locale === "es" ? T.sidebarBtnActiveText : T.sidebarTitle,
+                  fontSize: 10, cursor: "pointer", flexShrink: 0,
+                }}
+              >ES</button>
+            </div>
           </div>
         </div>
 
@@ -400,7 +429,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
             data-testid="showcase-empty"
             style={{ color: T.sidebarTextFaint, fontSize: 14, letterSpacing: 2, textAlign: "center", marginTop: 60, fontFamily: FONT_BODY }}
           >
-            No quests yet. Create one to get started.
+            {t("library.emptyState")}
           </div>
         ) : (
           <div
@@ -487,7 +516,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                           )}
                           {isActive && thumbIsNew && (
                             <span data-testid="new-badge" style={{ background: T.accentGold, color: "#12100e", fontFamily: FONT_HEADING, fontSize: 8, padding: "2px 5px", letterSpacing: 1, textTransform: "uppercase" }}>
-                              New
+                              {t("library.newBadge")}
                             </span>
                           )}
                         </div>
@@ -504,7 +533,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                           >
                             {quest.description}
                           </div>
-                        : <div style={{ fontSize: 11, fontFamily: FONT_BODY, color: T.sidebarTextFaint, fontStyle: "italic" }}>No description.</div>
+                        : <div style={{ fontSize: 11, fontFamily: FONT_BODY, color: T.sidebarTextFaint, fontStyle: "italic" }}>{t("library.noDescription")}</div>
                       }
 
                       {/* Book name */}
@@ -523,29 +552,29 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                           data-testid="action-play"
                           onClick={e => { e.stopPropagation(); onPlay(quest); }}
                           style={{ minHeight: 34, background: T.accent, border: `1px solid ${T.accentGold}`, color: "#fff", fontFamily: FONT_HEADING, fontSize: 10, padding: "4px 12px", cursor: "pointer" }}
-                        >⚔ Play</button>
+                        >{t("common.play")}</button>
                         <button
                           data-testid="action-edit"
                           onClick={e => { e.stopPropagation(); onEdit(quest); }}
                           style={{ minHeight: 34, background: T.sidebarBtnBg, border: `1px solid ${T.sidebarBtnBorder}`, color: T.sidebarBtnText, fontFamily: FONT_HEADING, fontSize: 10, padding: "4px 10px", cursor: "pointer" }}
-                        >✎ Edit</button>
+                        >{t("common.edit")}</button>
                         <button
                           data-testid="action-delete"
                           onClick={e => { e.stopPropagation(); handleDeleteQuest(quest.id); }}
                           style={{ minHeight: 34, background: T.sidebarBtnBg, border: `1px solid ${T.sidebarBtnBorder}`, color: T.accent, fontFamily: FONT_HEADING, fontSize: 10, padding: "4px 8px", cursor: "pointer" }}
-                          title="Delete quest"
-                        >× Delete</button>
+                          title={t("library.deleteQuestTitle")}
+                        >× {t("common.delete")}</button>
                         <button
                           data-testid="action-export"
                           onClick={e => { e.stopPropagation(); handleExportQuest(quest); }}
                           style={{ minHeight: 34, background: T.sidebarBtnBg, border: `1px solid ${T.sidebarBtnBorder}`, color: T.sidebarBtnText, fontFamily: FONT_HEADING, fontSize: 10, padding: "4px 8px", cursor: "pointer" }}
-                          title="Export quest as JSON"
+                          title={t("library.exportQuestTitle")}
                         >⬇</button>
                         <button
                           data-testid="action-assign"
                           onClick={e => { e.stopPropagation(); setAssigningQuest(quest); }}
                           style={{ minHeight: 34, background: T.sidebarBtnBg, border: `1px solid ${T.sidebarBtnBorder}`, color: T.sidebarBtnText, fontFamily: FONT_HEADING, fontSize: 10, padding: "4px 8px", cursor: "pointer" }}
-                          title="Assign to quest book"
+                          title={t("library.assignQuestTitle")}
                         >☰</button>
                       </div>
                     </div>

@@ -4,6 +4,7 @@ import { render, cleanup, fireEvent } from "@testing-library/react";
 import QuestLibrary from "./QuestLibrary.jsx";
 import { T, FONT_HEADING } from "../../shared/theme.js";
 import * as storage from "../../shared/questStorage.js";
+import { renderWithI18n } from "../../test-utils/renderWithI18n.jsx";
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 
@@ -560,5 +561,55 @@ describe("QuestLibrary New Book dialog — fresh state on reopen", () => {
     fireEvent.click(getByText("Cancel"));
     fireEvent.click(getByText("＋ New Book"));
     expect(getByPlaceholderText("Book title").value).toBe("");
+  });
+});
+
+// ── FEAT-040: Language switcher ───────────────────────────────────────────────
+
+describe("QuestLibrary language switcher", () => {
+  it("renders EN and ES segments", () => {
+    const { getByText } = renderWithI18n(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    expect(getByText("EN")).toBeTruthy();
+    expect(getByText("ES")).toBeTruthy();
+  });
+
+  it("clicking ES switches visible text to Spanish and persists to localStorage", () => {
+    const { getByText, getByTestId } = renderWithI18n(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    expect(getByTestId("library-heading").textContent).toBe("HeroQuest — Quest Library");
+    fireEvent.click(getByText("ES"));
+    expect(getByTestId("library-heading").textContent).toBe("HeroQuest — Biblioteca de Misiones");
+    expect(localStorage.getItem("hq_locale")).toBe("es");
+  });
+
+  it("starting in Spanish (seeded locale) renders Spanish text", () => {
+    const { getByTestId } = renderWithI18n(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />,
+      { locale: "es" }
+    );
+    expect(getByTestId("library-heading").textContent).toBe("HeroQuest — Biblioteca de Misiones");
+  });
+
+  it("delete button text switches between English and Spanish", () => {
+    storage.createQuest({ title: "Test Quest", description: "", questBookId: null });
+    const { getByText, getByTestId } = renderWithI18n(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    expect(getByTestId("action-delete").textContent).toBe("× Delete");
+    fireEvent.click(getByText("ES"));
+    expect(getByTestId("action-delete").textContent).toBe("× Eliminar");
+  });
+
+  it("new-badge text switches between English and Spanish", () => {
+    storage.createQuest({ title: "Fresh Quest", description: "", questBookId: null });
+    const { getByText, getByTestId } = renderWithI18n(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    expect(getByTestId("new-badge").textContent).toBe("New");
+    fireEvent.click(getByText("ES"));
+    expect(getByTestId("new-badge").textContent).toBe("Nuevo");
   });
 });
