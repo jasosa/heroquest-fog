@@ -31,7 +31,17 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
 
   const importInputRef = useRef(null);
   const thumbRefs = useRef({});
-  const [importError, setImportError] = useState("");
+  // Stores an error *code*, not a resolved message, so the displayed text
+  // stays correctly translated if the user switches locale after a failed
+  // import (see handleImportFile / importErrorMessage below).
+  const [importErrorCode, setImportErrorCode] = useState(null);
+  const importErrorMessage = importErrorCode === "MISSING_REQUIRED_FIELDS"
+    ? t("library.importErrorMissingFields")
+    : importErrorCode === "MALFORMED_JSON"
+      ? t("library.importErrorMalformedJson")
+      : importErrorCode === "OTHER"
+        ? t("library.importFailedFallback")
+        : "";
 
   const [editingBook, setEditingBook]   = useState(null);
   const [assigningQuest, setAssigningQuest] = useState(null);
@@ -166,9 +176,13 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
       try {
         const quest = importQuestFromJson(ev.target.result, selectedBookId);
         setQuests(prev => [...prev, quest]);
-        setImportError("");
+        setImportErrorCode(null);
       } catch (err) {
-        setImportError(err.message ?? t("library.importFailedFallback"));
+        if (err.code === "MISSING_REQUIRED_FIELDS" || err.code === "MALFORMED_JSON") {
+          setImportErrorCode(err.code);
+        } else {
+          setImportErrorCode("OTHER");
+        }
       }
     };
     reader.readAsText(file);
@@ -297,14 +311,14 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           )}
           <input type="file" accept=".json" ref={importInputRef} className="d-none" onChange={handleImportFile} />
           <button
-            onClick={() => { setImportError(""); importInputRef.current.click(); }}
+            onClick={() => { setImportErrorCode(null); importInputRef.current.click(); }}
             className="btn btn-hq-dark w-100 mb-2"
           >
             {t("library.importQuest")}
           </button>
-          {importError && (
+          {importErrorMessage && (
             <div className="alert alert-danger py-1 px-2 mb-2" style={{ fontSize: 10 }}>
-              {importError}
+              {importErrorMessage}
             </div>
           )}
 

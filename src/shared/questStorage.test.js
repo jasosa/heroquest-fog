@@ -302,9 +302,28 @@ describe("importQuestFromJson", () => {
     expect(() => importQuestFromJson("not json", null)).toThrow();
   });
 
+  it("throws malformed JSON with a stable MALFORMED_JSON code", () => {
+    try {
+      importQuestFromJson("not json", null);
+      throw new Error("expected importQuestFromJson to throw");
+    } catch (err) {
+      expect(err.code).toBe("MALFORMED_JSON");
+    }
+  });
+
   it("throws when title is missing", () => {
     const json = JSON.stringify({ description: "", placed: {}, doors: {} });
     expect(() => importQuestFromJson(json, null)).toThrow("Invalid quest file");
+  });
+
+  it("throws missing-fields error with a stable MISSING_REQUIRED_FIELDS code", () => {
+    const json = JSON.stringify({ description: "", placed: {}, doors: {} });
+    try {
+      importQuestFromJson(json, null);
+      throw new Error("expected importQuestFromJson to throw");
+    } catch (err) {
+      expect(err.code).toBe("MISSING_REQUIRED_FIELDS");
+    }
   });
 
   it("throws when placed is missing", () => {

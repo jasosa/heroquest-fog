@@ -612,4 +612,25 @@ describe("QuestLibrary language switcher", () => {
     fireEvent.click(getByText("ES"));
     expect(getByTestId("new-badge").textContent).toBe("Nuevo");
   });
+
+  it("import error text is translated based on selected locale", () => {
+    const { container, getByText } = renderWithI18n(
+      <QuestLibrary onPlay={() => {}} onEdit={() => {}} onCalibrate={() => {}} />
+    );
+    const OriginalFileReader = globalThis.FileReader;
+    globalThis.FileReader = class {
+      readAsText() {
+        this.onload({ target: { result: JSON.stringify({ description: "no title, no placed/doors" }) } });
+      }
+    };
+    const badFile = new File(["ignored"], "bad.json", { type: "application/json" });
+    const input = container.querySelector('input[type="file"]');
+    fireEvent.change(input, { target: { files: [badFile] } });
+    expect(container.textContent).toContain("Invalid quest file — missing required fields.");
+
+    fireEvent.click(getByText("ES"));
+    expect(container.textContent).toContain("Archivo de misión no válido — faltan campos obligatorios.");
+
+    globalThis.FileReader = OriginalFileReader;
+  });
 });

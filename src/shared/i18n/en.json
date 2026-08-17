@@ -26,6 +26,8 @@
     "confirmDeleteBook": "Delete this book and all its quests?",
     "confirmDeleteQuest": "Delete this quest?",
     "importFailedFallback": "Failed to import quest.",
+    "importErrorMissingFields": "Invalid quest file — missing required fields.",
+    "importErrorMalformedJson": "Invalid quest file — malformed JSON.",
     "languageSwitcherLabel": "Select language",
     "newBadge": "New"
   },

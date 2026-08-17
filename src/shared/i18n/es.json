@@ -26,6 +26,8 @@
     "confirmDeleteBook": "¿Eliminar este libro y todas sus misiones?",
     "confirmDeleteQuest": "¿Eliminar esta misión?",
     "importFailedFallback": "No se pudo importar la misión.",
+    "importErrorMissingFields": "Archivo de misión no válido — faltan campos obligatorios.",
+    "importErrorMalformedJson": "Archivo de misión no válido — JSON con formato incorrecto.",
     "languageSwitcherLabel": "Seleccionar idioma",
     "newBadge": "Nuevo"
   },
