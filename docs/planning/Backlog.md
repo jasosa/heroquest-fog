@@ -80,12 +80,6 @@ Description: The edit affordance buttons on placed pieces (pencil for note/searc
 Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented — the monster special-note button is a white circular ★ badge top-right of the piece; the chest button is a red/crimson triangular ⚠ badge in a different position and shape. Still structurally inconsistent.
 
 
-### [FEAT-041] Quest content internationalization (multi-language quest texts)
-Priority: medium
-Status: in_progress
-Complexity: high
-Description: When creating/editing a quest, the DM should be able to provide quest text — title, description, placement message, letter-marker notes, search-marker/secret-door messages, trap/chest notes, etc. — in multiple languages, not just a single hardcoded string per field as today. This is quest content (persisted per-quest in `questStorage.js`'s `hq_quests`/`hq_quest_books` collections), authored by the DM, not application chrome — distinct from FEAT-040 (application UI language). Requires a data-model change (e.g. per-field text becoming `{ en: "...", es: "...", ... }` instead of a bare string, with migration for existing single-language quests — see `migrateQuests()` precedent), editor UI to add/manage additional languages per quest/quest-book, and play/edit-mode rendering logic to select the display language per quest text. Open design question for the `architect`/`ux` subagents to resolve: whether quest-text language selection reuses the same global "current display language" as FEAT-040, or is independent per quest/session. Given the data-model and UI scope, this should go through the `architect` subagent first (complexity: high) before planning.
-
 ---
 
 ## Done
@@ -549,6 +543,24 @@ Went through four Review Cycle iterations, three of which each found one more un
 Reviewer's follow-up suggestion (not opened as a separate item): a project-wide grep sweep (`grep -rn '>[A-Z][a-z]' src/features/`) once more of the app is migrated, since manual full-file review proved unreliable for catching every string in a single pass on this migration.
 
 Implemented 2026-08-17 via architect → ux → planner → swe → reviewer (4 iterations) pipeline. 758/758 tests passing (54 new), lint clean.
+
+### [FEAT-041] Quest content internationalization (multi-language quest texts)
+Priority: medium
+Status: done
+Complexity: high
+Description: When creating/editing a quest, the DM should be able to provide quest text — title, description, placement message, letter-marker notes, search-marker/secret-door messages, trap/chest notes, etc. — in multiple languages, not just a single hardcoded string per field as today. This is quest content (persisted per-quest in `questStorage.js`'s `hq_quests`/`hq_quest_books` collections), authored by the DM, not application chrome — distinct from FEAT-040 (application UI language).
+
+Implementation: additive `translations` model, not a breaking schema change — `Quest.title`/`description`/`placementMessage` and `QuestBook.title`/`description` stay plain strings (the "Original" content, whatever language the DM originally typed); a new optional `translations?: { en?: {...}, es?: {...} }` sub-object holds DM-authored overrides. Absence is valid/default, so no migration was needed for existing quests, and every existing plain-string test fixture kept working unmodified. A pure resolver (`src/shared/questText.js`) handles fallback: `resolveText(entity, field, locale) = entity.translations?.[locale]?.[field] ?? entity[field]`.
+
+`useGameState`'s `questTitle`/`questDescription`/`questPlacementMessage` became derived values (not raw state) driven by a new `contentLocale` selection — deliberately independent from FEAT-040's app-UI `locale`/`useI18n()` (a DM's UI language preference and which language their quest text displays in are genuinely different axes). Edit mode shows the raw per-locale translation input (empty if none yet, never silently falls back — translation fields are meant to look obviously untranslated); Play mode resolves with silent fallback to Original. `contentLocale` defaults to `"original"` in Edit mode regardless of app UI language (so opening any existing quest doesn't show blank fields), and from the app's current UI language in Play mode (so the display-language default actually matches the point of the feature).
+
+New shared `ContentLocaleTabs` component (`Original | EN | ES`, with per-language "has content" indicator dots) used in the Sidebar's Quest Info panel (both modes) and `EditQuestBookDialog` — deliberately extracted as shared, unlike FEAT-040's precedent of duplicating near-trivial switcher JSX, because this control has real shared behavior (active-tab state, mode-dependent caption, content dots). `QuestLibrary` gets a separate, differently-shaped 2-pill `EN | ES` reader control (no "Original" pill, rounded buttons vs. the app-UI switcher's square ones, "Quest text:" label) governing the whole card grid and the quest-book nav list at once.
+
+Also fixed a real data-loss bug found along the way: `importQuestFromJson`'s explicit field allowlist was missing `translations`, so a DM's translated content would silently vanish on export→import.
+
+Went through architect → ux → planner → swe → reviewer, plus one user-confirmed refinement mid-plan (mode-specific `contentLocale` default seeding, to avoid Edit mode showing blank fields for DMs whose app UI isn't set to "Original"). Approved on first review pass — 849/849 tests passing (91 new), lint clean, pre-existing test files confirmed genuinely unmodified (only additions).
+
+Non-blocking follow-ups noted by review, not opened as separate items unless requested: the `ContentLocaleTabs` pills could use an explicit `aria-label` per language for screen readers (visible text is uppercased via CSS but the underlying DOM text is lowercase `en`/`es`, to stay distinguishable from FEAT-040's existing `EN`/`ES` test assertions); `QuestLibrary`'s reader control defaults to English rather than seeding from `useI18n().locale` like the in-game one does.
 
 ### [FEAT-CALIB] Map calibration subsystem
 Priority: medium
