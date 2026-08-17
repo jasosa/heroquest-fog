@@ -85,6 +85,15 @@ Status: in_progress
 Complexity: high
 Description: The application's own UI chrome — Quest Library, Sidebar, dialogs, buttons, labels, tooltips, section headers, error/status messages, etc. — should support English and Spanish, built on a maintainable internationalization system (structured translation keys / a lightweight i18n library, not hardcoded strings scattered across ~40+ components as today) so additional languages can be added later without a rewrite. Add a language switcher (persisted, e.g. in `localStorage`, alongside the existing `hq_calibration`/`hq_quests`/`hq_quest_books` keys) letting the user pick English or Spanish for the app UI. Distinct from FEAT-041 (quest content translation) — this item covers only the application's own interface text, not DM-authored quest content. Given the scope (every component with visible text needs to move off hardcoded strings), this should go through the `architect` subagent first (complexity: high) to settle the i18n approach (library choice or hand-rolled key/lookup convention, where translation dictionaries live, how components consume them) before planning.
 
+**Stuck after 3 review iterations (2026-08-17) — flagged per CLAUDE.md, not auto-continuing a 4th fix cycle.** Architecture (hand-rolled `t()`/`I18nProvider`, no new dependency) and scope (fully migrate `QuestLibrary.jsx` + `Sidebar.jsx` + `TrapConfigDialog.jsx` as a representative slice, rest deferred) were approved and implemented; 755/755 tests passing, lint clean, infrastructure and interpolation mechanism verified sound. Work is committed on branch `feat/FEAT-040` (pushed, not merged) — three successive review passes each found one more untranslated string in `QuestLibrary.jsx` specifically:
+1. Quest-card "Delete" button visible label (fixed — `common.delete`)
+2. "New" badge on recently-created quest cards (fixed — `library.newBadge`)
+3. **Unresolved:** the quest-import error message is structurally unreachable for translation — `questStorage.js`'s `importQuestFromJson` throws a hardcoded English `Error`, and `QuestLibrary.jsx`'s `err.message ?? t("library.importFailedFallback")` always short-circuits on the truthy `err.message` before ever reaching the translated fallback, so the one translated key added for this path is dead code. Needs an error-code-based fix (throw a stable code from `questStorage.js`, map it through `t()` at the catch site) rather than another string swap — a small architectural tweak, not just a missed transcription this time.
+
+Reviewer's own suggestion: a project-wide grep sweep (`grep -rn '>[A-Z][a-z]' src/features/`) once this closes out, as the pattern of "one more string found per pass" suggests manual full-file review isn't fully reliable for this kind of migration.
+
+Not blocking other backlog work — continuing with other items while this awaits a decision on whether to invest a 4th (structural, not just transcription) fix cycle.
+
 ### [FEAT-041] Quest content internationalization (multi-language quest texts)
 Priority: medium
 Status: not_started
