@@ -7,6 +7,7 @@ import { placeNoteMarker, updateNoteMarker, setMonsterSpecial, setChestTrap, set
 import { isTrapPiece } from "../../shared/pieces.js";
 import { moveSearchMarker, normalizeSearchNotes, removeSearchMarker } from "../board/searchMarkers.js";
 import { placeSecretDoorMarker, removeSecretDoorMarker, linkSecretDoor, setSecretDoorMessage, resolveSecretDoorSearch } from "../board/secretDoorMarkers.js";
+import { resolveText, setTranslationField } from "../../shared/questText.js";
 
 export const SEARCH_MAX = 4;
 
@@ -109,7 +110,7 @@ export function useLatest(value) {
 // ═══════════════════════════════════════════════
 //  GAME STATE HOOK
 // ═══════════════════════════════════════════════
-export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSearchMarkers = null, initialSearchNotes = null, initialSecretDoorMarkers = null, initialMode = "play", initialTitle = "Untitled Quest", initialDescription = "", initialPlacementMessage } = {}) {
+export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSearchMarkers = null, initialSearchNotes = null, initialSecretDoorMarkers = null, initialMode = "play", initialTitle = "Untitled Quest", initialDescription = "", initialPlacementMessage, initialTranslations = {}, initialContentLocale = "original" } = {}) {
   // rerender-lazy-state-init: pass a function so new Set() runs only once,
   // not on every render.
   const [fog, setFog]             = useState(() => new Set());
@@ -119,8 +120,17 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const [tool, setTool]           = useState("goblin");
   const [rotation, setRotation]   = useState(0);
   const [lastClick, setLastClick] = useState(null);
-  const [questTitle, setQuestTitle]             = useState(initialTitle);
-  const [questDescription, setQuestDescription] = useState(initialDescription);
+  // FEAT-041: quest content internationalization. The Original stash is what
+  // actually gets persisted as Quest.title/description/placementMessage;
+  // questTranslations holds in-progress edits for BOTH en/es simultaneously
+  // so switching tabs never loses unsaved work in the tab being left.
+  // questTitle/questDescription/questPlacementMessage below are DERIVED —
+  // computed fresh each render from contentLocale + mode + these two stashes
+  // — never stored directly, see the getters after handleCellRotate.
+  const [questTitleOriginal, setQuestTitleOriginal]                     = useState(initialTitle);
+  const [questDescriptionOriginal, setQuestDescriptionOriginal]         = useState(initialDescription);
+  const [questTranslations, setQuestTranslations] = useState(() => initialTranslations ?? {});
+  const [contentLocale, setContentLocale] = useState(initialContentLocale);
   const [saveError, setSaveError]               = useState(null);
   const [pendingRoomReveal, setPendingRoomReveal] = useState(null); // {r,c}|null
 
@@ -159,8 +169,8 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
   const [pendingSecretDoorEdit, setPendingSecretDoorEdit] = useState(null); // {cellKey}|null
   const [pendingSecretDoorResult, setPendingSecretDoorResult] = useState(null); // {action,doorKey?,text?}|null
 
-  // Hero placement popup
-  const [questPlacementMessage, setQuestPlacementMessage] = useState(initialPlacementMessage ?? "Place your heroes in the stairway");
+  // Hero placement popup — Original stash (see FEAT-041 comment above).
+  const [questPlacementMessageOriginal, setQuestPlacementMessageOriginal] = useState(initialPlacementMessage ?? "Place your heroes in the stairway");
   const [hasShownPlacementPopup, setHasShownPlacementPopup] = useState(false);
   const [pendingPlacementPopup, setPendingPlacementPopup] = useState(false);
   const hasShownPlacementPopupRef = useLatest(hasShownPlacementPopup);
@@ -586,10 +596,47 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     if (mode !== "play") setPendingRoomReveal(null);
   }, [mode]);
 
+  // ─── FEAT-041: derived quest text getters + routing setters ──────────────
+  // Computed fresh every render (not stored, not effect-driven) from
+  // contentLocale + mode + the Original/translations state — see the
+  // comment near questTitleOriginal above.
+  function getDerivedQuestField(fieldKey, originalValue) {
+    if (contentLocale === "original") return originalValue;
+    if (mode === "edit") {
+      // Raw, in-progress translation input — never falls back to Original;
+      // translation fields start empty, per UX.
+      return questTranslations[contentLocale]?.[fieldKey] ?? "";
+    }
+    // Play mode: resolved read, silently falls back to Original when absent.
+    return resolveText({ [fieldKey]: originalValue, translations: questTranslations }, fieldKey, contentLocale);
+  }
+
+  function routeQuestFieldSetter(fieldKey, setOriginal, value) {
+    if (contentLocale === "original") {
+      setOriginal(value);
+    } else {
+      setQuestTranslations(prev => setTranslationField(prev, contentLocale, fieldKey, value));
+    }
+  }
+
+  const questTitle       = getDerivedQuestField("title", questTitleOriginal);
+  const questDescription = getDerivedQuestField("description", questDescriptionOriginal);
+  const questPlacementMessage = getDerivedQuestField("placementMessage", questPlacementMessageOriginal);
+
+  const setQuestTitle       = (value) => routeQuestFieldSetter("title", setQuestTitleOriginal, value);
+  const setQuestDescription = (value) => routeQuestFieldSetter("description", setQuestDescriptionOriginal, value);
+  const setQuestPlacementMessage = (value) => routeQuestFieldSetter("placementMessage", setQuestPlacementMessageOriginal, value);
+
   return {
     fog, placed, doors, mode, tool, rotation, setRotation, lastClick,
     setMode, setTool: handleSetTool, handleCell, handleCellRotate, resetFog,
     questTitle, setQuestTitle, questDescription, setQuestDescription,
+    // Original stash values — always the source-of-truth for persistence,
+    // regardless of which contentLocale tab is currently active. Callers
+    // (GameScreen's handleSave) MUST use these, never the derived getters
+    // above, to build the persisted quest payload.
+    questTitleOriginal, questDescriptionOriginal, questPlacementMessageOriginal,
+    questTranslations, contentLocale, setContentLocale,
     saveError, setSaveError,
     pendingRoomReveal, confirmPendingReveal, cancelPendingReveal,
     // Note markers
@@ -622,4 +669,5 @@ export function useGameState({ initialPlaced = {}, initialDoors = {}, initialSea
     questPlacementMessage, setQuestPlacementMessage,
     pendingPlacementPopup, dismissPlacementPopup,
   };
+
 }

@@ -6,6 +6,7 @@ import {
   updateQuestBook,
   loadQuestBooks,
   createQuest,
+  persistQuest,
   loadQuests,
   migrateQuests,
 } from "./questStorage.js";
@@ -341,5 +342,69 @@ describe("importQuestFromJson", () => {
     const q1 = importQuestFromJson(json, null);
     const q2 = importQuestFromJson(json, null);
     expect(q1.id).not.toBe(q2.id);
+  });
+});
+
+// ── FEAT-041: translations ──────────────────────────────────────────────────
+describe("importQuestFromJson translations", () => {
+  it("preserves the translations object when present in the source JSON", () => {
+    const json = JSON.stringify({
+      title: "Q",
+      description: "",
+      placed: {},
+      doors: {},
+      translations: { en: { title: "EN Title" }, es: { title: "ES Title" } },
+    });
+    const quest = importQuestFromJson(json, null);
+    expect(quest.translations).toEqual({ en: { title: "EN Title" }, es: { title: "ES Title" } });
+  });
+
+  it("omits the translations key entirely (not undefined-valued) when absent from the source JSON", () => {
+    const json = JSON.stringify({ title: "Q", description: "", placed: {}, doors: {} });
+    const quest = importQuestFromJson(json, null);
+    expect(Object.prototype.hasOwnProperty.call(quest, "translations")).toBe(false);
+  });
+});
+
+describe("exportQuestAsJson / importQuestFromJson round-trip — translations", () => {
+  it("survives a full export -> import round-trip, with a fresh id", () => {
+    const original = {
+      id: "orig-id",
+      questBookId: "book1",
+      createdAt: 1,
+      updatedAt: 2,
+      title: "Round Trip Quest",
+      description: "desc",
+      placed: {},
+      doors: {},
+      translations: {
+        en: { title: "EN Title", description: "EN Desc" },
+        es: { title: "ES Title" },
+      },
+    };
+    const json = exportQuestAsJson(original);
+    const imported = importQuestFromJson(json, "book2");
+    expect(imported.translations).toEqual(original.translations);
+    expect(imported.id).not.toBe(original.id);
+  });
+});
+
+describe("persistQuest translations pass-through (guard rail — no code change expected)", () => {
+  it("persists a translations field via the existing spread", () => {
+    const quest = createQuest({ title: "Q" });
+    const withTranslations = { ...quest, translations: { en: { title: "EN" } } };
+    const saved = persistQuest(withTranslations);
+    expect(saved.translations).toEqual({ en: { title: "EN" } });
+    const stored = loadQuests().find(q => q.id === quest.id);
+    expect(stored.translations).toEqual({ en: { title: "EN" } });
+  });
+});
+
+describe("updateQuestBook translations pass-through (guard rail — no code change expected)", () => {
+  it("persists a translations field via the existing spread", () => {
+    const book = createQuestBook("Book", "desc");
+    updateQuestBook(book.id, { translations: { es: { title: "ES Book Title" } } });
+    const stored = loadQuestBooks().find(b => b.id === book.id);
+    expect(stored.translations).toEqual({ es: { title: "ES Book Title" } });
   });
 });

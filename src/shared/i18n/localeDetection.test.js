@@ -5,10 +5,17 @@ import {
   readStoredLocale,
   writeStoredLocale,
   resolveInitialLocale,
+  ALLOWED_LOCALES,
 } from "./localeDetection.js";
 
 afterEach(() => {
   localStorage.clear();
+});
+
+describe("ALLOWED_LOCALES", () => {
+  it("exports the closed locale set [\"en\", \"es\"], reusable as the content-locale set", () => {
+    expect(ALLOWED_LOCALES).toEqual(["en", "es"]);
+  });
 });
 
 describe("detectBrowserLocale", () => {

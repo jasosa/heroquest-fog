@@ -20,9 +20,17 @@ import { NewQuestDialog } from "./NewQuestDialog.jsx";
 import { NewQuestBookDialog } from "./NewQuestBookDialog.jsx";
 import { assignQuestToBook } from "./assignQuestBook.js";
 import { useI18n } from "../../shared/i18n/useI18n.js";
+import { resolveText } from "../../shared/questText.js";
 
 export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
+  // Three genuinely separate locale-ish pieces of state — kept distinctly
+  // named to avoid collisions: `locale` is the app-chrome UI language
+  // (useI18n()); `libraryContentLocale` is this reader control's own
+  // independent choice of which DM-authored quest text (en/es) to display,
+  // unrelated to `locale` and unrelated to in-game useGameState's
+  // `contentLocale` (edit/play mode quest-content switcher).
   const { locale, setLocale, t } = useI18n();
+  const [libraryContentLocale, setLibraryContentLocale] = useState("en");
   const [books, setBooks]           = useState(() => loadQuestBooks());
   const [quests, setQuests]         = useState(() => loadQuests());
   const [selectedBookId, setSelectedBookId] = useState(null);
@@ -121,9 +129,12 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
     if (selectedBookId === id) setSelectedBookId(null);
   }
 
-  function handleSaveEditBook(title, description, coverImage) {
-    updateQuestBook(editingBook.id, { title, description, coverImage });
-    setBooks(prev => prev.map(b => b.id === editingBook.id ? { ...b, title, description, coverImage } : b));
+  function handleSaveEditBook(title, description, coverImage, translations) {
+    const changes = translations !== undefined
+      ? { title, description, coverImage, translations }
+      : { title, description, coverImage };
+    updateQuestBook(editingBook.id, changes);
+    setBooks(prev => prev.map(b => b.id === editingBook.id ? { ...b, ...changes } : b));
     setEditingBook(null);
   }
 
@@ -190,9 +201,18 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
   }
 
   // ── Derived values ─────────────────────────────────────────────────────────
+  // FEAT-041: resolves DM-authored quest/book text through the reader
+  // control's own libraryContentLocale — falls back silently to Original
+  // when no translation exists for the selected locale.
+  function resolvedTitle(entity) { return resolveText(entity, "title", libraryContentLocale); }
+  function resolvedDescription(entity) { return resolveText(entity, "description", libraryContentLocale); }
+
   const selectedBookName = selectedBookId === null
     ? t("library.allQuests")
-    : books.find(b => b.id === selectedBookId)?.title ?? "";
+    : (() => {
+        const book = books.find(b => b.id === selectedBookId);
+        return book ? resolvedTitle(book) : "";
+      })();
 
   const selectedQuestBook = selectedQuest
     ? books.find(b => b.id === selectedQuest.questBookId) ?? null
@@ -209,6 +229,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
           initialTitle={editingBook.title}
           initialDescription={editingBook.description}
           initialCoverImage={editingBook.coverImage ?? null}
+          initialTranslations={editingBook.translations ?? {}}
           onSave={handleSaveEditBook}
           onCancel={() => setEditingBook(null)}
         />
@@ -272,7 +293,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
               style={{ fontWeight: selectedBookId === book.id ? "bold" : "normal", overflow: "hidden" }}
             >
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {book.title}
+                {resolvedTitle(book)}
               </span>
               <span style={{ fontSize: 10, opacity: 0.7, flexShrink: 0 }}>
                 ({bookQuestCount(book.id)})
@@ -407,6 +428,33 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                 {t("library.newQuest")}
               </button>
             )}
+            {/* FEAT-041: quest-content reader control — resolves DM-authored
+                quest/book text (Original vs a translation) for display only.
+                Distinct in both purpose and shape (rounded pills, vs the
+                app-chrome switcher's square 30x30 buttons) from the
+                language switcher immediately to its right. */}
+            <div
+              role="group"
+              aria-label={t("library.contentLocaleSwitcherLabel")}
+              style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: 8, paddingLeft: 8, borderLeft: `1px solid ${T.sidebarDivider}` }}
+            >
+              <span style={{ fontSize: 11, color: T.sidebarTextMuted, whiteSpace: "nowrap" }}>
+                {t("library.contentLocaleLabel")}
+              </span>
+              {["en", "es"].map(loc => (
+                <button
+                  key={loc}
+                  onClick={() => setLibraryContentLocale(loc)}
+                  style={{
+                    padding: "4px 12px", borderRadius: 999,
+                    background: libraryContentLocale === loc ? T.sidebarBtnActiveBg : T.sidebarBtnBg,
+                    border: `1px solid ${libraryContentLocale === loc ? T.sidebarBtnActiveBdr : T.sidebarBtnBorder}`,
+                    color: libraryContentLocale === loc ? T.sidebarBtnActiveText : T.sidebarTitle,
+                    fontSize: 10, textTransform: "uppercase", cursor: "pointer", flexShrink: 0,
+                  }}
+                >{loc}</button>
+              ))}
+            </div>
             {/* Language switcher */}
             <div
               role="group"
@@ -461,6 +509,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                 const thumbBook = books.find(b => b.id === quest.questBookId) ?? null;
                 const thumbIsNew = quest.createdAt && Date.now() - quest.createdAt < 7 * 24 * 3600 * 1000;
                 const hasBg = !!panelBook?.coverImage;
+                const resolvedDesc = resolvedDescription(quest);
                 return (
                   <div
                     key={quest.id}
@@ -510,7 +559,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                             transition: "color 0.15s",
                           }}
                         >
-                          {quest.title}
+                          {resolvedTitle(quest)}
                         </div>
                         <div
                           data-testid="quest-badges"
@@ -537,15 +586,15 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                       </div>
 
                       {/* Description */}
-                      {quest.description
+                      {resolvedDesc
                         ? <div
                             data-testid="quest-description"
                             style={{ fontSize: 11, fontFamily: FONT_BODY, color: T.sidebarText, lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", cursor: "help" }}
-                            onMouseEnter={e => setDescTooltip({ x: e.clientX, y: e.clientY, content: quest.description, below: e.clientY < window.innerHeight / 2, rightAlign: e.clientX > window.innerWidth / 2 })}
+                            onMouseEnter={e => setDescTooltip({ x: e.clientX, y: e.clientY, content: resolvedDesc, below: e.clientY < window.innerHeight / 2, rightAlign: e.clientX > window.innerWidth / 2 })}
                             onMouseMove={e => setDescTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY, below: e.clientY < window.innerHeight / 2, rightAlign: e.clientX > window.innerWidth / 2 } : null)}
                             onMouseLeave={() => setDescTooltip(null)}
                           >
-                            {quest.description}
+                            {resolvedDesc}
                           </div>
                         : <div style={{ fontSize: 11, fontFamily: FONT_BODY, color: T.sidebarTextFaint, fontStyle: "italic" }}>{t("library.noDescription")}</div>
                       }
@@ -553,7 +602,7 @@ export default function QuestLibrary({ onPlay, onEdit, onCalibrate }) {
                       {/* Book name */}
                       {thumbBook && (
                         <div style={{ fontSize: 10, color: T.sidebarTextMuted, fontFamily: FONT_BODY, fontStyle: "italic", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                          {thumbBook.title}
+                          {resolvedTitle(thumbBook)}
                         </div>
                       )}
 

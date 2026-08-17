@@ -25,6 +25,7 @@ import { ChestResultPopup } from "../board/ChestResultPopup.jsx";
 import { ChestConfigDialog } from "../board/ChestConfigDialog.jsx";
 import { TrapInteractionPopup } from "../board/TrapInteractionPopup.jsx";
 import { TrapConfigDialog } from "../board/TrapConfigDialog.jsx";
+import { useI18n } from "../../shared/i18n/useI18n.js";
 
 const BOARD_W = COLS * CELL;
 const BOARD_H = ROWS * CELL;
@@ -168,16 +169,26 @@ function BoardArea({ fog, placed, doors, searchMarkers, searchNotes, searchedCou
 //  GAME SCREEN
 // ═══════════════════════════════════════════════
 export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
+  const { locale } = useI18n();
+  const resolvedInitialMode = initialMode ?? "play";
+  // FEAT-041: contentLocale's default seed is mode-specific — edit mode
+  // always starts at "original" (a DM opening the editor should see their
+  // existing quest content immediately, not blank translation fields), while
+  // play mode seeds from the app's current UI language (falling back
+  // silently to Original when no translation exists for it).
+  const initialContentLocale = resolvedInitialMode === "edit" ? "original" : locale;
   const gameState = useGameState({
     initialPlaced: quest?.placed ?? {},
     initialDoors: quest?.doors ?? {},
     initialSearchMarkers: quest?.searchMarkers ?? null,
     initialSearchNotes: quest?.searchNotes ?? null,
     initialSecretDoorMarkers: quest?.secretDoorMarkers ?? null,
-    initialMode: initialMode ?? "play",
+    initialMode: resolvedInitialMode,
     initialTitle: quest?.title ?? "Untitled Quest",
     initialDescription: quest?.description ?? "",
     initialPlacementMessage: quest?.placementMessage ?? "",
+    initialTranslations: quest?.translations ?? {},
+    initialContentLocale,
   });
   const savedStateRef = useRef(stableStringify({
     placed: quest?.placed ?? {},
@@ -381,9 +392,15 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
     gameState.setSaveError(null);
     const updated = {
       ...quest,
-      title: gameState.questTitle,
-      description: gameState.questDescription,
-      placementMessage: gameState.questPlacementMessage,
+      // FEAT-041: MUST use the Original stash values, never the derived/
+      // pill-resolved gameState.questTitle etc. — those reflect whichever
+      // contentLocale tab is currently active (possibly an EN/ES translation
+      // in progress, or blank), and persisting them would silently overwrite
+      // the quest's real title/description/placementMessage.
+      title: gameState.questTitleOriginal,
+      description: gameState.questDescriptionOriginal,
+      placementMessage: gameState.questPlacementMessageOriginal,
+      translations: gameState.questTranslations,
       placed: gameState.placed,
       doors: gameState.doors,
       searchMarkers: gameState.searchMarkers,
@@ -532,6 +549,9 @@ export function GameScreen({ quest, initialMode, onBack, onQuestSaved }) {
         setQuestDescription={gameState.setQuestDescription}
         placementMessage={gameState.questPlacementMessage}
         setQuestPlacementMessage={gameState.setQuestPlacementMessage}
+        contentLocale={gameState.contentLocale}
+        setContentLocale={gameState.setContentLocale}
+        questTranslations={gameState.questTranslations}
       />
 
       {/* Shared hover tooltip — fixed position, immune to overflow:hidden */}
