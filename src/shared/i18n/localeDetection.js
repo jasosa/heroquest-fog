@@ -1,7 +1,7 @@
 // Pure helpers isolating navigator/localStorage access from React.
 
 const STORAGE_KEY = "hq_locale";
-const ALLOWED_LOCALES = ["en", "es"];
+export const ALLOWED_LOCALES = ["en", "es"];
 
 export function detectBrowserLocale(navigatorLanguage) {
   if (typeof navigatorLanguage !== "string" || navigatorLanguage.length === 0) return "en";

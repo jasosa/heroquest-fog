@@ -142,6 +142,7 @@ export function importQuestFromJson(jsonString, questBookId = null) {
     searchNotes: data.searchNotes ?? {},
     secretDoorMarkers: data.secretDoorMarkers ?? {},
     placementMessage: data.placementMessage ?? "",
+    ...(data.translations !== undefined ? { translations: data.translations } : {}),
   });
 }
 

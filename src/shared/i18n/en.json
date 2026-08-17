@@ -29,7 +29,9 @@
     "importErrorMissingFields": "Invalid quest file — missing required fields.",
     "importErrorMalformedJson": "Invalid quest file — malformed JSON.",
     "languageSwitcherLabel": "Select language",
-    "newBadge": "New"
+    "newBadge": "New",
+    "contentLocaleLabel": "Quest text:",
+    "contentLocaleSwitcherLabel": "Select quest text language"
   },
   "sidebar": {
     "playIntro": "Click any dungeon cell to reveal what a hero standing there would see.",
@@ -64,5 +66,15 @@
       "removeAfterSpring": "Remove from board after spring",
       "applyToAll": "Apply to all {trapTypeLabel} traps in this quest"
     }
+  },
+  "contentLocale": {
+    "original": "Original",
+    "languageNameEn": "English",
+    "languageNameEs": "Spanish",
+    "editingOriginal": "Editing: Original text",
+    "editingTranslation": "Editing: {language} translation",
+    "showingOriginal": "Showing: Original text",
+    "showingTranslation": "Showing: {language} translation",
+    "noTranslationYetPlaceholder": "No {language} translation yet — type to add one"
   }
 }

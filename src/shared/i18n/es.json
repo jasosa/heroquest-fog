@@ -29,7 +29,9 @@
     "importErrorMissingFields": "Archivo de misión no válido — faltan campos obligatorios.",
     "importErrorMalformedJson": "Archivo de misión no válido — JSON con formato incorrecto.",
     "languageSwitcherLabel": "Seleccionar idioma",
-    "newBadge": "Nuevo"
+    "newBadge": "Nuevo",
+    "contentLocaleLabel": "Texto de la misión:",
+    "contentLocaleSwitcherLabel": "Seleccionar idioma del texto de la misión"
   },
   "sidebar": {
     "playIntro": "Haz clic en cualquier celda de la mazmorra para revelar lo que vería un héroe situado allí.",
@@ -64,5 +66,15 @@
       "removeAfterSpring": "Quitar del tablero tras activarse",
       "applyToAll": "Aplicar a todas las trampas de tipo {trapTypeLabel} en esta misión"
     }
+  },
+  "contentLocale": {
+    "original": "Original",
+    "languageNameEn": "Inglés",
+    "languageNameEs": "Español",
+    "editingOriginal": "Editando: texto original",
+    "editingTranslation": "Editando: traducción en {language}",
+    "showingOriginal": "Mostrando: texto original",
+    "showingTranslation": "Mostrando: traducción en {language}",
+    "noTranslationYetPlaceholder": "Aún no hay traducción en {language} — escribe para añadir una"
   }
 }

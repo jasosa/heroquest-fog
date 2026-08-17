@@ -705,3 +705,171 @@ describe("searchsecret tool in edit mode — no auto-popup", () => {
     expect(result.current.secretDoorMarkers["9,9"]).toEqual(markersBefore);
   });
 });
+
+// ═══════════════════════════════════════════════
+//  FEAT-041: quest content internationalization
+// ═══════════════════════════════════════════════
+describe("useGameState — contentLocale state", () => {
+  it("defaults contentLocale to 'original' when initialContentLocale is not provided", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    expect(result.current.contentLocale).toBe("original");
+  });
+
+  it("seeds contentLocale from initialContentLocale when provided", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialContentLocale: "es" }));
+    expect(result.current.contentLocale).toBe("es");
+  });
+
+  it("setContentLocale updates contentLocale", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    act(() => result.current.setContentLocale("en"));
+    expect(result.current.contentLocale).toBe("en");
+  });
+});
+
+describe("useGameState — derived questTitle/questDescription/questPlacementMessage: contentLocale='original'", () => {
+  it("questTitle is the Original stash value in play mode", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialTitle: "My Quest" }));
+    expect(result.current.questTitle).toBe("My Quest");
+  });
+
+  it("questTitle is the Original stash value in edit mode", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit", initialTitle: "My Quest" }));
+    expect(result.current.questTitle).toBe("My Quest");
+  });
+
+  it("questDescription is the Original stash value regardless of mode", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialDescription: "Desc" }));
+    expect(result.current.questDescription).toBe("Desc");
+  });
+
+  it("questPlacementMessage defaults to the standard sentence when not provided", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play" }));
+    expect(result.current.questPlacementMessage).toBe("Place your heroes in the stairway");
+  });
+
+  it("questPlacementMessage is the Original stash value when provided", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialPlacementMessage: "Start here" }));
+    expect(result.current.questPlacementMessage).toBe("Start here");
+  });
+});
+
+describe("useGameState — derived getters: edit mode + EN/ES contentLocale (raw, never falls back)", () => {
+  it("questTitle is empty string when no EN translation exists, even though Original has a title", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit", initialTitle: "Original Title" }));
+    act(() => result.current.setContentLocale("en"));
+    expect(result.current.questTitle).toBe("");
+  });
+
+  it("questTitle reflects the raw in-progress EN translation once typed", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit", initialTitle: "Original Title" }));
+    act(() => result.current.setContentLocale("en"));
+    act(() => result.current.setQuestTitle("EN Title"));
+    expect(result.current.questTitle).toBe("EN Title");
+  });
+
+  it("questDescription/questPlacementMessage are also empty (not falling back to Original) for ES with no translation", () => {
+    const { result } = renderHook(() => useGameState({
+      initialMode: "edit", initialDescription: "Orig Desc", initialPlacementMessage: "Orig Placement",
+    }));
+    act(() => result.current.setContentLocale("es"));
+    expect(result.current.questDescription).toBe("");
+    expect(result.current.questPlacementMessage).toBe("");
+  });
+});
+
+describe("useGameState — derived getters: play mode + EN/ES contentLocale (resolved, silent fallback)", () => {
+  it("questTitle falls back silently to Original when no ES translation exists", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "play", initialTitle: "Original Title" }));
+    act(() => result.current.setContentLocale("es"));
+    expect(result.current.questTitle).toBe("Original Title");
+  });
+
+  it("questTitle returns the resolved ES translation once one exists (authored via edit mode, then switched to play)", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit", initialTitle: "Original Title" }));
+    act(() => result.current.setContentLocale("es"));
+    act(() => result.current.setQuestTitle("Título ES"));
+    act(() => result.current.setMode("play"));
+    expect(result.current.questTitle).toBe("Título ES");
+  });
+});
+
+describe("useGameState — routing setters write to Original vs questTranslations based on contentLocale", () => {
+  it("setQuestTitle writes to the Original stash when contentLocale is 'original'", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit", initialTitle: "Old" }));
+    act(() => result.current.setQuestTitle("New"));
+    expect(result.current.questTitle).toBe("New");
+    expect(result.current.questTranslations).toEqual({});
+  });
+
+  it("setQuestTitle writes into questTranslations when contentLocale is 'en', leaving Original untouched", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit", initialTitle: "Old" }));
+    act(() => result.current.setContentLocale("en"));
+    act(() => result.current.setQuestTitle("EN Title"));
+    expect(result.current.questTranslations).toEqual({ en: { title: "EN Title" } });
+    act(() => result.current.setContentLocale("original"));
+    expect(result.current.questTitle).toBe("Old");
+  });
+});
+
+describe("useGameState — cross-tab preservation (switching EN <-> ES never loses unsaved work)", () => {
+  it("questTitle: EN value survives a round trip through ES and back", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit" }));
+    act(() => result.current.setContentLocale("en"));
+    act(() => result.current.setQuestTitle("EN Title"));
+    act(() => result.current.setContentLocale("es"));
+    expect(result.current.questTitle).toBe(""); // ES tab starts empty
+    act(() => result.current.setQuestTitle("ES Title"));
+    act(() => result.current.setContentLocale("en"));
+    expect(result.current.questTitle).toBe("EN Title");
+    expect(result.current.questTranslations).toEqual({
+      en: { title: "EN Title" },
+      es: { title: "ES Title" },
+    });
+  });
+
+  it("questDescription: EN value survives a round trip through ES and back", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit" }));
+    act(() => result.current.setContentLocale("en"));
+    act(() => result.current.setQuestDescription("EN Desc"));
+    act(() => result.current.setContentLocale("es"));
+    act(() => result.current.setQuestDescription("ES Desc"));
+    act(() => result.current.setContentLocale("en"));
+    expect(result.current.questDescription).toBe("EN Desc");
+    expect(result.current.questTranslations).toEqual({
+      en: { description: "EN Desc" },
+      es: { description: "ES Desc" },
+    });
+  });
+
+  it("questPlacementMessage: EN value survives a round trip through ES and back", () => {
+    const { result } = renderHook(() => useGameState({ initialMode: "edit" }));
+    act(() => result.current.setContentLocale("en"));
+    act(() => result.current.setQuestPlacementMessage("EN Placement"));
+    act(() => result.current.setContentLocale("es"));
+    act(() => result.current.setQuestPlacementMessage("ES Placement"));
+    act(() => result.current.setContentLocale("en"));
+    expect(result.current.questPlacementMessage).toBe("EN Placement");
+    expect(result.current.questTranslations).toEqual({
+      en: { placementMessage: "EN Placement" },
+      es: { placementMessage: "ES Placement" },
+    });
+  });
+});
+
+describe("useGameState — Original values remain accessible for persistence, independent of active contentLocale", () => {
+  it("questTitleOriginal / questDescriptionOriginal / questPlacementMessageOriginal reflect the Original stash even while an EN/ES tab is active with different text", () => {
+    const { result } = renderHook(() => useGameState({
+      initialMode: "edit", initialTitle: "Orig Title", initialDescription: "Orig Desc", initialPlacementMessage: "Orig Placement",
+    }));
+    act(() => result.current.setContentLocale("en"));
+    act(() => result.current.setQuestTitle("EN Title"));
+    act(() => result.current.setQuestDescription("EN Desc"));
+    act(() => result.current.setQuestPlacementMessage("EN Placement"));
+    expect(result.current.questTitleOriginal).toBe("Orig Title");
+    expect(result.current.questDescriptionOriginal).toBe("Orig Desc");
+    expect(result.current.questPlacementMessageOriginal).toBe("Orig Placement");
+    // the derived/pill-resolved getters, by contrast, reflect the active EN tab
+    expect(result.current.questTitle).toBe("EN Title");
+  });
+});

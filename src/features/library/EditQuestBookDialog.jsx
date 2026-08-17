@@ -1,13 +1,52 @@
 import { useState, useRef, useEffect } from "react";
 import { T, FONT_HEADING } from "../../shared/theme.js";
+import { useI18n } from "../../shared/i18n/useI18n.js";
+import { ContentLocaleTabs } from "../../shared/ContentLocaleTabs.jsx";
+import { hasTranslationContent, setTranslationField } from "../../shared/questText.js";
 
-export function EditQuestBookDialog({ initialTitle, initialDescription = "", initialCoverImage = null, onSave, onCancel }) {
+// NOTE: this file has zero pre-existing useI18n()/t() usage (a gap predating
+// FEAT-040, out of scope to fix broadly here) — t() below is used ONLY for
+// the new translation-editing strings/ContentLocaleTabs, not for this
+// dialog's other pre-existing hardcoded English copy ("Edit Quest Book",
+// "Book title", "Save", "Cancel", etc.), which stays untouched.
+export function EditQuestBookDialog({ initialTitle, initialDescription = "", initialCoverImage = null, initialTranslations = {}, onSave, onCancel }) {
+  const { t } = useI18n();
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription ?? "");
   const [coverImage, setCoverImage] = useState(initialCoverImage ?? null);
   const [sizeWarning, setSizeWarning] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const fileInputRef = useRef(null);
+
+  // FEAT-041: quest-book content translations. editTarget mirrors
+  // useGameState's contentLocale, always starting at "original" — this
+  // dialog manages its own local state rather than going through
+  // useGameState, since quest-book editing isn't part of a game session.
+  const [translations, setTranslations] = useState(() => initialTranslations ?? {});
+  const [editTarget, setEditTarget] = useState("original");
+
+  const displayedTitle = editTarget === "original" ? title : (translations[editTarget]?.title ?? "");
+  const displayedDescription = editTarget === "original" ? description : (translations[editTarget]?.description ?? "");
+
+  function handleTitleChange(value) {
+    if (editTarget === "original") setTitle(value);
+    else setTranslations(prev => setTranslationField(prev, editTarget, "title", value));
+  }
+
+  function handleDescriptionChange(value) {
+    if (editTarget === "original") setDescription(value);
+    else setTranslations(prev => setTranslationField(prev, editTarget, "description", value));
+  }
+
+  const translationLanguage = editTarget === "en"
+    ? t("contentLocale.languageNameEn")
+    : editTarget === "es"
+      ? t("contentLocale.languageNameEs")
+      : null;
+  function translationAwarePlaceholder(defaultPlaceholder) {
+    if (!translationLanguage) return defaultPlaceholder;
+    return t("contentLocale.noTranslationYetPlaceholder", { language: translationLanguage });
+  }
 
   useEffect(() => {
     function onKey(e) {
@@ -37,8 +76,17 @@ export function EditQuestBookDialog({ initialTitle, initialDescription = "", ini
   }
 
   function handleSave() {
+    // Disabled-state check (below) and this guard both look at the ORIGINAL
+    // title specifically — a DM shouldn't be blocked from saving because a
+    // translation tab happens to be empty.
     if (!title.trim()) return;
-    onSave(title.trim(), description.trim(), coverImage);
+    // The translations argument is only appended when there's actual
+    // translation content — keeps the call shape unchanged (3 args) for the
+    // common case of a DM who never touches the EN/ES tabs, so existing
+    // onSave consumers that don't expect a 4th argument are unaffected.
+    const hasAnyTranslations = hasTranslationContent(translations, "en") || hasTranslationContent(translations, "es");
+    if (hasAnyTranslations) onSave(title.trim(), description.trim(), coverImage, translations);
+    else onSave(title.trim(), description.trim(), coverImage);
   }
 
   return (
@@ -55,10 +103,18 @@ export function EditQuestBookDialog({ initialTitle, initialDescription = "", ini
             <button type="button" className="btn-close btn-close-white" onClick={onCancel} />
           </div>
           <div className="modal-body px-3 py-3 d-flex flex-column gap-2" style={{ overflowY: "auto", maxHeight: "60vh" }}>
+            <ContentLocaleTabs
+              value={editTarget}
+              onChange={setEditTarget}
+              mode="edit"
+              hasEnContent={hasTranslationContent(translations, "en")}
+              hasEsContent={hasTranslationContent(translations, "es")}
+              t={t}
+            />
             <input
-              placeholder="Book title"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
+              placeholder={translationAwarePlaceholder("Book title")}
+              value={displayedTitle}
+              onChange={e => handleTitleChange(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSave()}
               className="form-control form-control-sm hq-input-dark"
               autoFocus
@@ -72,9 +128,9 @@ export function EditQuestBookDialog({ initialTitle, initialDescription = "", ini
               </label>
               <input
                 id="edit-book-description-input"
-                placeholder="Optional"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
+                placeholder={translationAwarePlaceholder("Optional")}
+                value={displayedDescription}
+                onChange={e => handleDescriptionChange(e.target.value)}
                 className="form-control form-control-sm hq-input-dark"
               />
               <div style={{ fontSize: 10, color: T.sidebarTextMuted, marginTop: 3, opacity: 0.8 }}>

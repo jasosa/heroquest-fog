@@ -4,6 +4,8 @@ import { EditPanel } from "./EditPanel.jsx";
 import { SectionHeader } from "./SectionHeader.jsx";
 import { PIECE_CATEGORIES } from "../../shared/pieces.js";
 import { useI18n } from "../../shared/i18n/useI18n.js";
+import { ContentLocaleTabs } from "../../shared/ContentLocaleTabs.jsx";
+import { hasTranslationContent } from "../../shared/questText.js";
 
 
 function ModeToggle({ mode, onSetMode, t }) {
@@ -55,11 +57,26 @@ export function Sidebar({
   onBack, onSave, savedFlash, saveError,
   questTitle, questDescription, setQuestTitle, setQuestDescription,
   placementMessage, setQuestPlacementMessage,
+  contentLocale = "original", setContentLocale = () => {}, questTranslations = {},
 }) {
   const { locale, setLocale, t } = useI18n();
   const [isCollapsed, setIsCollapsed] = useState(
     () => localStorage.getItem("hq_sidebar_collapsed") === "true"
   );
+
+  // FEAT-041: placeholder text for the title/description/placementMessage
+  // inputs switches when an EN/ES translation tab is active in edit mode —
+  // value/onChange wiring is untouched; useGameState's derived getters/
+  // routing setters already handle the actual value-switching transparently.
+  const translationPlaceholderLanguage = contentLocale === "en"
+    ? t("contentLocale.languageNameEn")
+    : contentLocale === "es"
+      ? t("contentLocale.languageNameEs")
+      : null;
+  function translationAwarePlaceholder(defaultPlaceholder) {
+    if (!translationPlaceholderLanguage) return defaultPlaceholder;
+    return t("contentLocale.noTranslationYetPlaceholder", { language: translationPlaceholderLanguage });
+  }
 
   function toggleCollapsed() {
     const next = !isCollapsed;
@@ -121,12 +138,27 @@ export function Sidebar({
 
         {/* Quest title */}
         <SectionHeader label={t("sidebar.questInfo")} />
+        {/* FEAT-041: quest-content locale switcher — physically separate from
+            the app-chrome language switcher above (its own DOM slot, own
+            purpose: which DM-authored quest text is shown/edited, not which
+            UI language is displayed). Hidden when collapsed, mirroring the
+            app-chrome switcher's own collapse behavior. */}
+        {!isCollapsed && (
+          <ContentLocaleTabs
+            value={contentLocale}
+            onChange={setContentLocale}
+            mode={mode === "edit" ? "edit" : "read"}
+            hasEnContent={hasTranslationContent(questTranslations, "en")}
+            hasEsContent={hasTranslationContent(questTranslations, "es")}
+            t={t}
+          />
+        )}
         {setQuestTitle ? (
           mode === "edit" ? (
             <input
               value={questTitle}
               onChange={e => setQuestTitle(e.target.value)}
-              placeholder={t("sidebar.questTitlePlaceholder")}
+              placeholder={translationAwarePlaceholder(t("sidebar.questTitlePlaceholder"))}
               className="form-control form-control-sm hq-input-dark"
             />
           ) : (
@@ -150,7 +182,7 @@ export function Sidebar({
                 id="sidebar-quest-description"
                 value={questDescription}
                 onChange={e => setQuestDescription(e.target.value)}
-                placeholder={t("sidebar.questDescriptionPlaceholder")}
+                placeholder={translationAwarePlaceholder(t("sidebar.questDescriptionPlaceholder"))}
                 rows={3}
                 className="form-control form-control-sm hq-input-dark"
                 style={{ resize: "vertical" }}
@@ -186,7 +218,7 @@ export function Sidebar({
               id="sidebar-placement-message"
               value={placementMessage ?? ""}
               onChange={e => setQuestPlacementMessage(e.target.value)}
-              placeholder={t("sidebar.placementMessagePlaceholder")}
+              placeholder={translationAwarePlaceholder(t("sidebar.placementMessagePlaceholder"))}
               rows={3}
               className="form-control form-control-sm hq-input-dark"
               style={{ resize: "vertical" }}
