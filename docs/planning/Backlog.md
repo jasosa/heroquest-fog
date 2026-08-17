@@ -82,7 +82,7 @@ Verified 2026-08-15 via visual QA pass (running app): confirmed not implemented 
 
 ### [FEAT-041] Quest content internationalization (multi-language quest texts)
 Priority: medium
-Status: not_started
+Status: in_progress
 Complexity: high
 Description: When creating/editing a quest, the DM should be able to provide quest text — title, description, placement message, letter-marker notes, search-marker/secret-door messages, trap/chest notes, etc. — in multiple languages, not just a single hardcoded string per field as today. This is quest content (persisted per-quest in `questStorage.js`'s `hq_quests`/`hq_quest_books` collections), authored by the DM, not application chrome — distinct from FEAT-040 (application UI language). Requires a data-model change (e.g. per-field text becoming `{ en: "...", es: "...", ... }` instead of a bare string, with migration for existing single-language quests — see `migrateQuests()` precedent), editor UI to add/manage additional languages per quest/quest-book, and play/edit-mode rendering logic to select the display language per quest text. Open design question for the `architect`/`ux` subagents to resolve: whether quest-text language selection reuses the same global "current display language" as FEAT-040, or is independent per quest/session. Given the data-model and UI scope, this should go through the `architect` subagent first (complexity: high) before planning.
 
