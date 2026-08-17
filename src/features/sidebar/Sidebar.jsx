@@ -3,11 +3,12 @@ import { T, FONT_HEADING, FONT_BODY } from "../../shared/theme.js";
 import { EditPanel } from "./EditPanel.jsx";
 import { SectionHeader } from "./SectionHeader.jsx";
 import { PIECE_CATEGORIES } from "../../shared/pieces.js";
+import { useI18n } from "../../shared/i18n/useI18n.js";
 
 
-function ModeToggle({ mode, onSetMode }) {
+function ModeToggle({ mode, onSetMode, t }) {
   return (
-    <div className="btn-group w-100 mb-1" role="group" aria-label="Mode toggle">
+    <div className="btn-group w-100 mb-1" role="group" aria-label={t("sidebar.modeToggleAriaLabel")}>
       {["play", "edit"].map(m => (
         <button
           key={m}
@@ -18,18 +19,18 @@ function ModeToggle({ mode, onSetMode }) {
             ...(mode === m ? { textShadow: "0 0 8px #f0c04088" } : {}),
           }}
         >
-          {m === "play" ? "⚔ Play" : "✎ Edit"}
+          {m === "play" ? t("common.play") : t("common.edit")}
         </button>
       ))}
     </div>
   );
 }
 
-function PlayPanel({ onReset }) {
+function PlayPanel({ onReset, t }) {
   return (
     <>
       <p style={{ fontSize: 11, color: T.sidebarTextMuted, lineHeight: 1.7, margin: 0, marginTop: 4, fontFamily: FONT_BODY }}>
-        Click any dungeon cell to reveal what a hero standing there would see.
+        {t("sidebar.playIntro")}
       </p>
 
       <div style={{
@@ -37,13 +38,13 @@ function PlayPanel({ onReset }) {
         padding: "10px 12px", fontSize: 10, color: T.sidebarTextMuted, lineHeight: 1.8,
         marginTop: 2, fontFamily: FONT_BODY,
       }}>
-        <span style={{ color: T.accentGold }}>Room cell</span> → entire room revealed<br />
-        <span style={{ color: T.accentGold }}>Corridor cell</span> → straight line until wall or blocker<br />
-        <span style={{ color: T.accentGold }}>Start marker</span> → auto-revealed at game start
+        <span style={{ color: T.accentGold }}>{t("sidebar.roomCellLabel")}</span> {t("sidebar.roomCellText")}<br />
+        <span style={{ color: T.accentGold }}>{t("sidebar.corridorCellLabel")}</span> {t("sidebar.corridorCellText")}<br />
+        <span style={{ color: T.accentGold }}>{t("sidebar.startMarkerLabel")}</span> {t("sidebar.startMarkerText")}
       </div>
 
       <button onClick={onReset} className="btn btn-hq-dark w-100 mt-1" style={{ color: T.accent, padding: "9px 0", letterSpacing: 2 }}>
-        ↺ Reset Fog of War
+        {t("sidebar.resetFog")}
       </button>
     </>
   );
@@ -55,6 +56,7 @@ export function Sidebar({
   questTitle, questDescription, setQuestTitle, setQuestDescription,
   placementMessage, setQuestPlacementMessage,
 }) {
+  const { locale, setLocale, t } = useI18n();
   const [isCollapsed, setIsCollapsed] = useState(
     () => localStorage.getItem("hq_sidebar_collapsed") === "true"
   );
@@ -86,25 +88,45 @@ export function Sidebar({
       {/* Inner content */}
       <div className="d-flex flex-column flex-grow-1 overflow-y-auto gap-2 p-3">
 
-        {/* Back to library */}
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="btn btn-hq-dark btn-sm align-self-start mb-1"
-            style={{ fontSize: 11, letterSpacing: 2, minHeight: 34 }}
-          >
-            ← Library
-          </button>
-        )}
+        {/* Back to library + language switcher */}
+        <div className="d-flex align-items-center justify-content-between mb-1">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="btn btn-hq-dark btn-sm align-self-start"
+              style={{ fontSize: 11, letterSpacing: 2, minHeight: 34 }}
+            >
+              {t("sidebar.backToLibrary")}
+            </button>
+          )}
+          {!isCollapsed && (
+            <div
+              role="group"
+              aria-label={t("sidebar.languageSwitcherLabel")}
+              className="btn-group"
+            >
+              <button
+                onClick={() => setLocale("en")}
+                className={`btn btn-hq-dark btn-sm${locale === "en" ? " active" : ""}`}
+                style={{ fontSize: 11, minHeight: 34 }}
+              >EN</button>
+              <button
+                onClick={() => setLocale("es")}
+                className={`btn btn-hq-dark btn-sm${locale === "es" ? " active" : ""}`}
+                style={{ fontSize: 11, minHeight: 34 }}
+              >ES</button>
+            </div>
+          )}
+        </div>
 
         {/* Quest title */}
-        <SectionHeader label="Quest Info" />
+        <SectionHeader label={t("sidebar.questInfo")} />
         {setQuestTitle ? (
           mode === "edit" ? (
             <input
               value={questTitle}
               onChange={e => setQuestTitle(e.target.value)}
-              placeholder="Quest title"
+              placeholder={t("sidebar.questTitlePlaceholder")}
               className="form-control form-control-sm hq-input-dark"
             />
           ) : (
@@ -122,19 +144,19 @@ export function Sidebar({
                 htmlFor="sidebar-quest-description"
                 style={{ fontSize: 11, color: T.sidebarTextMuted, display: "block", marginBottom: 4 }}
               >
-                Description
+                {t("sidebar.description")}
               </label>
               <textarea
                 id="sidebar-quest-description"
                 value={questDescription}
                 onChange={e => setQuestDescription(e.target.value)}
-                placeholder="Quest description"
+                placeholder={t("sidebar.questDescriptionPlaceholder")}
                 rows={3}
                 className="form-control form-control-sm hq-input-dark"
                 style={{ resize: "vertical" }}
               />
               <div style={{ fontSize: 10, color: T.sidebarTextMuted, marginTop: 3, opacity: 0.8 }}>
-                Shown in the quest library
+                {t("sidebar.descriptionHint")}
               </div>
             </div>
           ) : questDescription ? (
@@ -158,13 +180,13 @@ export function Sidebar({
               htmlFor="sidebar-placement-message"
               style={{ fontSize: 11, color: T.sidebarTextMuted, display: "block", marginBottom: 4 }}
             >
-              Placement message
+              {t("sidebar.placementMessage")}
             </label>
             <textarea
               id="sidebar-placement-message"
               value={placementMessage ?? ""}
               onChange={e => setQuestPlacementMessage(e.target.value)}
-              placeholder="Optional text shown to players when the quest starts"
+              placeholder={t("sidebar.placementMessagePlaceholder")}
               rows={3}
               className="form-control form-control-sm hq-input-dark"
               style={{ resize: "vertical" }}
@@ -172,12 +194,12 @@ export function Sidebar({
           </div>
         )}
 
-        <SectionHeader label="Mode" />
+        <SectionHeader label={t("sidebar.mode")} />
 
-        <ModeToggle mode={mode} onSetMode={setMode} />
+        <ModeToggle mode={mode} onSetMode={setMode} t={t} />
 
         {mode === "play"
-          ? <PlayPanel onReset={onReset} />
+          ? <PlayPanel onReset={onReset} t={t} />
           : (
             <EditPanel
               pieceCategories={PIECE_CATEGORIES}
@@ -193,9 +215,9 @@ export function Sidebar({
 
         {/* Board style selector */}
         <div className="p-2 mt-2" style={{ background: T.sidebarPanelBg, border: `1px solid ${T.sidebarPanelBorder}` }}>
-          <SectionHeader label="Board Style" />
+          <SectionHeader label={t("sidebar.boardStyle")} />
           <div className="btn-group w-100" role="group">
-            {[["board", "Board 1"], ["board2", "Board 2"], ["board3", "Board 3"]].map(([b, label]) => (
+            {[["board", t("sidebar.board1")], ["board2", t("sidebar.board2")], ["board3", t("sidebar.board3")]].map(([b, label]) => (
               <button
                 key={b}
                 onClick={() => setBgImage(b)}

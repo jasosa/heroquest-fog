@@ -1,0 +1,68 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "play": "⚔ Play",
+    "edit": "✎ Edit",
+    "delete": "Delete"
+  },
+  "library": {
+    "heading": "HeroQuest — Quest Library",
+    "allQuests": "All Quests",
+    "questBooks": "Quest Books",
+    "newBook": "＋ New Book",
+    "newQuest": "＋ New Quest",
+    "emptyState": "No quests yet. Create one to get started.",
+    "noDescription": "No description.",
+    "importQuest": "⬆ Import Quest",
+    "calibrateMaps": "⚙ Calibrate Maps",
+    "calibrateMapsTitle": "Open map calibration tool",
+    "editBookTitle": "Edit book",
+    "deleteBookTitle": "Delete book",
+    "deleteQuestTitle": "Delete quest",
+    "exportQuestTitle": "Export quest as JSON",
+    "assignQuestTitle": "Assign to quest book",
+    "coverImageAlt": "Cover image preview",
+    "confirmDeleteBook": "Delete this book and all its quests?",
+    "confirmDeleteQuest": "Delete this quest?",
+    "importFailedFallback": "Failed to import quest.",
+    "importErrorMissingFields": "Invalid quest file — missing required fields.",
+    "importErrorMalformedJson": "Invalid quest file — malformed JSON.",
+    "languageSwitcherLabel": "Select language",
+    "newBadge": "New"
+  },
+  "sidebar": {
+    "playIntro": "Click any dungeon cell to reveal what a hero standing there would see.",
+    "roomCellLabel": "Room cell",
+    "roomCellText": "→ entire room revealed",
+    "corridorCellLabel": "Corridor cell",
+    "corridorCellText": "→ straight line until wall or blocker",
+    "startMarkerLabel": "Start marker",
+    "startMarkerText": "→ auto-revealed at game start",
+    "resetFog": "↺ Reset Fog of War",
+    "backToLibrary": "← Library",
+    "questInfo": "Quest Info",
+    "questTitlePlaceholder": "Quest title",
+    "description": "Description",
+    "questDescriptionPlaceholder": "Quest description",
+    "descriptionHint": "Shown in the quest library",
+    "placementMessage": "Placement message",
+    "placementMessagePlaceholder": "Optional text shown to players when the quest starts",
+    "mode": "Mode",
+    "boardStyle": "Board Style",
+    "board1": "Board 1",
+    "board2": "Board 2",
+    "board3": "Board 3",
+    "modeToggleAriaLabel": "Mode toggle",
+    "languageSwitcherLabel": "Select language"
+  },
+  "board": {
+    "trap": {
+      "configTitle": "Trap — Configuration",
+      "springMessageLabel": "Spring effect message",
+      "springMessagePlaceholder": "Optional message shown when trap springs",
+      "removeAfterSpring": "Remove from board after spring",
+      "applyToAll": "Apply to all {trapTypeLabel} traps in this quest"
+    }
+  }
+}

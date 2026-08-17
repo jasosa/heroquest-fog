@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, fireEvent, cleanup } from "@testing-library/react";
 import { TrapConfigDialog } from "./TrapConfigDialog.jsx";
+import { renderWithI18n } from "../../test-utils/renderWithI18n.jsx";
 
 afterEach(() => cleanup());
 
@@ -100,5 +101,26 @@ describe("TrapConfigDialog", () => {
     );
     fireEvent.mouseDown(container.firstChild);
     expect(onCancel).toHaveBeenCalled();
+  });
+});
+
+// ── FEAT-040: i18n ─────────────────────────────────────────────────────────────
+
+describe("TrapConfigDialog i18n", () => {
+  it("English interpolation still matches the apply-to-all regex used elsewhere", () => {
+    const { getByLabelText } = renderWithI18n(
+      <TrapConfigDialog initialSpringMessage="" initialRemoveAfterSpring={true} trapTypeLabel="Pit Trap" onSave={() => {}} onCancel={() => {}} />,
+      { locale: "en" }
+    );
+    expect(getByLabelText(/apply to all pit trap traps in this quest/i)).toBeTruthy();
+  });
+
+  it("Spanish locale substitutes trapTypeLabel into the apply-to-all label, not left as a literal placeholder", () => {
+    const { getByText } = renderWithI18n(
+      <TrapConfigDialog initialSpringMessage="" initialRemoveAfterSpring={true} trapTypeLabel="Pit Trap" onSave={() => {}} onCancel={() => {}} />,
+      { locale: "es" }
+    );
+    expect(getByText(/aplicar a todas las trampas de tipo pit trap en esta misi.n/i)).toBeTruthy();
+    expect(() => getByText(/\{trapTypeLabel\}/)).toThrow();
   });
 });

@@ -115,9 +115,18 @@ export function exportQuestAsJson(quest) {
 // Parses a JSON string and saves as a new quest under questBookId.
 // Returns the saved quest, or throws if the JSON is invalid / missing required fields.
 export function importQuestFromJson(jsonString, questBookId = null) {
-  const data = JSON.parse(jsonString); // throws on malformed JSON
+  let data;
+  try {
+    data = JSON.parse(jsonString);
+  } catch {
+    const err = new Error("Invalid quest file — malformed JSON.");
+    err.code = "MALFORMED_JSON";
+    throw err;
+  }
   if (!data.title || typeof data.placed !== "object" || typeof data.doors !== "object") {
-    throw new Error("Invalid quest file — missing required fields.");
+    const err = new Error("Invalid quest file — missing required fields.");
+    err.code = "MISSING_REQUIRED_FIELDS";
+    throw err;
   }
   return persistQuest({
     id: uid(),

@@ -1,0 +1,68 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "play": "⚔ Jugar",
+    "edit": "✎ Editar",
+    "delete": "Eliminar"
+  },
+  "library": {
+    "heading": "HeroQuest — Biblioteca de Misiones",
+    "allQuests": "Todas las Misiones",
+    "questBooks": "Libros de Misiones",
+    "newBook": "＋ Nuevo Libro",
+    "newQuest": "＋ Nueva Misión",
+    "emptyState": "Aún no hay misiones. Crea una para empezar.",
+    "noDescription": "Sin descripción.",
+    "importQuest": "⬆ Importar Misión",
+    "calibrateMaps": "⚙ Calibrar Mapas",
+    "calibrateMapsTitle": "Abrir herramienta de calibración de mapas",
+    "editBookTitle": "Editar libro",
+    "deleteBookTitle": "Eliminar libro",
+    "deleteQuestTitle": "Eliminar misión",
+    "exportQuestTitle": "Exportar misión como JSON",
+    "assignQuestTitle": "Asignar a un libro de misiones",
+    "coverImageAlt": "Vista previa de la portada",
+    "confirmDeleteBook": "¿Eliminar este libro y todas sus misiones?",
+    "confirmDeleteQuest": "¿Eliminar esta misión?",
+    "importFailedFallback": "No se pudo importar la misión.",
+    "importErrorMissingFields": "Archivo de misión no válido — faltan campos obligatorios.",
+    "importErrorMalformedJson": "Archivo de misión no válido — JSON con formato incorrecto.",
+    "languageSwitcherLabel": "Seleccionar idioma",
+    "newBadge": "Nuevo"
+  },
+  "sidebar": {
+    "playIntro": "Haz clic en cualquier celda de la mazmorra para revelar lo que vería un héroe situado allí.",
+    "roomCellLabel": "Celda de sala",
+    "roomCellText": "→ se revela toda la sala",
+    "corridorCellLabel": "Celda de pasillo",
+    "corridorCellText": "→ línea recta hasta un muro o bloqueo",
+    "startMarkerLabel": "Marcador de inicio",
+    "startMarkerText": "→ se revela automáticamente al empezar la partida",
+    "resetFog": "↺ Reiniciar Niebla de Guerra",
+    "backToLibrary": "← Biblioteca",
+    "questInfo": "Información de la Misión",
+    "questTitlePlaceholder": "Título de la misión",
+    "description": "Descripción",
+    "questDescriptionPlaceholder": "Descripción de la misión",
+    "descriptionHint": "Se muestra en la biblioteca de misiones",
+    "placementMessage": "Mensaje de colocación",
+    "placementMessagePlaceholder": "Texto opcional mostrado a los jugadores al iniciar la misión",
+    "mode": "Modo",
+    "boardStyle": "Estilo de Tablero",
+    "board1": "Tablero 1",
+    "board2": "Tablero 2",
+    "board3": "Tablero 3",
+    "modeToggleAriaLabel": "Selector de modo",
+    "languageSwitcherLabel": "Seleccionar idioma"
+  },
+  "board": {
+    "trap": {
+      "configTitle": "Trampa — Configuración",
+      "springMessageLabel": "Mensaje al activarse",
+      "springMessagePlaceholder": "Mensaje opcional mostrado al activarse la trampa",
+      "removeAfterSpring": "Quitar del tablero tras activarse",
+      "applyToAll": "Aplicar a todas las trampas de tipo {trapTypeLabel} en esta misión"
+    }
+  }
+}
